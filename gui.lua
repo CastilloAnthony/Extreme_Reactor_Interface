@@ -5,7 +5,7 @@ gui = {}
 gui.authorized = nil
 gui.snapshot = nil
 -- gui.oldSnapshot = nil
-gui.totalPages = 8
+gui.totalPages = 9
 gui.width = nil
 gui.height = 100
 gui.widthFactor = 7/10
@@ -312,7 +312,7 @@ end --end main
 function gui.page1() --Snapshot Report
     local content = {
         [0] = 'Snapshot Report: ',
-        [1] = gui.snapshot['report']['timestamp'],
+        [1] = gui.snapshot['report']['datestamp'],
         [2] = ccStrings.ensure_width('Server Name', gui.width*gui.widthFactor)..'ID',
         [3] = ccStrings.ensure_width(string.sub(gui.snapshot['report']['origin']['label'], 0, gui.width*gui.widthFactor-1), gui.width*gui.widthFactor)..gui.snapshot['report']['origin']['id'],
         [4] = '',
@@ -837,7 +837,7 @@ function gui.page8() -- Graphs
     for k, v in pairs(graphContent) do 
         -- Max Height: gui.height-#content-4
         -- Max Width: gui.width*gui.widthFactor-2
-        local width = ((gui.width*gui.widthFactor-2)/4)-2
+        local width = ((gui.width*gui.widthFactor-2)/4)-3
         local x = (((gui.width*gui.widthFactor)-2)/(4))*(k)+3
         gui.monitor.setTextColor(graphColors[k])
         for i=1, (gui.height-8) do
@@ -849,18 +849,11 @@ function gui.page8() -- Graphs
             else
                 gui.monitor.write('   ')
             end
-            for k=1, width do
-                gui.monitor.write(' ')
-            end
-            gui.monitor.write(' ')
         end
         for i=2, (gui.height-8)*(v/100) do
-            local width = ((gui.width*gui.widthFactor-2)/4)-4
             gui.monitor.setCursorPos(x+1, gui.height-2-i)
             gui.monitor.setBackgroundColor(graphColors[k])
-            for k=1, width do
-                gui.monitor.write(' ')
-            end
+            gui.monitor.write(' ')
         end
     end
     local buttons = {
@@ -880,8 +873,85 @@ function gui.page8() -- Graphs
     end
 end --end page8
 
+function gui.readClients()
+    local file = fs.open('./er_interface/keys/clients', 'r')
+    local clients = textutils.unserialize(file.readAll())
+    file.close()
+    return clients
+end --end readClients
+
+function gui.page9() -- Manage Clients // Connection to Server
+    if not fs.exists('./er_interface/keys/server.key') then -- Manage Clients on Server
+        local content = {
+            [0] = '',
+            [1] = 'Manage Clients',
+            [2] = '',
+            [3] = ccStrings.ensure_width('Name', gui.width*gui.widthFactor-1)..'ID',
+        }
+        local contentColors = {
+        [0] = gui.stdBgColor,
+        [1] = colors.yellow,
+        [2] = gui.stdBgColor,
+        [3] = colors.yellow,
+        }
+        for i, in gui.readClients() do
+            content[#content] = ccStrings.ensure_width(i['label'], gui.width*gui.widthFactor-1)..i['id'],
+            contentColors[#contentColors] = colors.white
+        end
+        for k, v in pairs(content) do
+            gui.monitor.setCursorPos(2,3+k)
+            gui.monitor.setBackgroundColor(colors.black)
+            for i=0, gui.width-3 do
+                gui.monitor.write(' ')
+            end
+            if k == 1 then --Title
+                gui.monitor.setTextColor(contentColors[k])
+                gui.monitor.setCursorPos(math.ceil((gui.width-(#v-2))/2), 3+k)
+                gui.monitor.write(v)
+            else
+                gui.monitor.setCursorPos(3,3+k)
+                gui.monitor.setTextColor(contentColors[k])
+                gui.monitor.write(v)
+            end
+        end
+    else
+        local content = {
+            [0] = '',
+            [1] = 'Connection to Server',
+            [2] = '',
+            [3] = ccStrings.ensure_width('Server Name', gui.width*gui.widthFactor)..'ID',
+            [4] = ccStrings.ensure_width(string.sub(gui.snapshot['report']['origin']['label'], 0, gui.width*gui.widthFactor-1), gui.width*gui.widthFactor)..gui.snapshot['report']['origin']['id'],
+            [5] = ccStrings.ensure_width('Latency', gui.width*gui.widthFactor)..gui.formatNum(os.epoch-gui.snapshot['report']['timestamp']),
+        }
+        local contentColors = {
+            [0] = gui.stdBgColor,
+            [1] = colors.yellow,
+            [2] = gui.stdBgColor,
+            [3] = colors.yellow,
+            [4] = colors.white,
+            [5] = colors.white,
+        }
+        for k, v in pairs(content) do
+            gui.monitor.setCursorPos(2,3+k)
+            gui.monitor.setBackgroundColor(colors.black)
+            for i=0, gui.width-3 do
+                gui.monitor.write(' ')
+            end
+            if k == 1 then --Title
+                gui.monitor.setTextColor(contentColors[k])
+                gui.monitor.setCursorPos(math.ceil((gui.width-(#v-2))/2), 3+k)
+                gui.monitor.write(v)
+            else
+                gui.monitor.setCursorPos(3,3+k)
+                gui.monitor.setTextColor(contentColors[k])
+                gui.monitor.write(v)
+            end
+        end
+    end
+end  --end page
+
 function gui.pageN_format()
     return
-end --end page 
+end  --end page 
 
 return gui

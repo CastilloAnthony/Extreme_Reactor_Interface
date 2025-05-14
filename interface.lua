@@ -236,7 +236,7 @@ function interface.generateSnapshots() -- Run in parallel
             ['hotFluidInfo'] = interface.getHotFluidInfo(),
             ['rodInfo'] = interface.getControlRodsInfo(),
             ['mbLocation'] = interface.getMBInfo(),
-            ['report'] = {['timestamp'] = os.date(), ['origin'] = interface.getComputerInfo()},
+            ['report'] = {['datestamp'] = os.date(), ['origin'] = interface.getComputerInfo(), ['timestamp'] = os.epoch()},
             ['automations'] = interface.automations,
         }
         gui.updateSnapshot(interface.snapshot)
