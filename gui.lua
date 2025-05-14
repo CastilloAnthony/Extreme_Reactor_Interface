@@ -209,7 +209,7 @@ function gui.signup(target)
     end
     gui.monitor.setCursorPos(math.ceil(gui.width/2)-math.floor(#length/2)+1, math.ceil(gui.height/2)-math.floor(#info/2)+#info-1)
     gui.monitor.setVisible(true)
-    return read(nil)
+    return read('*')
 end --end signup
 
 function gui.login(target)
@@ -884,7 +884,7 @@ function gui.readClients()
 end --end readClients
 
 function gui.page9() -- Manage Clients // Connection to Server
-    if not fs.exists('./er_interface/keys/server.key') then -- Manage Clients on Server
+    if fs.exists('./er_interface/interface.lua') then -- Manage Clients on Server
         local content = {
             [0] = '',
             [1] = 'Manage Clients',
@@ -898,9 +898,11 @@ function gui.page9() -- Manage Clients // Connection to Server
         [3] = colors.yellow,
         }
         for _, i in pairs(gui.readClients()) do
-            content[#content] = ccStrings.ensure_width(i['label'], gui.width*gui.widthFactor-1)..i['id']
-            contentColors[#contentColors] = colors.white
+            content[#content+1] = ccStrings.ensure_width(i['label'], gui.width*gui.widthFactor-1)..i['id']
+            contentColors[#contentColors+1] = colors.white
         end
+        content[#content+1] = ''
+        contentColors[#contentColors+1] = gui.stdBgColor
         for k, v in pairs(content) do
             gui.monitor.setCursorPos(2,3+k)
             gui.monitor.setBackgroundColor(colors.black)
@@ -924,7 +926,10 @@ function gui.page9() -- Manage Clients // Connection to Server
             [2] = '',
             [3] = ccStrings.ensure_width('Server Name', gui.width*gui.widthFactor)..'ID',
             [4] = ccStrings.ensure_width(string.sub(gui.snapshot['report']['origin']['label'], 0, gui.width*gui.widthFactor-1), gui.width*gui.widthFactor)..gui.snapshot['report']['origin']['id'],
-            [5] = ccStrings.ensure_width('Latency', gui.width*gui.widthFactor)..gui.formatNum(os.epoch-gui.snapshot['report']['timestamp']),
+            [5] = '',
+            [6] = ccStrings.ensure_width('Latency', gui.width*gui.widthFactor),
+            [7] = ccStrings.ensure_width(gui.formatNum((os.epoch('local')-gui.snapshot['report']['timestamp'])/1000)..'s', gui.width*gui.widthFactor),
+            [8] = '',
         }
         local contentColors = {
             [0] = gui.stdBgColor,
@@ -932,7 +937,10 @@ function gui.page9() -- Manage Clients // Connection to Server
             [2] = gui.stdBgColor,
             [3] = colors.yellow,
             [4] = colors.white,
-            [5] = colors.white,
+            [5] = gui.stdBgColor,
+            [6] = colors.yellow,
+            [7] = colors.white,
+            [8] = gui.stdBgColor,
         }
         for k, v in pairs(content) do
             gui.monitor.setCursorPos(2,3+k)

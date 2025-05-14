@@ -236,7 +236,7 @@ function interface.generateSnapshots() -- Run in parallel
             ['hotFluidInfo'] = interface.getHotFluidInfo(),
             ['rodInfo'] = interface.getControlRodsInfo(),
             ['mbLocation'] = interface.getMBInfo(),
-            ['report'] = {['datestamp'] = os.date(), ['origin'] = interface.getComputerInfo(), ['timestamp'] = os.epoch()},
+            ['report'] = {['datestamp'] = os.date(), ['origin'] = interface.getComputerInfo(), ['timestamp'] = os.epoch('local')},
             ['automations'] = interface.automations,
         }
         gui.updateSnapshot(interface.snapshot)
@@ -361,8 +361,8 @@ function interface.checkMessages(event, side, channel, replyChannel, message, di
                             clients[message['origin']['label']]['g'] = message['packet']['g']
                             clients[message['origin']['label']]['privateKey'], clients[message['origin']['label']]['publicKey'] = crypt.generatePrivatePublicKeys(message['packet']['p'], message['packet']['g'])
                             clients[message['origin']['label']]['sharedKey'] = crypt.generateSharedKey(clients[message['origin']['label']]['privateKey'], message['packet']['publicKey'], message['packet']['p'])
-                            clients[message['origin']['label']]['creationTimestamp'] = os.epoch()
-                            clients[message['origin']['label']]['lastLogin'] = os.epoch()
+                            clients[message['origin']['label']]['creationTimestamp'] = os.epoch('local')
+                            clients[message['origin']['label']]['lastLogin'] = os.epoch('local')
                             interface.writeClients(clients)
                             interface.modem.transmit(14, 0, {['origin'] = interface.getComputerInfo(), ['target'] = message['origin'], ['packet'] = {['publicKey'] = clients[message['origin']['label']]['publicKey']}})
                         end
@@ -385,7 +385,7 @@ function interface.checkMessages(event, side, channel, replyChannel, message, di
                                     -- interface.session[message['origin']['label']] = message['origin']
                                     -- interface.session[message['origin']['label']]['timestamp'] = os.clock()
                                     interface.modem.transmit(28, 0, {['origin'] = interface.getComputerInfo(), ['target'] = message['origin'], ['packet'] = crypt.xorEncryptDecrypt(clients[message['origin']['label']]['sharedKey'], textutils.serialize({['type'] = 'login', ['data'] = 'Granted'}))})
-                                    clients[message['origin']['label']]['lastLogin'] = os.epoch()
+                                    clients[message['origin']['label']]['lastLogin'] = os.epoch('local')
                                     interface.writeClients(clients)
                                 else
                                     gui.log('Failed login attempt from: '..message['origin']['label']..' with ID '..message['origin']['id'])
