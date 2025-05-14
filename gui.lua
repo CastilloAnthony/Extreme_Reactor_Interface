@@ -93,6 +93,7 @@ function gui.nextPage(forward) -- true/false forwards/backwards
             end
         end
     end
+    gui.settings['mouseWheel'] = 0
     gui.writeSettings()
 end --end nextPage
 
@@ -894,7 +895,7 @@ function gui.page9() -- Manage Clients // Connection to Server
         [2] = gui.stdBgColor,
         [3] = colors.yellow,
         }
-        for i, in gui.readClients() do
+        for _, i in pairs(gui.readClients()) do
             content[#content] = ccStrings.ensure_width(i['label'], gui.width*gui.widthFactor-1)..i['id'],
             contentColors[#contentColors] = colors.white
         end

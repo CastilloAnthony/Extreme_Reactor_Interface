@@ -621,9 +621,16 @@ function interface.clickedButton(event, button, x, y, arg4, arg5)
     end
 end --end clickedButton
 
-function interface.mouseWheel(event, arg1, arg2, arg3, arg4, arg5)
-    local nothing = nil
-    --Increment Mousewheel by .01 up to 1. I.e., 1% up to 100% otherwise decrement
+function interface.mouseWheel(event, direction, x, y, arg4, arg5)
+    if direction == -1 then -- Up
+        if gui.settings['mouseWheel'] < 1 then
+            gui.settings['mouseWheel'] = gui.settings['mouseWheel'] + 0.01
+        end
+    elseif direction == 1 then -- Down
+        if gui.settings['mouseWheel'] > 0 then
+            gui.settings['mouseWheel'] = gui.settings['mouseWheel'] - 0.01
+        end
+    end
 end --end mouseWheel
 
 function interface.guiHandler() -- Run in parallel
