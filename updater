@@ -5,7 +5,7 @@ shell.run('wget https://raw.githubusercontent.com/CastilloAnthony/Extreme_Reacto
 shell.run('rm ./er_interface/er_interface.lua')
 shell.run('wget https://raw.githubusercontent.com/CastilloAnthony/Extreme_Reactor_Interface/refs/heads/main/er_interface.lua ./er_interface/er_interface.lua')
 shell.run('rm ./er_interface/cryptography.lua')
-shell.run('wget https://raw.githubusercontent.com/CastilloAnthony/Extreme_Reactor_Interface/refs/heads/refs/heads/main/cryptography.lua ./er_interface/cryptography.lua')
+shell.run('wget https://raw.githubusercontent.com/CastilloAnthony/Extreme_Reactor_Interface/refs/heads/main/cryptography.lua ./er_interface/cryptography.lua')
 shell.run('rm ./er_interface/updater')
 shell.run('wget https://raw.githubusercontent.com/CastilloAnthony/Extreme_Reactor_Interface/refs/heads/main/updater ./er_interface/updater')
 
