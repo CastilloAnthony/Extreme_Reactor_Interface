@@ -1,0 +1,2 @@
+local id = shell.openTab('./er_interface/er_interface.lua')
+shell.switchTab(id)
