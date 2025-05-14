@@ -1,0 +1,21 @@
+shell.run('wget https://raw.githubusercontent.com/CastilloAnthony/Extreme_Reactor_Interface/refs/head/main/README.md ./er_interface/README.md')
+shell.run('wget https://raw.githubusercontent.com/CastilloAnthony/Extreme_Reactor_Interface/refs/head/main/gui.lua ./er_interface/gui.lua')
+shell.run('wget https://raw.githubusercontent.com/CastilloAnthony/Extreme_Reactor_Interface/refs/heads/main/er_interface.lua ./er_interface/er_interface.lua')
+shell.run('wget https://raw.githubusercontent.com/CastilloAnthony/Extreme_Reactor_Interface/refs/heads/main/cryptography.lua ./er_interface/cryptography.lua')
+shell.run('wget https://raw.githubusercontent.com/CastilloAnthony/Extreme_Reactor_Interface/refs/head/main/updater ./er_interface/updater')
+term.write('Is this device a')
+term.scroll(1)
+_, y = term.getSize()
+term.setCursorPos(1,y)
+term.write('server? (y/n) ')
+userInput = read()
+if userInput == 'n' then
+  shell.run('wget https://raw.githubusercontent.com/CastilloAnthony/Extreme_Reactor_Interface/refs/head/main/remote.lua ./er_interface/remote.lua')
+else
+  shell.run('wget https://raw.githubusercontent.com/CastilloAnthony/Extreme_Reactor_Interface/refs/head/main/interface.lua ./er_interface/interface.lua')
+end
+shell.run('wget https://raw.githubusercontent.com/CastilloAnthony/Extreme_Reactor_Interface/refs/head/main/startup /startup')
+if fs.exists('installer') then
+  shell.run('rm installer')
+end
+shell.run('startup')
