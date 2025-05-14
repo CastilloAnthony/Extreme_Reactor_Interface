@@ -9,8 +9,8 @@ shell.run('wget https://raw.githubusercontent.com/CastilloAnthony/Extreme_Reacto
 shell.run('rm ./er_interface/updater')
 shell.run('wget https://raw.githubusercontent.com/CastilloAnthony/Extreme_Reactor_Interface/refs/heads/main/updater ./er_interface/updater')
 
-if fs.exists('./er_interface/server.lua') then
-  shell.run('rm ./er_interface/server.lua')
+if fs.exists('./er_interface/interface.lua') then
+  shell.run('rm ./er_interface/interface.lua')
   shell.run('wget https://raw.githubusercontent.com/CastilloAnthony/Extreme_Reactor_Interface/refs/heads/main/interface.lua ./er_interface/interface.lua')
 elseif fs.exists('./er_interface/remote.lua') then
   shell.run('rm ./er_interface/remote.lua')
@@ -26,8 +26,8 @@ else
     shell.run('rm ./er_interface/remote.lua')
     shell.run('wget https://raw.githubusercontent.com/CastilloAnthony/Extreme_Reactor_Interface/refs/heads/main/remote.lua ./er_interface/remote.lua')
   else
-    shell.run('rm ./er_interface/server.lua')
-    shell.run('wget https://raw.githubusercontent.com/CastilloAnthony/Extreme_Reactor_Interface/refs/heads/main/server.lua ./er_interface/server.lua')
+    shell.run('rm ./er_interface/interface.lua')
+    shell.run('wget https://raw.githubusercontent.com/CastilloAnthony/Extreme_Reactor_Interface/refs/heads/main/interface.lua ./er_interface/interface.lua')
   end
 end
 
