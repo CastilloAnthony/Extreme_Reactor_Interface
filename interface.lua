@@ -28,7 +28,6 @@ interface.automations = {
 
 function interface.write(text)
     if text ~= nil then
-        --write(text)
         gui.log(text, interface.selectDrive())
     end
     if not interface.initialized then
@@ -37,9 +36,6 @@ function interface.write(text)
         textutils.slowWrite(text)
         term.scroll(1)
     end
-    --term.scroll(1)
-    -- local _, y = term.getCursorPos()
-    -- term.setCursorPos(1, y)
 end --end write
 
 function interface.findDrives()
@@ -143,7 +139,6 @@ end --end initializeNetwork
 
 function interface.checkForinterface()
     for _, i in pairs(peripheral.getNames()) do
-        --if peripheral.getType(i) == 'meBridge' then
         if string.find(peripheral.getType(i), 'BigReactors') ~= nil then
             if peripheral.call(i, 'mbIsAssembled') then
                 interface.write('Reactor found!')
@@ -161,7 +156,6 @@ function interface.getControlRodsInfo()
         ['rods'] = {},
     }
     for i=0, info['quantity']-1 do
-        -- print('qunatity: '..info['quantity']..' index '..i) -- debugging
         info['rods'][i] = {
             ['name'] = interface.reactor.getControlRodName(i),
             ['level'] = interface.reactor.getControlRodLevel(i),
@@ -263,7 +257,7 @@ function interface.generatePrivatePublicKeys()
         file.write(publicKey)
         file.close()
     end
-end
+end --end generatePrivatePublicKeys
 
 function interface.readPrivateKey()
     if fs.exists('/er_interface/keys/private.key') then
@@ -275,7 +269,7 @@ function interface.readPrivateKey()
         interface.generatePrivatePublicKeys()
         return interface.readPrivateKey()
     end
-end
+end --end readPrivateKey
 
 function interface.generateKeyParameters() -- Run in parallel
     while true do
@@ -334,14 +328,14 @@ function interface.readClients()
     local clients = textutils.unserialize(file.readAll())
     file.close()
     return clients
-end
+end --end readClients
 
 function interface.writeClients(clients)
     local file = fs.open('./er_interface/keys/clients', 'w')
     file.write(textutils.serialize(clients))
     -- local clients = textutils.serialize(clients)
     file.close()
-end
+end --end writeClients
 
 function interface.checkMessages(event, side, channel, replyChannel, message, distance)
     -- ['ports'] = {['broadcast'] = 7, ['handshake'] = 14, ['requests'] = 21, ['dataTransfer'] = 28},
@@ -466,7 +460,6 @@ function interface.checkMessages(event, side, channel, replyChannel, message, di
             end
         end
     elseif channel == 28 then -- Data Transfers
-        local nothing = nil
     end
 end --end checkMessages
 
@@ -630,6 +623,7 @@ end --end clickedButton
 
 function interface.mouseWheel(event, arg1, arg2, arg3, arg4, arg5)
     local nothing = nil
+    --Increment Mousewheel by .01 up to 1. I.e., 1% up to 100% otherwise decrement
 end --end mouseWheel
 
 function interface.guiHandler() -- Run in parallel
@@ -660,7 +654,7 @@ function interface.login() -- For the server logging in
             end
         end
     end
-end
+end --end login
 
 function interface.verifyLogin(pw) -- For remotes attempting to login
     if fs.exists('./er_interface/keys/login') then
@@ -673,23 +667,7 @@ function interface.verifyLogin(pw) -- For remotes attempting to login
     else
         return false
     end
-end
-
--- function gui.writeSettings(settings)
---     if settings == 'default' then
---         gui.settings = {
---             ['currentPage'] = 0, 
---             ['storedPower'] = 0, 
---             ['deltaPower'] = 0, 
---             ['snapshotTime'] = 0, 
---             ['deltaTime'] = 0,
---             ['logsMouseWheel'] = 0,
---         }
---     end
---     local file = fs.open('./er_interface/settings.cfg', 'w')
---     file.write(textutils.serialize(gui.settings))
---     file.close()   
--- end --end writeSettings
+end --end verifyLogin
 
 function interface.writeAutomations()
     if not fs.exists('./er_interface/settings_automations.cfg') then
@@ -710,7 +688,7 @@ function interface.writeAutomations()
         file.write(textutils.serialize(interface.automations))
         file.close()
     end
-end
+end --end writeAutomations
 
 function interface.readAutomations()
     if not fs.exists('./er_interface/settings_automations.cfg') then
@@ -721,7 +699,7 @@ function interface.readAutomations()
         interface.automations = textutils.unserialize(file.readAll())
         file.close()
     end
-end
+end --end readAutomations
 
 function interface.manageAutomations() -- Run in Parallel
     while true do
@@ -746,16 +724,13 @@ function interface.manageAutomations() -- Run in Parallel
         end
         if interface.automations['controlRodsToggle'] then -- Use Control Rods to float around slightly positive power output
             if interface.reactor.getActive() then -- Is active
-                -- local min = gui.snapshot['energyInfo']['capacity']*(interface.automations['powerMin']/100)
-                -- local max = gui.snapshot['energyInfo']['capacity']*(interface.automations['powerMax']/100)
-                -- local stored = gui.snapshot['energyInfo']['stored']
                 for k, v in pairs(gui.snapshot['rodInfo']['rods']) do
                     interface.reactor.setControlRodLevel(k, math.floor((gui.snapshot['energyInfo']['stored'])/(gui.snapshot['energyInfo']['capacity']*(interface.automations['powerMax']/100))*100))
                 end
             end
         end
     end
-end
+end --end manageAutomations
 
 function interface.initialize()
     local _, y = term.getSize()

@@ -63,12 +63,12 @@ end --end readSettings
 function gui.writeSettings(settings)
     if settings == 'default' then
         gui.settings = {
-            ['currentPage'] = 0, 
+            ['currentPage'] = 1, 
             ['storedPower'] = 0, 
             ['deltaPower'] = 0, 
             ['snapshotTime'] = 0, 
             ['deltaTime'] = 0,
-            ['logsMouseWheel'] = 0,
+            ['mouseWheel'] = 0,
         }
     end
     local file = fs.open('./er_interface/settings.cfg', 'w')
@@ -209,7 +209,7 @@ function gui.signup(target)
     gui.monitor.setCursorPos(math.ceil(gui.width/2)-math.floor(#length/2)+1, math.ceil(gui.height/2)-math.floor(#info/2)+#info-1)
     gui.monitor.setVisible(true)
     return read(nil)
-end
+end --end signup
 
 function gui.login(target)
     gui.monitor.setVisible(false)
@@ -235,33 +235,6 @@ function gui.login(target)
     length = length..'  '
     gui.monitor.setTextColor(colors.white)
     gui.monitor.setBackgroundColor(colors.lightGray)
-    -- for k, _ in pairs(info) do
-    --     gui.monitor.setCursorPos(math.floor(gui.width/2)-math.floor(#length/2), math.floor(gui.height/2)-math.floor(#info/2)+k)
-    --     gui.monitor.write(length)
-    -- end
-    -- gui.log('Width: '..tostring(gui.width))
-    -- gui.log(#length)
-    -- gui.log('Odd '..tostring(math.ceil(gui.width/2)-math.floor((#length)/2)))
-    -- gui.log('Even '..tostring(math.ceil((gui.width-#length)/2)))
-    -- if #length % 2 ~= 0 then
-    --     for k, v in pairs(info) do
-    --         gui.monitor.setCursorPos(math.ceil((gui.width-#length-2)/2), math.floor(gui.height/2)-math.floor(#info/2)+k)
-    --         gui.monitor.write(length)
-    --         gui.monitor.setCursorPos(math.ceil((gui.width-#v-2)/2), math.floor(gui.height/2)-math.floor(#info/2)+k)
-    --         gui.monitor.write(v)
-    --     end
-    --     gui.monitor.setCursorPos(math.floor((gui.width-#length-5)/2), math.floor(gui.height/2)-math.floor(#info/2)+#info-1)
-    --     gui.monitor.setVisible(true)
-    -- else
-    --     for k, v in pairs(info) do
-    --         gui.monitor.setCursorPos(math.ceil((gui.width-(#length-2))/2), math.floor(gui.height/2)-math.floor(#info/2)+k)
-    --         gui.monitor.write(length)
-    --         gui.monitor.setCursorPos(math.ceil((gui.width-(#v-2))/2), math.floor(gui.height/2)-math.floor(#info/2)+k)
-    --         gui.monitor.write(v)
-    --     end
-    --     gui.monitor.setCursorPos(math.floor((gui.width-(#length-5))/2), math.floor(gui.height/2)-math.floor(#info/2)+#info-1)
-    --     gui.monitor.setVisible(true)
-    -- end
     for k, v in pairs(info) do
         gui.monitor.setCursorPos(math.ceil((gui.width-(#length-2))/2), math.floor((gui.height-#info)/2)+k)
         gui.monitor.write(length)
@@ -271,16 +244,11 @@ function gui.login(target)
     gui.monitor.setCursorPos(math.floor((gui.width-(#length-5))/2), math.floor((gui.height-#info)/2)+#info-1)
     gui.monitor.setVisible(true)
     return read('*')
-end
+end --end login
 
 function gui.updateSnapshot(snapshot)
-    -- if gui.oldSnapshot == nil then
-    --     gui.oldSnapshot = snapshot
-    -- else
-    --     gui.oldSnapshot = gui.snapshot
-    -- end
     gui.snapshot = snapshot
-end
+end --end updateSnapshot
 
 function gui.formatNum(number)
     if number == nil then
@@ -313,10 +281,9 @@ function gui.formatNum(number)
         suffix = "n"
     end
     return string.format("%.1f%s", scaled, suffix)
-end
+end --end formatNum
 
 function gui.main()
-    -- local newWindow = window.create(peripheral.wrap(i), 1, 1, width, height)
     gui.monitor.setVisible(false)
     gui.readSettings()
     gui.clearScreen()
@@ -340,7 +307,7 @@ function gui.main()
     gui.updateTime()
     gui.drawButtons()
     gui.monitor.setVisible(true)
-end
+end --end main
 
 function gui.page1() --Snapshot Report
     local content = {
@@ -412,7 +379,7 @@ function gui.page1() --Snapshot Report
             gui.monitor.setBackgroundColor(gui.stdBgColor)
         end
     end
-end
+end --end page1
 
 function gui.page2() -- Power
     local powerBar = ''
@@ -466,7 +433,7 @@ function gui.page2() -- Power
             gui.monitor.write(v)
         end
     end
-end
+end --end page2
 
 function gui.page3() -- Fuel Page
     local fuelBar = ''
@@ -524,7 +491,7 @@ function gui.page3() -- Fuel Page
             gui.monitor.write(v)
         end
     end
-end
+end --end page3
 
 function gui.page4() -- Coolant
     local coolantBar = ''
@@ -576,7 +543,7 @@ function gui.page4() -- Coolant
             gui.monitor.write(v)
         end
     end
-end
+end --end page4
 
 function gui.page5() -- Hot Fluid
     local hotFluidbar = ''
@@ -630,7 +597,7 @@ function gui.page5() -- Hot Fluid
             gui.monitor.write(v)
         end
     end
-end
+end --end page5
 
 function gui.page6() -- Rods Page
     local buttons = {
@@ -691,7 +658,7 @@ function gui.page6() -- Rods Page
             gui.monitor.write(v)
         end
     end
-end
+end --end page6
 
 function gui.page7() -- Automations
     local buttons = {
@@ -812,7 +779,7 @@ function gui.page7() -- Automations
             gui.monitor.write(v)
         end
     end
-end
+end --end page7
 
 function gui.page8() -- Graphs
     local content = {
@@ -870,7 +837,7 @@ function gui.page8() -- Graphs
     for k, v in pairs(graphContent) do 
         -- Max Height: gui.height-#content-4
         -- Max Width: gui.width*gui.widthFactor-2
-        local width = ((gui.width*gui.widthFactor-2)/4)-3
+        local width = ((gui.width*gui.widthFactor-2)/4)-2
         local x = (((gui.width*gui.widthFactor)-2)/(4))*(k)+3
         gui.monitor.setTextColor(graphColors[k])
         for i=1, (gui.height-8) do
@@ -882,11 +849,18 @@ function gui.page8() -- Graphs
             else
                 gui.monitor.write('   ')
             end
+            for k=1, width do
+                gui.monitor.write(' ')
+            end
+            gui.monitor.write(' ')
         end
         for i=2, (gui.height-8)*(v/100) do
+            local width = ((gui.width*gui.widthFactor-2)/4)-4
             gui.monitor.setCursorPos(x+1, gui.height-2-i)
             gui.monitor.setBackgroundColor(graphColors[k])
-            gui.monitor.write(' ')
+            for k=1, width do
+                gui.monitor.write(' ')
+            end
         end
     end
     local buttons = {
@@ -904,10 +878,10 @@ function gui.page8() -- Graphs
             gui.monitor.write(v)
         end
     end
-end --end 
+end --end page8
 
 function gui.pageN_format()
     return
-end --end 
+end --end page 
 
 return gui

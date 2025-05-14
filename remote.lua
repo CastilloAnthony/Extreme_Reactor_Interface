@@ -117,7 +117,7 @@ function remote.scanForServer()
             end
         end
     end
-end
+end --end scanForServer
 
 function remote.handshake() -- Diffie–Hellman key exchange
     -- ['ports'] = {['broadcast'] = 7, ['handshake'] = 14, ['requests'] = 21, ['dataTransfer'] = 28}
@@ -149,30 +149,8 @@ function remote.handshake() -- Diffie–Hellman key exchange
             end
         end
     end
-    -- local p, g = nil, nil
-    -- remote.modem.transmit(14, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = {['handshake'] = true, ['p'] = math.random(1,10^10), ['g'] = math.random(1, 10^10)}})
-    -- while p == nil or g == nil do -- Agreeing on parameters
-    --     local event, side, channel, replyChannel, message, distance = os.pullEvent()
-    --     if event == 'modem_message' then
-    --         if channel == 14 then
-    --             if message['target'] ~= nil then
-    --                 if message['target'] == remote.getComputerInfo() then
-    --                     if message['origin'] ~= nil then
-    --                         if message['origin'] == temote.keys['target'] then
-    --                             if message['packet']['p'] ~= nil or message['packet']['g'] ~= nil then
-    --                                 p = message['p']
-    --                                 g = message['g']
-    --                             end
-    --                         end
-    --                     end
-    --                 end
-    --             end
-    --         end
-    --     end
-    -- end
-    remote.write('Generating private and public keys...')
+    remote.write('Generating private and public keys. This may take a few minutes...')
     remote.keys['private'], remote.keys['public'] = crypt.generatePrivatePublicKeys(p, g)
-    -- remote.write(textutils.serialize({['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = {['type'] = 'handshake', ['p'] = p, ['g'] = g, ['publicKey'] = remote.keys['public']}}))
     remote.write('Transmitting public key...')
     local publicKey = nil
     remote.modem.transmit(14, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = {['type'] = 'handshake', ['p'] = p, ['g'] = g, ['publicKey'] = remote.keys['public']}})
@@ -232,16 +210,14 @@ function remote.handshake() -- Diffie–Hellman key exchange
         remote.write('Key saved to '..'./er_interface/keys/server.key')
     else
         remote.write('Reattempting handshake...')
-        -- remote.modem.transmit(14, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = {['type'] = 'handshake', ['data'] = 'retry'}})
         remote.handshake()
     end
 end --end handshake
 
--- All commands issued must be encrypted 
+-- All commands transmitted must be encrypted 
 
 function remote.login()
     local logged = false
-    -- local pw = gui.login(remote.keys['target'])
     remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'login', ['data'] = gui.login(remote.keys['target'])}))})
     gui.log('Login attempt sent...')
     while not logged do
@@ -272,7 +248,7 @@ function remote.login()
             end
         end
     end
-end
+end --end login
 
 function remote.requestSnapshot()
     local timer, snapshot = os.startTimer(60), nil
@@ -300,12 +276,12 @@ function remote.requestSnapshot()
         end
     end
     gui.snapshot = snapshot
-end
+end --end requestSnapshot
 
 function remote.checkMessages(event, side, channel, replyChannel, message, distance)
     -- ['ports'] = {['broadcast'] = 7, ['handshake'] = 14, ['requests'] = 21, ['dataTransfer'] = 28},
     -- Message Format: {['origin'] = {}, ['target'] = {}, ['packet'] = {}}
-    -- ['packet'] = crypt.encrpt(sharedKey, )
+    -- ['packet'] = crypt.encrpt(sharedKey, payload)
     if channel == 14 then -- Handshakes
     elseif channel == 21 then -- Requests, login attempts, issue commands
     elseif channel == 28 then -- Data Transfers
@@ -464,24 +440,6 @@ function remote.clickedButton(event, button, x, y, arg4, arg5)
                         remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'powerMax', ['data'] = 1, ['direction'] = 'up'}))})
                     end
                 end
-                -- if x == math.ceil((gui.width-(#'      buttons      '-2))/2) or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+1 then
-                --     gui.snapshot['automation']['powerMax'] = gui.snapshot['automation']['powerMax'] -1
-                -- elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+3 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+4 then
-                --     gui.snapshot['automation']['powerMax'] = gui.snapshot['automation']['powerMax'] -5
-                -- elseif x >= math.ceil((gui.width-(#'      buttons      '-2))/2)+6 and x <= math.ceil((gui.width-(#'      buttons      '-2))/2)+8 then
-                --     gui.snapshot['automation']['powerMax'] = gui.snapshot['automation']['powerMax'] -10
-                -- elseif x >= math.ceil((gui.width-(#'      buttons      '-2))/2)+10 and x <= math.ceil((gui.width-(#'      buttons      '-2))/2)+12 then
-                --     gui.snapshot['automation']['powerMax'] = gui.snapshot['automation']['powerMax'] +10
-                -- elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+14 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+15 then
-                --     gui.snapshot['automation']['powerMax'] = gui.snapshot['automation']['powerMax'] +5
-                -- elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+17 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+18 then
-                --     gui.snapshot['automation']['powerMax'] = gui.snapshot['automation']['powerMax'] +1
-                -- end
-                -- if interface.automations['powerMax'] < 0 then
-                --     interface.automations['powerMax'] = 0
-                -- elseif interface.automations['powerMax'] > 100 then
-                --     interface.automations['powerMax'] = 100
-                -- end
             elseif y == 10 then -- Power Min
                 if x == math.ceil((gui.width-(#'      buttons      '-2))/2) or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+1 then
                     if gui.snapshot['automations']['powerMin'] > 0 then
@@ -536,24 +494,6 @@ function remote.clickedButton(event, button, x, y, arg4, arg5)
                         remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'powerMin', ['data'] = 1, ['direction'] = 'up'}))})
                     end
                 end
-                -- if x == math.ceil((gui.width-(#'      buttons      '-2))/2) or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+1 then
-                --     interface.automations['powerMin'] = interface.automations['powerMin'] -1
-                -- elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+3 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+4 then
-                --     interface.automations['powerMin'] = interface.automations['powerMin'] -5
-                -- elseif x >= math.ceil((gui.width-(#'      buttons      '-2))/2)+6 and x <= math.ceil((gui.width-(#'      buttons      '-2))/2)+8 then
-                --     interface.automations['powerMin'] = interface.automations['powerMin'] -10
-                -- elseif x >= math.ceil((gui.width-(#'      buttons      '-2))/2)+10 and x <= math.ceil((gui.width-(#'      buttons      '-2))/2)+12 then
-                --     interface.automations['powerMin'] = interface.automations['powerMin'] +10
-                -- elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+14 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+15 then
-                --     interface.automations['powerMin'] = interface.automations['powerMin'] +5
-                -- elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+17 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+18 then
-                --     interface.automations['powerMin'] = interface.automations['powerMin'] +1
-                -- end
-                -- if interface.automations['powerMin'] < 0 then
-                --     interface.automations['powerMin'] = 0
-                -- elseif interface.automations['powerMin'] > 100 then
-                --     interface.automations['powerMin'] = 100
-                -- end
             elseif y == 12 then -- Temperature
                 if x>=1+gui.width*gui.widthFactor and x<=1+gui.width*gui.widthFactor+5 then
                     remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'command', ['data'] = 'tempToggle'}))})
@@ -612,22 +552,6 @@ function remote.clickedButton(event, button, x, y, arg4, arg5)
                         remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'tempMax', ['data'] = 1, ['direction'] = 'up'}))})
                     end
                 end
-                -- if x == math.ceil((gui.width-(#'      buttons      '-2))/2) or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+1 then
-                --     interface.automations['tempMax'] = interface.automations['tempMax'] -1
-                -- elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+3 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+4 then
-                --     interface.automations['tempMax'] = interface.automations['tempMax'] -5
-                -- elseif x >= math.ceil((gui.width-(#'      buttons      '-2))/2)+6 and x <= math.ceil((gui.width-(#'      buttons      '-2))/2)+8 then
-                --     interface.automations['tempMax'] = interface.automations['tempMax'] -10
-                -- elseif x >= math.ceil((gui.width-(#'      buttons      '-2))/2)+10 and x <= math.ceil((gui.width-(#'      buttons      '-2))/2)+12 then
-                --     interface.automations['tempMax'] = interface.automations['tempMax'] +10
-                -- elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+14 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+15 then
-                --     interface.automations['tempMax'] = interface.automations['tempMax'] +5
-                -- elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+17 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+18 then
-                --     interface.automations['tempMax'] = interface.automations['tempMax'] +1
-                -- end
-                -- if interface.automations['tempMax'] < 0 then
-                --     interface.automations['tempMax'] = 0
-                -- end
             elseif y == 16 then -- Control Rods
                 if x>=1+gui.width*gui.widthFactor and x<=1+gui.width*gui.widthFactor+5 then
                     remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'command', ['data'] = 'controlRodsToggle'}))})
@@ -651,18 +575,17 @@ end --end mouseWheel
 
 function remote.snapshotHandler()
     while true do
-        -- remote.requestSnapshot()
         remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'snapshot', ['data'] = nil}))})
         os.sleep(remote.fps)
     end
-end
+end --end snapshotHandler
 
 function remote.guiHandler()
     while true do
         gui.main()
         os.sleep(remote.fps)
     end
-end
+end --end guiHandler
 
 function remote.eventHandler()
     while true do
@@ -675,10 +598,9 @@ function remote.eventHandler()
             remote.mouseWheel(event, arg1, arg2, arg3, arg4, arg5)
         end
     end
-end
+end --end eventHandler
 
 function remote.initialize()
-    -- remote.generatePrivateKey()
     remote.write('Initializing...')
     remote.monitor = remote.checkForMonitor()
     remote.initializeMonitor()
@@ -690,7 +612,6 @@ function remote.initialize()
     remote.readServerKeys()
     remote.login()
     remote.requestSnapshot()
-    -- gui.log('Snapshot acquired: '..textutils.serialize(gui.snapshot))
     parallel.waitForAny(remote.snapshotHandler, remote.eventHandler, remote.guiHandler)
 end --end initialize
 

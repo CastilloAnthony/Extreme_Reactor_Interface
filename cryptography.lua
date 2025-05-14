@@ -161,5 +161,4 @@ end --end xorEncryptDecrypt
 -- local decrypted = xorEncryptDecrypt(encrypted, sharedKey)
 -- print("Decrypted:", decrypted)
 
-
 return crypt
