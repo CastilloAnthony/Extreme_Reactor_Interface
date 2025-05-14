@@ -1,0 +1,36 @@
+shell.run('rm ./er_interface/README.md')
+shell.run('wget https://raw.githubusercontent.com/CastilloAnthony/Extreme_Reactor_Interface/refs/head/main/README.md ./er_interface/README.md')
+shell.run('rm ./er_interface/gui.lua')
+shell.run('wget https://raw.githubusercontent.com/CastilloAnthony/Extreme_Reactor_Interface/refs/head/main/gui.lua ./er_interface/gui.lua')
+shell.run('rm ./er_interface/er_interface.lua')
+shell.run('wget https://raw.githubusercontent.com/CastilloAnthony/Extreme_Reactor_Interface/refs/head/main/er_interface.lua ./er_interface/er_interface.lua')
+shell.run('rm ./er_interface/cryptography.lua')
+shell.run('wget https://raw.githubusercontent.com/CastilloAnthony/Extreme_Reactor_Interface/refs/head/refs/heads/main/cryptography.lua ./er_interface/cryptography.lua')
+shell.run('rm ./er_interface/updater')
+shell.run('wget https://raw.githubusercontent.com/CastilloAnthony/Extreme_Reactor_Interface/refs/head/main/updater ./er_interface/updater')
+
+if fs.exists('./er_interface/server.lua') then
+  shell.run('rm ./er_interface/server.lua')
+  shell.run('wget https://raw.githubusercontent.com/CastilloAnthony/Extreme_Reactor_Interface/refs/head/main/interface.lua ./er_interface/interface.lua')
+elseif fs.exists('./er_interface/remote.lua') then
+  shell.run('rm ./er_interface/remote.lua')
+  shell.run('wget https://raw.githubusercontent.com/CastilloAnthony/Extreme_Reactor_Interface/refs/head/main/remote.lua ./er_interface/remote.lua')
+else
+  term.write('Is this device a')
+  term.scroll(1)
+  _, y = term.getSize()
+  term.setCursorPos(1,y)
+  term.write('server? (y/n) ')
+  userInput = read()
+  if userInput == 'n' then
+    shell.run('rm ./er_interface/remote.lua')
+    shell.run('wget https://raw.githubusercontent.com/CastilloAnthony/Extreme_Reactor_Interface/refs/head/main/remote.lua ./er_interface/remote.lua')
+  else
+    shell.run('rm ./er_interface/server.lua')
+    shell.run('wget https://raw.githubusercontent.com/CastilloAnthony/Extreme_Reactor_Interface/refs/head/main/server.lua ./er_interface/server.lua')
+  end
+end
+
+shell.run('rm /startup')
+shell.run('wget https://raw.githubusercontent.com/CastilloAnthony/Extreme_Reactor_Interface/refs/head/main/startup /startup')
+shell.run('reboot')
