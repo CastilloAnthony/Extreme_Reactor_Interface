@@ -304,6 +304,8 @@ function gui.main()
         gui.page7()
     elseif gui.settings['currentPage'] == 8 then
         gui.page8()
+    elseif gui.settings['currentPage'] == 9 then
+        gui.page9()
     end
     gui.updateTime()
     gui.drawButtons()
