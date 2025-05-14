@@ -896,7 +896,7 @@ function gui.page9() -- Manage Clients // Connection to Server
         [3] = colors.yellow,
         }
         for _, i in pairs(gui.readClients()) do
-            content[#content] = ccStrings.ensure_width(i['label'], gui.width*gui.widthFactor-1)..i['id'],
+            content[#content] = ccStrings.ensure_width(i['label'], gui.width*gui.widthFactor-1)..i['id']
             contentColors[#contentColors] = colors.white
         end
         for k, v in pairs(content) do
