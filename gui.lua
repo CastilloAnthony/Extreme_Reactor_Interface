@@ -51,6 +51,13 @@ function gui.log(string, storage)
     end
 end --end log
 
+function gui.readClients() --Only for Interface/Server; not remote
+    local file = fs.open('./er_interface/keys/clients', 'r')
+    local clients = textutils.unserialize(file.readAll())
+    file.close()
+    return clients
+end --end readClients
+
 function gui.readSettings()
     if not fs.exists('./er_interface/settings.cfg') then
         gui.writeSettings('default')
@@ -64,6 +71,7 @@ function gui.writeSettings(settings)
     if settings == 'default' then
         gui.settings = {
             ['currentPage'] = 1, 
+            ['currentPageTitle'] = 'home',
             ['storedPower'] = 0, 
             ['deltaPower'] = 0, 
             ['snapshotTime'] = 0, 
@@ -75,6 +83,28 @@ function gui.writeSettings(settings)
     file.write(textutils.serialize(gui.settings))
     file.close()   
 end --end writeSettings
+
+function gui.getPageTitle(pageNum)
+    if pageNum == 1 then
+        return 'Home'
+    elseif pageNum == 2 then
+        return 'Power'
+    elseif pageNum == 3 then
+        return 'Fuel'
+    elseif pageNum == 4 then
+        return 'Coolant'
+    elseif pageNum == 5 then
+        return 'Hot Fluid'
+    elseif pageNum == 6 then
+        return 'Graphs'
+    elseif pageNum == 7 then
+        return 'Rod Statistics'
+    elseif pageNum == 8 then
+        return 'Automations'
+    elseif pageNum == 9 then
+        return 'Connection'
+    end
+end --end getPageTitle
 
 function gui.nextPage(forward) -- true/false forwards/backwards
     gui.readSettings()
@@ -93,6 +123,7 @@ function gui.nextPage(forward) -- true/false forwards/backwards
             end
         end
     end
+    gui.settings['currentPageTitle'] = gui.getPageTitle(gui.settings['currentPage'])
     gui.settings['mouseWheel'] = 0
     gui.writeSettings()
 end --end nextPage
@@ -602,7 +633,106 @@ function gui.page5() -- Hot Fluid
     end
 end --end page5
 
-function gui.page6() -- Rods Page
+function gui.page6() -- Graphs
+    local content = {
+        [0] = '',
+        [1] = 'Graphs',
+        [2] = '',
+    }
+    local contentColors = {
+        [0] = gui.stdBgColor,
+        [1] = colors.yellow,
+        [2] = gui.stdBgColor,
+    }
+    -- local graphs = {
+        -- [0] = ccStrings.ensure_width('Power:', gui.width*gui.widthFactor-1)..tostring(math.floor((gui.snapshot['energyInfo']['stored']/gui.snapshot['energyInfo']['capacity'])*1000)/10)..'%',
+        -- [1] = ccStrings.ensure_width('Fuel:', gui.width*gui.widthFactor-1)..tostring(math.floor((gui.snapshot['fuelInfo']['amount']/gui.snapshot['fuelInfo']['max'])*1000)/10)..'%',
+        -- [2] = ccStrings.ensure_width('Coolant:', gui.width*gui.widthFactor-1)..tostring(math.floor((gui.snapshot['coolantInfo']['amount']/gui.snapshot['coolantInfo']['max'])*1000)/10)..'%',
+        -- [3] = ccStrings.ensure_width('Hot Fluid:', gui.width*gui.widthFactor-1)..tostring(math.floor((gui.snapshot['hotFluidInfo']['amount']/gui.snapshot['hotFluidInfo']['max'])*1000)/10)..'%',
+    -- }
+    local graphContent = {
+        [0] = math.floor((gui.snapshot['energyInfo']['stored']/gui.snapshot['energyInfo']['capacity'])*1000)/10, --Power
+        [1] = math.floor((gui.snapshot['fuelInfo']['amount']/gui.snapshot['fuelInfo']['max'])*1000)/10, --Fuel
+        [2] = math.floor((gui.snapshot['coolantInfo']['amount']/gui.snapshot['coolantInfo']['max'])*1000)/10, --Coolant
+        [3] = math.floor((gui.snapshot['hotFluidInfo']['amount']/gui.snapshot['hotFluidInfo']['max'])*1000)/10, --HotFluid
+        -- [4] = math.floor((gui.snapshot['wasteAmount']/gui.snapshot['fuelInfo']['max'])*1000)/10, --Waste
+    }
+    local graphNames = {
+        [0] = 'Power',
+        [1] = 'Fuel',
+        [2] = 'Coolant',
+        [3] = 'Hot Fluid',
+        -- [4] = 'Waste',
+    }
+    local graphColors = {
+        [0] = colors.red,
+        [1] = colors.lime,
+        [2] = colors.blue,
+        [3] = colors.orange,
+        -- [4] = colors.brown,
+    }
+    for i=1, gui.height-4 do
+        gui.monitor.setCursorPos(2,2+i)
+        gui.monitor.setBackgroundColor(colors.black)
+        for i=0, gui.width-3 do
+            gui.monitor.write(' ')
+        end
+    end
+    for k, v in pairs(content) do
+        if k == 1 then --Title
+            gui.monitor.setTextColor(contentColors[k])
+            gui.monitor.setCursorPos(math.ceil((gui.width-(#v-2))/2), 3+k)
+            gui.monitor.write(v)
+        end
+    end
+
+    for k, v in pairs(graphContent) do
+        -- Max Height: gui.height-#content-4
+        -- Max Width: gui.width*gui.widthFactor-2
+        local x = ((math.floor(gui.width*gui.widthFactor)-2)/(4))*(k)+3
+        local graphWidth = (gui.width*gui.widthFactor-2)/4-2
+        gui.monitor.setTextColor(graphColors[k])
+        for i=1, (gui.height-8) do
+            gui.monitor.setCursorPos(x, gui.height-2-i)
+            gui.monitor.setBackgroundColor(colors.gray)
+            if gui.height-8-i <= #graphNames[k] and gui.height-8-i ~= 0 then
+                gui.monitor.write(string.sub(graphNames[k], gui.height-8-i, gui.height-8-i))
+                for k=1, graphWidth do
+                    gui.monitor.write(' ')
+                end
+            else
+                gui.monitor.write(' ')
+                for k=1, graphWidth do
+                    gui.monitor.write(' ')
+                end
+            end
+        end
+        for i=2, (gui.height-8)*(v/100) do
+            gui.monitor.setCursorPos(x+1, gui.height-2-i)
+            gui.monitor.setBackgroundColor(graphColors[k])
+            for k=1, graphWidth-1 do
+                gui.monitor.write(' ')
+            end
+        end
+    end
+    local buttons = {
+        [0] = 'SCRAM!',
+    }
+    gui.monitor.setTextColor(colors.white)
+    for k, v in pairs(buttons) do
+        gui.monitor.setCursorPos(gui.width*gui.widthFactor+1, 6+k)
+        if v == 'SCRAM!' then
+            if gui.snapshot['status'] then
+                gui.monitor.setBackgroundColor(colors.green)
+            else
+                gui.monitor.setBackgroundColor(colors.red)
+            end
+            gui.monitor.write(v)
+        end
+    end
+end --end page8
+
+function gui.page7() -- Rods Page
     local buttons = {
         [0] = '-1', 
         [1] = '-5',
@@ -663,7 +793,7 @@ function gui.page6() -- Rods Page
     end
 end --end page6
 
-function gui.page7() -- Automations
+function gui.page8() -- Automations
     local buttons = {
         [0] = '-1', 
         [1] = '-5',
@@ -784,112 +914,6 @@ function gui.page7() -- Automations
     end
 end --end page7
 
-function gui.page8() -- Graphs
-    local content = {
-        [0] = '',
-        [1] = 'Graphs',
-        [2] = '',
-    }
-    local contentColors = {
-        [0] = gui.stdBgColor,
-        [1] = colors.yellow,
-        [2] = gui.stdBgColor,
-    }
-    -- local graphs = {
-        -- [0] = ccStrings.ensure_width('Power:', gui.width*gui.widthFactor-1)..tostring(math.floor((gui.snapshot['energyInfo']['stored']/gui.snapshot['energyInfo']['capacity'])*1000)/10)..'%',
-        -- [1] = ccStrings.ensure_width('Fuel:', gui.width*gui.widthFactor-1)..tostring(math.floor((gui.snapshot['fuelInfo']['amount']/gui.snapshot['fuelInfo']['max'])*1000)/10)..'%',
-        -- [2] = ccStrings.ensure_width('Coolant:', gui.width*gui.widthFactor-1)..tostring(math.floor((gui.snapshot['coolantInfo']['amount']/gui.snapshot['coolantInfo']['max'])*1000)/10)..'%',
-        -- [3] = ccStrings.ensure_width('Hot Fluid:', gui.width*gui.widthFactor-1)..tostring(math.floor((gui.snapshot['hotFluidInfo']['amount']/gui.snapshot['hotFluidInfo']['max'])*1000)/10)..'%',
-    -- }
-    local graphContent = {
-        [0] = math.floor((gui.snapshot['energyInfo']['stored']/gui.snapshot['energyInfo']['capacity'])*1000)/10, --Power
-        [1] = math.floor((gui.snapshot['fuelInfo']['amount']/gui.snapshot['fuelInfo']['max'])*1000)/10, --Fuel
-        [2] = math.floor((gui.snapshot['coolantInfo']['amount']/gui.snapshot['coolantInfo']['max'])*1000)/10, --Coolant
-        [3] = math.floor((gui.snapshot['hotFluidInfo']['amount']/gui.snapshot['hotFluidInfo']['max'])*1000)/10, --HotFluid
-        -- [4] = math.floor((gui.snapshot['wasteAmount']/gui.snapshot['fuelInfo']['max'])*1000)/10, --Waste
-    }
-    local graphNames = {
-        [0] = 'Power',
-        [1] = 'Fuel',
-        [2] = 'Coolant',
-        [3] = 'Hot Fluid',
-        -- [4] = 'Waste',
-    }
-    local graphColors = {
-        [0] = colors.red,
-        [1] = colors.lime,
-        [2] = colors.blue,
-        [3] = colors.orange,
-        -- [4] = colors.brown,
-    }
-    for i=1, gui.height-4 do
-        gui.monitor.setCursorPos(2,2+i)
-        gui.monitor.setBackgroundColor(colors.black)
-        for i=0, gui.width-3 do
-            gui.monitor.write(' ')
-        end
-    end
-    for k, v in pairs(content) do
-        if k == 1 then --Title
-            gui.monitor.setTextColor(contentColors[k])
-            gui.monitor.setCursorPos(math.ceil((gui.width-(#v-2))/2), 3+k)
-            gui.monitor.write(v)
-        end
-    end
-
-    for k, v in pairs(graphContent) do
-        -- Max Height: gui.height-#content-4
-        -- Max Width: gui.width*gui.widthFactor-2
-        local x = ((math.floor(gui.width*gui.widthFactor)-2)/(4))*(k)+3
-        local graphWidth = (gui.width*gui.widthFactor-2)/4-2
-        gui.monitor.setTextColor(graphColors[k])
-        for i=1, (gui.height-8) do
-            gui.monitor.setCursorPos(x, gui.height-2-i)
-            gui.monitor.setBackgroundColor(colors.gray)
-            if gui.height-8-i <= #graphNames[k] and gui.height-8-i ~= 0 then
-                gui.monitor.write(string.sub(graphNames[k], gui.height-8-i, gui.height-8-i))
-                for k=1, graphWidth do
-                    gui.monitor.write(' ')
-                end
-            else
-                gui.monitor.write(' ')
-                for k=1, graphWidth do
-                    gui.monitor.write(' ')
-                end
-            end
-        end
-        for i=2, (gui.height-8)*(v/100) do
-            gui.monitor.setCursorPos(x+1, gui.height-2-i)
-            gui.monitor.setBackgroundColor(graphColors[k])
-            for k=1, graphWidth-1 do
-                gui.monitor.write(' ')
-            end
-        end
-    end
-    local buttons = {
-        [0] = 'SCRAM!',
-    }
-    gui.monitor.setTextColor(colors.white)
-    for k, v in pairs(buttons) do
-        gui.monitor.setCursorPos(gui.width*gui.widthFactor+1, 6+k)
-        if v == 'SCRAM!' then
-            if gui.snapshot['status'] then
-                gui.monitor.setBackgroundColor(colors.green)
-            else
-                gui.monitor.setBackgroundColor(colors.red)
-            end
-            gui.monitor.write(v)
-        end
-    end
-end --end page8
-
-function gui.readClients()
-    local file = fs.open('./er_interface/keys/clients', 'r')
-    local clients = textutils.unserialize(file.readAll())
-    file.close()
-    return clients
-end --end readClients
-
 function gui.page9() -- Manage Clients // Connection to Server
     if fs.exists('./er_interface/interface.lua') then -- Manage Clients on Server
         local content = {
@@ -951,14 +975,17 @@ function gui.page9() -- Manage Clients // Connection to Server
     else
         local content = {
             [0] = '',
-            [1] = 'Connection to Server',
+            [1] = 'Connection Info',
             [2] = '',
-            [3] = ccStrings.ensure_width('Server Name', gui.width*gui.widthFactor)..'ID',
-            [4] = ccStrings.ensure_width(string.sub(gui.snapshot['report']['origin']['label'], 0, gui.width*gui.widthFactor-1), gui.width*gui.widthFactor)..gui.snapshot['report']['origin']['id'],
+            [3] = ccStrings.ensure_width('Client Name', gui.width*gui.widthFactor)..'ID',
+            [4] = ccStrings.ensure_width(string.sub(os.getComputerLabel(), 0, gui.width*gui.widthFactor-1), gui.width*gui.widthFactor)..os.getComputerID(),
             [5] = '',
-            [6] = ccStrings.ensure_width('Latency', gui.width*gui.widthFactor),
-            [7] = ccStrings.ensure_width(gui.formatNum((os.epoch('local')-gui.snapshot['report']['timestamp'])/1000)..'s', gui.width*gui.widthFactor),
+            [6] = ccStrings.ensure_width('Server Name', gui.width*gui.widthFactor)..'ID',
+            [7] = ccStrings.ensure_width(string.sub(gui.snapshot['report']['origin']['label'], 0, gui.width*gui.widthFactor-1), gui.width*gui.widthFactor)..gui.snapshot['report']['origin']['id'],
             [8] = '',
+            [9] = ccStrings.ensure_width('Latency', gui.width*gui.widthFactor),
+            [10] = ccStrings.ensure_width(gui.formatNum((os.epoch('local')-gui.snapshot['report']['timestamp'])/1000)..'s', gui.width*gui.widthFactor),
+            [11] = '',
         }
         local contentColors = {
             [0] = gui.stdBgColor,
@@ -970,6 +997,9 @@ function gui.page9() -- Manage Clients // Connection to Server
             [6] = colors.yellow,
             [7] = colors.white,
             [8] = gui.stdBgColor,
+            [9] = colors.yellow,
+            [10] = colors.white,
+            [11] = gui.stdBgColor,
         }
         for k, v in pairs(content) do
             gui.monitor.setCursorPos(2,3+k)

@@ -80,9 +80,6 @@ function remote.readServerKeys()
         local file = fs.open('/er_interface/keys/server.key', 'r')
         remote.keys = textutils.unserialize(file.readAll())
         file.close()
-        remote.scanForServer()
-    else
-        remote.handshake()
     end
 end --end readServerKeys
 
@@ -91,6 +88,7 @@ function remote.getComputerInfo()
 end --end getComputerInfo
 
 function remote.scanForServer()
+    remote.write('Scanning for servers...')
     local server = nil
     while server == nil do
         local event, side, channel, replyChannel, message, distance = os.pullEvent()
@@ -100,7 +98,7 @@ function remote.scanForServer()
                     if message['origin']['label'] ~= nil then
                         if string.find(string.lower(message['origin']['label']), 'reactor') then -- The name of the extreme_reactor_interface server must contain the name "reactor" in it
                             if message['packet']['type'] == 'broadcast' then
-                                remote.keys['target'] = message['origin']
+                                -- remote.keys['target'] = message['origin']
                                 if message['packet'] ~= nil then
                                     remote.write('Reactor server found with name '..message['origin']['label']..' and id '..message['origin']['id'])
                                     for k, v in pairs(message['packet']['ports']) do
@@ -108,6 +106,19 @@ function remote.scanForServer()
                                         -- remote.write('Opened port on '..v..' for '..k)
                                     end
                                     remote.write('Opened ports on 14, 21, and 28')
+                                    remote.readServerKeys()
+                                    -- gui.log(textutils.serialize(remote.keys))
+                                    -- gui.log(textutils.serialize(message))
+                                    if next(remote.keys) ~= nil then
+                                        if message['origin']['id'] == remote.keys['target']['id'] or message['origin']['label'] == remote.keys['target']['label'] then
+                                            remote.write('Reconnecting to '..remote.keys['target']['label']..' with id '..remote.keys['target']['id'])
+                                        else
+                                            remote.keys = nil
+                                            remote.handshake(message)
+                                        end
+                                    else
+                                        remote.handshake(message)
+                                    end
                                     server = true
                                 end
                             end
@@ -119,34 +130,44 @@ function remote.scanForServer()
     end
 end --end scanForServer
 
-function remote.handshake() -- Diffie–Hellman key exchange
+function remote.handshake(targetMessage) -- Diffie–Hellman key exchange
     -- ['ports'] = {['broadcast'] = 7, ['handshake'] = 14, ['requests'] = 21, ['dataTransfer'] = 28}
     -- Message Format: {['origin'] = {}, ['target'] = {}, ['packet'] = {}}
     remote.write('Performing handshake...')
-    local p, g = nil, nil
-    while p == nil do -- Searching for server host and getting handshake parameters
-        local event, side, channel, replyChannel, message, distance = os.pullEvent()
-        if event == 'modem_message' then
-            if channel == 7 then
-                if message['origin'] ~= nil then
-                    if message['origin']['label'] ~= nil then
-                        if string.find(string.lower(message['origin']['label']), 'reactor') then -- The name of the extreme_reactor_interface server must contain the name "reactor" in it
-                            if message['packet']['type'] == 'broadcast' then
-                                remote.keys['target'] = message['origin']
-                                if message['packet'] ~= nil then
-                                    if message['packet']['handshakeParams'] ~= nil then
-                                        if message['packet']['handshakeParams']['p'] ~= nil and message['packet']['handshakeParams']['g'] ~= nil then
-                                            p = message['packet']['handshakeParams']['p']
-                                            g = message['packet']['handshakeParams']['g']
-                                            remote.write('Recieved key parameters from '..message['origin']['label']..' with server id '..message['origin']['id'])
-                                        end
-                                    end
-                                end
-                            end
-                        end
-                    end
-                end
-            end
+    -- local p, g = nil, nil
+    -- while p == nil do -- Searching for server host and getting handshake parameters
+    --     local event, side, channel, replyChannel, message, distance = os.pullEvent()
+    --     if event == 'modem_message' then
+    --         if channel == 7 then
+    --             if message['origin'] ~= nil then
+    --                 if message['origin']['label'] ~= nil then
+    --                     if string.find(string.lower(message['origin']['label']), 'reactor') then -- The name of the extreme_reactor_interface server must contain the name "reactor" in it
+    --                         if message['origin']['label'] == target['label'] and message['origin']['id'] == target['id'] then
+    --                             if message['packet']['type'] == 'broadcast' then
+    --                                 remote.keys['target'] = message['origin']
+    --                                 if message['packet'] ~= nil then
+    --                                     if message['packet']['handshakeParams'] ~= nil then
+    --                                         if message['packet']['handshakeParams']['p'] ~= nil and message['packet']['handshakeParams']['g'] ~= nil then
+    --                                             p = message['packet']['handshakeParams']['p']
+    --                                             g = message['packet']['handshakeParams']['g']
+    --                                             remote.write('Recieved key parameters from '..message['origin']['label']..' with server id '..message['origin']['id'])
+    --                                         end
+    --                                     end
+    --                                 end
+    --                             end
+    --                         end
+    --                     end
+    --                 end
+    --             end
+    --         end
+    --     end
+    -- end
+    remote.keys['target'] = targetMessage['origin']
+    if targetMessage['packet']['handshakeParams'] ~= nil then
+        if targetMessage['packet']['handshakeParams']['p'] ~= nil and targetMessage['packet']['handshakeParams']['g'] ~= nil then
+            p = targetMessage['packet']['handshakeParams']['p']
+            g = targetMessage['packet']['handshakeParams']['g']
+            remote.write('Recieved key parameters from '..targetMessage['origin']['label']..' with server id '..targetMessage['origin']['id'])
         end
     end
     remote.write('Generating private and public keys. This may take a few minutes...')
@@ -210,7 +231,8 @@ function remote.handshake() -- Diffie–Hellman key exchange
         remote.write('Key saved to '..'./er_interface/keys/server.key')
     else
         remote.write('Reattempting handshake...')
-        remote.handshake()
+        remote.scanForServer()
+        -- remote.handshake()
     end
 end --end handshake
 
@@ -316,13 +338,21 @@ function remote.clickedButton(event, button, x, y, arg4, arg5)
             elseif x>=2 and x<=6 then --Prev
                 gui.nextPage(false)
             end
-        elseif gui.settings['currentPage'] == 1 then
+        elseif gui.settings['currentPageTitle'] == 'Home' then
             if y == 9 then
                 if x>=1+gui.width*gui.widthFactor and x<=1+gui.width*gui.widthFactor+5 then
                     remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'command', ['data'] = 'toggleReactor'}))})
                 end
             end
-        elseif gui.settings['currentPage'] == 6 then -- Control Rods
+        elseif gui.settings['currentPageTitle'] == 'Graphs' then -- Graphs
+            if y == 6 then
+                if x >=gui.width*gui.widthFactor+1 and x <= gui.width*gui.widthFactor+1+5 then
+                    if gui.snapshot['status'] then
+                        remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'command', ['data'] = 'scram'}))})
+                    end
+                end
+            end
+        elseif gui.settings['currentPageTitle'] == 'Rod Statistics' then -- Control Rods
             for k, v in pairs(gui.snapshot['rodInfo']['rods']) do
                 if y == 8+k*2 then
                     if x == math.ceil((gui.width-(#'      buttons      '-2))/2) or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+1 then
@@ -381,7 +411,7 @@ function remote.clickedButton(event, button, x, y, arg4, arg5)
                     break
                 end
             end
-        elseif gui.settings['currentPage'] == 7 then -- Automations
+        elseif gui.settings['currentPageTitle'] == 'Automations' then -- Automations
             if y == 6 then -- Power
                 if x>=1+gui.width*gui.widthFactor and x<=1+gui.width*gui.widthFactor+5 then
                     remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'command', ['data'] = 'powerToggle'}))})
@@ -557,14 +587,6 @@ function remote.clickedButton(event, button, x, y, arg4, arg5)
                     remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'command', ['data'] = 'controlRodsToggle'}))})
                 end
             end
-        elseif gui.settings['currentPage'] == 8 then -- Graphs
-            if y == 6 then
-                if x >=gui.width*gui.widthFactor+1 and x <= gui.width*gui.widthFactor+1+5 then
-                    if gui.snapshot['status'] then
-                        remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'command', ['data'] = 'scram'}))})
-                    end
-                end
-            end
         end
     end
 end --end clickedButton
@@ -617,7 +639,8 @@ function remote.initialize()
         remote.modem = tempModem
         remote.modem.open(7)
     end
-    remote.readServerKeys()
+    remote.scanForServer()
+    -- remote.readServerKeys()
     remote.login()
     remote.requestSnapshot()
     parallel.waitForAny(remote.snapshotHandler, remote.eventHandler, remote.guiHandler)

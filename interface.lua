@@ -507,7 +507,7 @@ function interface.clickedButton(event, button, x, y, arg4, arg5)
             elseif x>=2 and x<=6 then --Prev
                 gui.nextPage(false)
             end
-        elseif gui.settings['currentPage'] == 1 then
+        elseif gui.settings['currentPageTitle'] == 'Home' then
             if y == 9 then
                 if x>=1+gui.width*gui.widthFactor and x<=1+gui.width*gui.widthFactor+5 then
                     if interface.reactor.getActive() then
@@ -517,7 +517,18 @@ function interface.clickedButton(event, button, x, y, arg4, arg5)
                     end
                 end
             end
-        elseif gui.settings['currentPage'] == 6 then -- Control Rods
+        elseif gui.settings['currentPageTitle'] == 'Graphs' then -- Graphs
+            if y == 6 then
+                if x >=gui.width*gui.widthFactor+1 and x <= gui.width*gui.widthFactor+1+5 then
+                    if gui.snapshot['status'] then
+                        for k, v in pairs(gui.snapshot['rodInfo']['rods']) do
+                            interface.reactor.setControlRodLevel(k, 100)
+                        end
+                        interface.reactor.setActive(false)
+                    end
+                end
+            end
+        elseif gui.settings['currentPageTitle'] == 'Rod Statistics' then -- Control Rods
             for k, v in pairs(gui.snapshot['rodInfo']['rods']) do
                 if y == 8+k*2 then
                     if x == math.ceil((gui.width-(#'      buttons      '-2))/2) or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+1 then
@@ -552,7 +563,7 @@ function interface.clickedButton(event, button, x, y, arg4, arg5)
                     break
                 end
             end
-        elseif gui.settings['currentPage'] == 7 then -- Automations
+        elseif gui.settings['currentPageTitle'] == 'Automations' then -- Automations
             if y == 6 then -- Power
                 if x>=1+gui.width*gui.widthFactor and x<=1+gui.width*gui.widthFactor+5 then
                     if interface.automations['powerToggle'] then
@@ -634,18 +645,7 @@ function interface.clickedButton(event, button, x, y, arg4, arg5)
                 end
             end
             interface.writeAutomations()
-        elseif gui.settings['currentPage'] == 8 then -- Graphs
-            if y == 6 then
-                if x >=gui.width*gui.widthFactor+1 and x <= gui.width*gui.widthFactor+1+5 then
-                    if gui.snapshot['status'] then
-                        for k, v in pairs(gui.snapshot['rodInfo']['rods']) do
-                            interface.reactor.setControlRodLevel(k, 100)
-                        end
-                        interface.reactor.setActive(false)
-                    end
-                end
-            end
-        elseif gui.settings['currentPage'] == 9 then -- Manage Clients // Server Connection
+        elseif gui.settings['currentPageTitle'] == 'Connection' then -- Manage Clients // Server Connection
             if x > 2 and x < gui.width-2 then
                 if y > 6 and y < gui.height-3 then
                     local count = 1
