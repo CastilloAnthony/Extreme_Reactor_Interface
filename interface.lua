@@ -357,15 +357,17 @@ function interface.checkMessages(event, side, channel, replyChannel, message, di
                     else -- Add to clients & their public key & parameters
                         if message['packet']['p'] ~= nil and message['packet']['g'] ~= nil and message['packet']['publicKey'] ~= nil then
                             clients[message['origin']['label']] = message['origin']
-                            clients[message['origin']['label']]['p'] = message['packet']['p']
-                            clients[message['origin']['label']]['g'] = message['packet']['g']
-                            clients[message['origin']['label']]['privateKey'], clients[message['origin']['label']]['publicKey'] = crypt.generatePrivatePublicKeys(message['packet']['p'], message['packet']['g'])
-                            clients[message['origin']['label']]['sharedKey'] = crypt.generateSharedKey(clients[message['origin']['label']]['privateKey'], message['packet']['publicKey'], message['packet']['p'])
+                            -- clients[message['origin']['label']]['p'] = message['packet']['p']
+                            -- clients[message['origin']['label']]['g'] = message['packet']['g']
+                            -- clients[message['origin']['label']]['privateKey'], clients[message['origin']['label']]['publicKey'] = crypt.generatePrivatePublicKeys(message['packet']['p'], message['packet']['g'])
+                            local privateKey, publicKey = crypt.generatePrivatePublicKeys(message['packet']['p'], message['packet']['g'])
+                            interface.modem.transmit(14, 0, {['origin'] = interface.getComputerInfo(), ['target'] = message['origin'], ['packet'] = {['publicKey'] = publicKey}})
+                            clients[message['origin']['label']]['sharedKey'] = crypt.generateSharedKey(privateKey, message['packet']['publicKey'], message['packet']['p'])
                             clients[message['origin']['label']]['creationTimestamp'] = os.epoch('local')
                             clients[message['origin']['label']]['lastLogin'] = os.epoch('local')
                             clients[message['origin']['label']]['lastActivity'] = os.epoch('local')
                             interface.writeClients(clients)
-                            interface.modem.transmit(14, 0, {['origin'] = interface.getComputerInfo(), ['target'] = message['origin'], ['packet'] = {['publicKey'] = clients[message['origin']['label']]['publicKey']}})
+                            -- interface.modem.transmit(14, 0, {['origin'] = interface.getComputerInfo(), ['target'] = message['origin'], ['packet'] = {['publicKey'] = clients[message['origin']['label']]['publicKey']}})
                         end
                     end
                 end

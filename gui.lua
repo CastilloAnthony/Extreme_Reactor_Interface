@@ -837,26 +837,33 @@ function gui.page8() -- Graphs
         end
     end
 
-    for k, v in pairs(graphContent) do 
+    for k, v in pairs(graphContent) do
         -- Max Height: gui.height-#content-4
         -- Max Width: gui.width*gui.widthFactor-2
-        local width = ((gui.width*gui.widthFactor-2)/4)-3
-        local x = (((gui.width*gui.widthFactor)-2)/(4))*(k)+3
+        local x = ((math.floor(gui.width*gui.widthFactor)-2)/(4))*(k)+3
+        local graphWidth = (gui.width*gui.widthFactor-2)/4-2
         gui.monitor.setTextColor(graphColors[k])
         for i=1, (gui.height-8) do
             gui.monitor.setCursorPos(x, gui.height-2-i)
             gui.monitor.setBackgroundColor(colors.gray)
             if gui.height-8-i <= #graphNames[k] and gui.height-8-i ~= 0 then
                 gui.monitor.write(string.sub(graphNames[k], gui.height-8-i, gui.height-8-i))
-                gui.monitor.write('  ')
+                for k=1, graphWidth do
+                    gui.monitor.write(' ')
+                end
             else
-                gui.monitor.write('   ')
+                gui.monitor.write(' ')
+                for k=1, graphWidth do
+                    gui.monitor.write(' ')
+                end
             end
         end
         for i=2, (gui.height-8)*(v/100) do
             gui.monitor.setCursorPos(x+1, gui.height-2-i)
             gui.monitor.setBackgroundColor(graphColors[k])
-            gui.monitor.write(' ')
+            for k=1, graphWidth-1 do
+                gui.monitor.write(' ')
+            end
         end
     end
     local buttons = {
@@ -908,15 +915,16 @@ function gui.page9() -- Manage Clients // Connection to Server
             -- content[#content+1] = ccStrings.ensure_width(ccStrings.ensure_width(i['label'], gui.width*gui.widthFactor-1)..i['id'], gui.width-4)
             content[#content+1] = ccStrings.ensure_width(ccStrings.ensure_width(tostring(i['id']), 4)..' '..ccStrings.ensure_width(i['label'], gui.width*gui.widthFactor-1-5)..' '..gui.formatNum((os.epoch('local')-i['lastActivity'])/1000)..'s', gui.width-4)
             contentColors[#contentColors+1] = colors.white
-            if (os.epoch('local')-i['lastActivity'])/1000 < 60*.2 then -- 12 Seconds
+            local timeoutPeriod = 60*5
+            if (os.epoch('local')-i['lastActivity'])/1000 < timeoutPeriod*.2 then -- 1/5 of the Timeout Period
                 contentBackgroundColors[#contentBackgroundColors+1] = colors.green
-            elseif (os.epoch('local')-i['lastActivity'])/1000 < 60*.4 then -- 24 Seconds
+            elseif (os.epoch('local')-i['lastActivity'])/1000 < timeoutPeriod*.4 then -- 2/5 of the Timeout Period
                 contentBackgroundColors[#contentBackgroundColors+1] = colors.lime
-            elseif (os.epoch('local')-i['lastActivity'])/1000 < 60*.6 then -- 36 Seconds
+            elseif (os.epoch('local')-i['lastActivity'])/1000 < timeoutPeriod*.6 then -- 3/5 of the Timeout Period
                 contentBackgroundColors[#contentBackgroundColors+1] = colors.yellow
-            elseif (os.epoch('local')-i['lastActivity'])/1000 < 60*.8 then -- 48 Seconds
+            elseif (os.epoch('local')-i['lastActivity'])/1000 < timeoutPeriod*.8 then -- 4/5 of the Timeout Period
                 contentBackgroundColors[#contentBackgroundColors+1] = colors.orange
-            else -- 60 Seconds or longer
+            else -- The full Timeout Period
                 contentBackgroundColors[#contentBackgroundColors+1] = colors.red
             end
         end
