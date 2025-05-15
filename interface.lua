@@ -363,6 +363,7 @@ function interface.checkMessages(event, side, channel, replyChannel, message, di
                             clients[message['origin']['label']]['sharedKey'] = crypt.generateSharedKey(clients[message['origin']['label']]['privateKey'], message['packet']['publicKey'], message['packet']['p'])
                             clients[message['origin']['label']]['creationTimestamp'] = os.epoch('local')
                             clients[message['origin']['label']]['lastLogin'] = os.epoch('local')
+                            clients[message['origin']['label']]['lastActivity'] = os.epoch('local')
                             interface.writeClients(clients)
                             interface.modem.transmit(14, 0, {['origin'] = interface.getComputerInfo(), ['target'] = message['origin'], ['packet'] = {['publicKey'] = clients[message['origin']['label']]['publicKey']}})
                         end
@@ -386,6 +387,7 @@ function interface.checkMessages(event, side, channel, replyChannel, message, di
                                     -- interface.session[message['origin']['label']]['timestamp'] = os.clock()
                                     interface.modem.transmit(28, 0, {['origin'] = interface.getComputerInfo(), ['target'] = message['origin'], ['packet'] = crypt.xorEncryptDecrypt(clients[message['origin']['label']]['sharedKey'], textutils.serialize({['type'] = 'login', ['data'] = 'Granted'}))})
                                     clients[message['origin']['label']]['lastLogin'] = os.epoch('local')
+                                    clients[message['origin']['label']]['lastActivity'] = os.epoch('local')
                                     interface.writeClients(clients)
                                 else
                                     gui.log('Failed login attempt from: '..message['origin']['label']..' with ID '..message['origin']['id'])
@@ -393,6 +395,8 @@ function interface.checkMessages(event, side, channel, replyChannel, message, di
                                 end
                             elseif decryptedMsg['type'] == 'snapshot' then
                                 interface.modem.transmit(28, 0, {['origin'] = interface.getComputerInfo(), ['target'] = message['origin'], ['packet'] = crypt.xorEncryptDecrypt(clients[message['origin']['label']]['sharedKey'], textutils.serialize({['type'] = 'snapshot', ['data'] = gui.snapshot}))})
+                                clients[message['origin']['label']]['lastActivity'] = os.epoch('local')
+                                interface.writeClients(clients)
                             elseif decryptedMsg['type'] == 'command' then
                                 if decryptedMsg['data'] == 'toggleReactor' then
                                     if interface.reactor.getActive() then
@@ -400,6 +404,8 @@ function interface.checkMessages(event, side, channel, replyChannel, message, di
                                     else
                                         interface.reactor.setActive(true)
                                     end
+                                    clients[message['origin']['label']]['lastActivity'] = os.epoch('local')
+                                    interface.writeClients(clients)
                                 elseif decryptedMsg['data'] == 'powerToggle' then
                                     if gui.snapshot['automations']['powerToggle'] then
                                         interface.automations['powerToggle'] = false
@@ -407,6 +413,8 @@ function interface.checkMessages(event, side, channel, replyChannel, message, di
                                         interface.automations['powerToggle'] = true
                                     end
                                     interface.writeAutomations()
+                                    clients[message['origin']['label']]['lastActivity'] = os.epoch('local')
+                                    interface.writeClients(clients)
                                 elseif decryptedMsg['data'] == 'tempToggle' then
                                     if gui.snapshot['automations']['tempToggle'] then
                                         interface.automations['tempToggle'] = false
@@ -414,6 +422,8 @@ function interface.checkMessages(event, side, channel, replyChannel, message, di
                                         interface.automations['tempToggle'] = true
                                     end
                                     interface.writeAutomations()
+                                    clients[message['origin']['label']]['lastActivity'] = os.epoch('local')
+                                    interface.writeClients(clients)
                                 elseif decryptedMsg['data'] == 'controlRodsToggle' then
                                     if gui.snapshot['automations']['controlRodsToggle'] then
                                         interface.automations['controlRodsToggle'] = false
@@ -421,6 +431,8 @@ function interface.checkMessages(event, side, channel, replyChannel, message, di
                                         interface.automations['controlRodsToggle'] = true
                                     end
                                     interface.writeAutomations()
+                                    clients[message['origin']['label']]['lastActivity'] = os.epoch('local')
+                                    interface.writeClients(clients)
                                 elseif decryptedMsg['data'] == 'scram' then
                                     if gui.snapshot['status'] then
                                         for k, v in pairs(gui.snapshot['rodInfo']['rods']) do
@@ -428,6 +440,8 @@ function interface.checkMessages(event, side, channel, replyChannel, message, di
                                         end
                                         interface.reactor.setActive(false)
                                     end
+                                    clients[message['origin']['label']]['lastActivity'] = os.epoch('local')
+                                    interface.writeClients(clients)
                                 end
                             elseif decryptedMsg['type'] == 'adjustRod' then
                                 if decryptedMsg['direction'] == 'up' then
@@ -436,6 +450,8 @@ function interface.checkMessages(event, side, channel, replyChannel, message, di
                                     interface.reactor.setControlRodLevel(decryptedMsg['target'], gui.snapshot['rodInfo']['rods'][decryptedMsg['target']]['level']-decryptedMsg['data'])
                                 end
                                 interface.writeAutomations()
+                                clients[message['origin']['label']]['lastActivity'] = os.epoch('local')
+                                interface.writeClients(clients)
                             elseif decryptedMsg['type'] == 'powerMax' then
                                 if decryptedMsg['direction'] == 'up' then
                                     interface.automations['powerMax'] = interface.automations['powerMax']+decryptedMsg['data']
@@ -443,6 +459,8 @@ function interface.checkMessages(event, side, channel, replyChannel, message, di
                                     interface.automations['powerMax'] = interface.automations['powerMax']-decryptedMsg['data']
                                 end
                                 interface.writeAutomations()
+                                clients[message['origin']['label']]['lastActivity'] = os.epoch('local')
+                                interface.writeClients(clients)
                             elseif decryptedMsg['type'] == 'powerMin' then
                                 if decryptedMsg['direction'] == 'up' then
                                     interface.automations['powerMin'] = interface.automations['powerMin']+decryptedMsg['data']
@@ -450,6 +468,8 @@ function interface.checkMessages(event, side, channel, replyChannel, message, di
                                     interface.automations['powerMin'] = interface.automations['powerMin']-decryptedMsg['data']
                                 end
                                 interface.writeAutomations()
+                                clients[message['origin']['label']]['lastActivity'] = os.epoch('local')
+                                interface.writeClients(clients)
                             elseif decryptedMsg['type'] == 'tempMax' then
                                 if decryptedMsg['direction'] == 'up' then
                                     interface.automations['tempMax'] = interface.automations['tempMax']+decryptedMsg['data']
@@ -457,6 +477,8 @@ function interface.checkMessages(event, side, channel, replyChannel, message, di
                                     interface.automations['tempMax'] = interface.automations['tempMax']-decryptedMsg['data']
                                 end
                                 interface.writeAutomations()
+                                clients[message['origin']['label']]['lastActivity'] = os.epoch('local')
+                                interface.writeClients(clients)
                             end
                         end
                     end
@@ -618,6 +640,21 @@ function interface.clickedButton(event, button, x, y, arg4, arg5)
                             interface.reactor.setControlRodLevel(k, 100)
                         end
                         interface.reactor.setActive(false)
+                    end
+                end
+            end
+        elseif gui.settings['currentPage'] == 9 then -- Manage Clients // Server Connection
+            if x > 2 and x < gui.width-2 then
+                if y > 6 and y < gui.height-3 then
+                    local count = 1
+                    local clients = interface.readClients()
+                    for _, i in pairs(clients) do
+                        if y-6 == count then
+                            clients[i['label']] = nil
+                            interface.writeClients(clients)
+                            break
+                        end
+                        count = count + 1
                     end
                 end
             end

@@ -889,7 +889,8 @@ function gui.page9() -- Manage Clients // Connection to Server
             [0] = '',
             [1] = 'Manage Clients',
             [2] = '',
-            [3] = ccStrings.ensure_width('Name', gui.width*gui.widthFactor-1)..'ID',
+            -- [3] = ccStrings.ensure_width('Name', gui.width*gui.widthFactor-1)..'ID',
+            [3] = ccStrings.ensure_width(ccStrings.ensure_width('ID', 4)..' '..ccStrings.ensure_width('Name', gui.width*gui.widthFactor-1-5)..' '..'Idle', gui.width-4),
         }
         local contentColors = {
         [0] = gui.stdBgColor,
@@ -897,18 +898,32 @@ function gui.page9() -- Manage Clients // Connection to Server
         [2] = gui.stdBgColor,
         [3] = colors.yellow,
         }
+        local contentBackgroundColors = {
+            [0] = colors.black,
+            [1] = colors.black,
+            [2] = colors.black,
+            [3] = colors.black,
+        }
         for _, i in pairs(gui.readClients()) do
-            content[#content+1] = ccStrings.ensure_width(i['label'], gui.width*gui.widthFactor-1)..i['id']
+            -- content[#content+1] = ccStrings.ensure_width(ccStrings.ensure_width(i['label'], gui.width*gui.widthFactor-1)..i['id'], gui.width-4)
+            content[#content+1] = ccStrings.ensure_width(ccStrings.ensure_width(tostring(i['id']), 4)..' '..ccStrings.ensure_width(i['label'], gui.width*gui.widthFactor-1-5)..' '..gui.formatNum((os.epoch('local')-i['lastActivity'])/1000)..'s', gui.width-4)
             contentColors[#contentColors+1] = colors.white
+            if (os.epoch('local')-i['lastActivity'])/1000 < 60 then -- 1 Minute
+                contentBackgroundColors[#contentBackgroundColors+1] = colors.green
+            else
+                contentBackgroundColors[#contentBackgroundColors+1] = colors.red
+            end
         end
         content[#content+1] = ''
         contentColors[#contentColors+1] = gui.stdBgColor
+        contentBackgroundColors[#contentBackgroundColors+1] = colors.black
         for k, v in pairs(content) do
             gui.monitor.setCursorPos(2,3+k)
             gui.monitor.setBackgroundColor(colors.black)
             for i=0, gui.width-3 do
                 gui.monitor.write(' ')
             end
+            gui.monitor.setBackgroundColor(contentBackgroundColors[k])
             if k == 1 then --Title
                 gui.monitor.setTextColor(contentColors[k])
                 gui.monitor.setCursorPos(math.ceil((gui.width-(#v-2))/2), 3+k)
