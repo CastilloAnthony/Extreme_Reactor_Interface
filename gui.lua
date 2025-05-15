@@ -908,9 +908,15 @@ function gui.page9() -- Manage Clients // Connection to Server
             -- content[#content+1] = ccStrings.ensure_width(ccStrings.ensure_width(i['label'], gui.width*gui.widthFactor-1)..i['id'], gui.width-4)
             content[#content+1] = ccStrings.ensure_width(ccStrings.ensure_width(tostring(i['id']), 4)..' '..ccStrings.ensure_width(i['label'], gui.width*gui.widthFactor-1-5)..' '..gui.formatNum((os.epoch('local')-i['lastActivity'])/1000)..'s', gui.width-4)
             contentColors[#contentColors+1] = colors.white
-            if (os.epoch('local')-i['lastActivity'])/1000 < 60 then -- 1 Minute
+            if (os.epoch('local')-i['lastActivity'])/1000 < 60*.2 then -- 12 Seconds
                 contentBackgroundColors[#contentBackgroundColors+1] = colors.green
-            else
+            elseif (os.epoch('local')-i['lastActivity'])/1000 < 60*.4 then -- 24 Seconds
+                contentBackgroundColors[#contentBackgroundColors+1] = colors.lime
+            elseif (os.epoch('local')-i['lastActivity'])/1000 < 60*.6 then -- 36 Seconds
+                contentBackgroundColors[#contentBackgroundColors+1] = colors.yellow
+            elseif (os.epoch('local')-i['lastActivity'])/1000 < 60*.8 then -- 48 Seconds
+                contentBackgroundColors[#contentBackgroundColors+1] = colors.orange
+            else -- 60 Seconds or longer
                 contentBackgroundColors[#contentBackgroundColors+1] = colors.red
             end
         end
