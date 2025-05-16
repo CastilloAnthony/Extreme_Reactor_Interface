@@ -22,7 +22,7 @@ interface.automations = {
     ['powerMax'] = 90,
     ['tempToggle'] = true,
     ['tempMin'] = 10,
-    ['tempMax'] = 1000,
+    ['tempMax'] = 2000,
     ['controlRodsToggle'] = true,
 }
 
