@@ -558,7 +558,7 @@ function remote.clickedButton(event, button, x, y, arg4, arg5)
                 elseif x >= math.ceil((gui.width-(#'      buttons      '-2))/2)+10 and x <= math.ceil((gui.width-(#'      buttons      '-2))/2)+12 then
                     if gui.snapshot['automations']['tempMax']+10 > 1000 then
                         for i=1, 10 do
-                            if gui.snapshot['automations']['tempMax']+i == 1000 then
+                            if gui.snapshot['automations']['tempMax']+i == 10000 then
                                 remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'tempMax', ['data'] = i, ['direction'] = 'up'}))})
                                 break
                             end
@@ -569,7 +569,7 @@ function remote.clickedButton(event, button, x, y, arg4, arg5)
                 elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+14 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+15 then
                     if gui.snapshot['automations']['tempMax']+5 > 1000 then
                         for i=1, 5 do
-                            if gui.snapshot['automations']['tempMax']+i == 1000 then
+                            if gui.snapshot['automations']['tempMax']+i == 10000 then
                                 remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'tempMax', ['data'] = i, ['direction'] = 'up'}))})
                                 break
                             end
@@ -578,7 +578,7 @@ function remote.clickedButton(event, button, x, y, arg4, arg5)
                         remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'tempMax', ['data'] = 5, ['direction'] = 'up'}))})
                     end
                 elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+17 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+18 then
-                    if gui.snapshot['automations']['tempMax'] < 1000 then
+                    if gui.snapshot['automations']['tempMax'] < 10000 then
                         remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'tempMax', ['data'] = 1, ['direction'] = 'up'}))})
                     end
                 end

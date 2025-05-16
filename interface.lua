@@ -456,27 +456,39 @@ function interface.checkMessages(event, side, channel, replyChannel, message, di
                                 interface.writeClients(clients)
                             elseif decryptedMsg['type'] == 'powerMax' then
                                 if decryptedMsg['direction'] == 'up' then
-                                    interface.automations['powerMax'] = interface.automations['powerMax']+decryptedMsg['data']
+                                    if interface.automations['powerMax']+decryptedMsg['data'] ~> 100 then
+                                        interface.automations['powerMax'] = interface.automations['powerMax']+decryptedMsg['data']
+                                    end
                                 elseif decryptedMsg['direction'] == 'down' then
-                                    interface.automations['powerMax'] = interface.automations['powerMax']-decryptedMsg['data']
+                                    if interface.automations['powerMax']+decryptedMsg['data'] ~< interface.automations['powerMin'] then
+                                        interface.automations['powerMax'] = interface.automations['powerMax']-decryptedMsg['data']
+                                    end
                                 end
                                 interface.writeAutomations()
                                 clients[message['origin']['label']]['lastActivity'] = os.epoch('local')
                                 interface.writeClients(clients)
                             elseif decryptedMsg['type'] == 'powerMin' then
                                 if decryptedMsg['direction'] == 'up' then
-                                    interface.automations['powerMin'] = interface.automations['powerMin']+decryptedMsg['data']
+                                    if interface.automations['powerMin']+decryptedMsg['data'] ~> interface.automations['powerMax'] then
+                                        interface.automations['powerMin'] = interface.automations['powerMin']+decryptedMsg['data']
+                                    end
                                 elseif decryptedMsg['direction'] == 'down' then
-                                    interface.automations['powerMin'] = interface.automations['powerMin']-decryptedMsg['data']
+                                    if interface.automations['powerMin']+decryptedMsg['data'] ~< 0 then
+                                        interface.automations['powerMin'] = interface.automations['powerMin']-decryptedMsg['data']
+                                    end
                                 end
                                 interface.writeAutomations()
                                 clients[message['origin']['label']]['lastActivity'] = os.epoch('local')
                                 interface.writeClients(clients)
                             elseif decryptedMsg['type'] == 'tempMax' then
                                 if decryptedMsg['direction'] == 'up' then
-                                    interface.automations['tempMax'] = interface.automations['tempMax']+decryptedMsg['data']
+                                    if interface.automations['tempMax']-decryptedMsg['data'] ~> 10000 then
+                                        interface.automations['tempMax'] = interface.automations['tempMax']+decryptedMsg['data']
+                                    end
                                 elseif decryptedMsg['direction'] == 'down' then
-                                    interface.automations['tempMax'] = interface.automations['tempMax']-decryptedMsg['data']
+                                    if interface.automations['tempMax']-decryptedMsg['data'] ~< 0 then
+                                        interface.automations['tempMax'] = interface.automations['tempMax']-decryptedMsg['data']
+                                    end
                                 end
                                 interface.writeAutomations()
                                 clients[message['origin']['label']]['lastActivity'] = os.epoch('local')
@@ -727,7 +739,7 @@ function interface.writeAutomations()
             ['powerMax'] = 90,
             ['tempToggle'] = true,
             ['tempMin'] = 10,
-            ['tempMax'] = 1000,
+            ['tempMax'] = 2000,
             ['controlRodsToggle'] = true,
         }
         local file = fs.open('./er_interface/settings_automations.cfg', 'w')
