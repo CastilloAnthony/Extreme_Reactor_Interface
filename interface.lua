@@ -456,11 +456,11 @@ function interface.checkMessages(event, side, channel, replyChannel, message, di
                                 interface.writeClients(clients)
                             elseif decryptedMsg['type'] == 'powerMax' then
                                 if decryptedMsg['direction'] == 'up' then
-                                    if not interface.automations['powerMax']+decryptedMsg['data'] > 100 then
+                                    if not (interface.automations['powerMax']+decryptedMsg['data'] > 100) then
                                         interface.automations['powerMax'] = interface.automations['powerMax']+decryptedMsg['data']
                                     end
                                 elseif decryptedMsg['direction'] == 'down' then
-                                    if not interface.automations['powerMax']+decryptedMsg['data'] < interface.automations['powerMin'] then
+                                    if not (interface.automations['powerMax']+decryptedMsg['data'] < interface.automations['powerMin']) then
                                         interface.automations['powerMax'] = interface.automations['powerMax']-decryptedMsg['data']
                                     end
                                 end
@@ -469,11 +469,11 @@ function interface.checkMessages(event, side, channel, replyChannel, message, di
                                 interface.writeClients(clients)
                             elseif decryptedMsg['type'] == 'powerMin' then
                                 if decryptedMsg['direction'] == 'up' then
-                                    if not interface.automations['powerMin']+decryptedMsg['data'] > interface.automations['powerMax'] then
+                                    if not (interface.automations['powerMin']+decryptedMsg['data'] > interface.automations['powerMax']) then
                                         interface.automations['powerMin'] = interface.automations['powerMin']+decryptedMsg['data']
                                     end
                                 elseif decryptedMsg['direction'] == 'down' then
-                                    if not interface.automations['powerMin']+decryptedMsg['data'] < 0 then
+                                    if not (interface.automations['powerMin']+decryptedMsg['data'] < 0) then
                                         interface.automations['powerMin'] = interface.automations['powerMin']-decryptedMsg['data']
                                     end
                                 end
@@ -482,11 +482,11 @@ function interface.checkMessages(event, side, channel, replyChannel, message, di
                                 interface.writeClients(clients)
                             elseif decryptedMsg['type'] == 'tempMax' then
                                 if decryptedMsg['direction'] == 'up' then
-                                    if not interface.automations['tempMax']-decryptedMsg['data'] > 10000 then
+                                    if not (interface.automations['tempMax']-decryptedMsg['data'] > 10000) then
                                         interface.automations['tempMax'] = interface.automations['tempMax']+decryptedMsg['data']
                                     end
                                 elseif decryptedMsg['direction'] == 'down' then
-                                    if not interface.automations['tempMax']-decryptedMsg['data'] < 0 then
+                                    if not (interface.automations['tempMax']-decryptedMsg['data'] < 0) then
                                         interface.automations['tempMax'] = interface.automations['tempMax']-decryptedMsg['data']
                                     end
                                 end
