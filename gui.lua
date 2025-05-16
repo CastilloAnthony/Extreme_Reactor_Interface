@@ -14,6 +14,14 @@ gui.logList = {}
 gui.logCount = 0
 gui.settings = nil
 gui.stdBgColor = colors.gray
+gui.colors = {
+    ['power'] = colors.red,
+    ['temperature'] = colors.orange,
+    ['fuel'] = colors.yellow,
+    ['coolant'] = colors.blue,
+    ['steam'] = colors.white,
+    ['waste'] = colors.brown,
+}
 
 function gui.initialize(monitor)
     gui.monitor = monitor
@@ -354,10 +362,10 @@ function gui.page1() --Snapshot Report
         [6] = 'reactorStatus',
         [7] = '',
         [8] = ccStrings.ensure_width('Power (FE):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['energyInfo']['stored']),
-        [9] = ccStrings.ensure_width('Fuel (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['fuelInfo']['amount']),
-        [10] = ccStrings.ensure_width('Coolant (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['coolantInfo']['amount']),
-        [11] = ccStrings.ensure_width('Hot Fluid (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['hotFluidInfo']['amount']),
-        [12] = ccStrings.ensure_width('Case Temp. (C):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['casingTemperature']),
+        [9] = ccStrings.ensure_width('Case Temp. (C):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['casingTemperature']),
+        [10] = ccStrings.ensure_width('Fuel (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['fuelInfo']['amount']),
+        [11] = ccStrings.ensure_width('Coolant (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['coolantInfo']['amount']),
+        [12] = ccStrings.ensure_width('Steam (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['hotFluidInfo']['amount']),
         [13] = ccStrings.ensure_width('Waste (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['wasteAmount']),
         [14] = '',
     }
@@ -370,12 +378,12 @@ function gui.page1() --Snapshot Report
         [5] = gui.stdBgColor, -- Empty Space
         [6] = colors.yellow,
         [7] = gui.stdBgColor, -- Empty Space
-        [8] = colors.magenta,
-        [9] = colors.orange,
-        [10] = colors.blue,
-        [11] = colors.red,
-        [12] = colors.lime,
-        [13] = colors.brown,
+        [8] = gui.colors['power'],
+        [9] = gui.colors['temperature'],
+        [10] = gui.colors['fuel'],
+        [11] = gui.colors['coolant'],
+        [12] = gui.colors['steam'],
+        [13] = gui.colors['waste'],
         [14] = colors.lightGray,
     }
     gui.monitor.setBackgroundColor(gui.stdBgColor)
@@ -435,14 +443,14 @@ function gui.page2() -- Power
     }
     local contentColors = {
         [0] = gui.stdBgColor,
-        [1] = colors.magenta,
+        [1] = gui.colors['power'],
         [2] = gui.stdBgColor,
-        [3] = colors.magenta,
-        [4] = colors.red,
+        [3] = gui.colors['power'],
+        [4] = gui.colors['power'],
         [5] = gui.stdBgColor,
-        [6] = colors.magenta,
-        [7] = colors.magenta,
-        [8] = colors.magenta,
+        [6] = gui.colors['power'],
+        [7] = gui.colors['power'],
+        [8] = gui.colors['power'],
         -- [9] = colors.magenta,
         [9] = gui.stdBgColor,
     }    
@@ -491,17 +499,17 @@ function gui.page3() -- Fuel Page
     }
     local contentColors = {
         [0] = gui.stdBgColor,
-        [1] = colors.orange,
+        [1] = gui.colors['fuel'],
         [2] = gui.stdBgColor,
-        [3] = colors.orange,
-        [4] = colors.lime,
+        [3] = gui.colors['fuel'],
+        [4] = gui.colors['fuel'],
         [5] = gui.stdBgColor,
-        [6] = colors.orange,
-        [7] = colors.orange,
-        [8] = colors.orange,
-        [9] = colors.orange,
-        [10] = colors.orange,
-        [11] = colors.orange,
+        [6] = gui.colors['fuel'],
+        [7] = gui.colors['fuel'],
+        [8] = gui.colors['fuel'],
+        [9] = gui.colors['fuel'],
+        [10] = gui.colors['fuel'],
+        [11] = gui.colors['fuel'],
         [12] = gui.stdBgColor,
     }
     for k, v in pairs(content) do
@@ -546,14 +554,14 @@ function gui.page4() -- Coolant
     }
     local contentColors = {
         [0] = gui.stdBgColor,
-        [1] = colors.blue,
+        [1] = gui.colors['coolant'],
         [2] = gui.stdBgColor,
-        [3] = colors.blue,
-        [4] = colors.lightBlue,
+        [3] = gui.colors['coolant'],
+        [4] = gui.colors['coolant'],
         [5] = gui.stdBgColor,
-        [6] = colors.blue,
-        [7] = colors.blue,
-        [8] = colors.blue,
+        [6] = gui.colors['coolant'],
+        [7] = gui.colors['coolant'],
+        [8] = gui.colors['coolant'],
         [9] = gui.stdBgColor,
     }
     for k, v in pairs(content) do
@@ -586,9 +594,9 @@ function gui.page5() -- Hot Fluid
     end
     local content = {
         [0] = '',
-        [1] = 'Hot Fluid Statistics',
+        [1] = 'Steam Statistics',
         [2] = '',
-        [3] = ccStrings.ensure_width('Hot Fluid:', gui.width*gui.widthFactor-1)..tostring(math.floor((gui.snapshot['hotFluidInfo']['amount']/gui.snapshot['hotFluidInfo']['max'])*1000)/10)..'%',
+        [3] = ccStrings.ensure_width('Steam:', gui.width*gui.widthFactor-1)..tostring(math.floor((gui.snapshot['hotFluidInfo']['amount']/gui.snapshot['hotFluidInfo']['max'])*1000)/10)..'%',
         [4] = 'hotFluidbar',
         [5] = '',
         [6] = ccStrings.ensure_width('Stored (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['hotFluidInfo']['amount']),
@@ -599,15 +607,15 @@ function gui.page5() -- Hot Fluid
     }
     local contentColors = {
         [0] = gui.stdBgColor,
-        [1] = colors.red,
+        [1] = gui.colors['steam'],
         [2] = gui.stdBgColor,
-        [3] = colors.red,
-        [4] = colors.orange,
+        [3] = gui.colors['steam'],
+        [4] = gui.colors['steam'],
         [5] = gui.stdBgColor,
-        [6] = colors.red,
-        [7] = colors.red,
-        [8] = colors.red,
-        [9] = colors.red,
+        [6] = gui.colors['steam'],
+        [7] = gui.colors['steam'],
+        [8] = gui.colors['steam'],
+        [9] = gui.colors['steam'],
         [10] = gui.stdBgColor,
     }
     for k, v in pairs(content) do
@@ -644,92 +652,102 @@ function gui.page6() -- Graphs
         [1] = colors.yellow,
         [2] = gui.stdBgColor,
     }
-    -- local graphs = {
-        -- [0] = ccStrings.ensure_width('Power:', gui.width*gui.widthFactor-1)..tostring(math.floor((gui.snapshot['energyInfo']['stored']/gui.snapshot['energyInfo']['capacity'])*1000)/10)..'%',
-        -- [1] = ccStrings.ensure_width('Fuel:', gui.width*gui.widthFactor-1)..tostring(math.floor((gui.snapshot['fuelInfo']['amount']/gui.snapshot['fuelInfo']['max'])*1000)/10)..'%',
-        -- [2] = ccStrings.ensure_width('Coolant:', gui.width*gui.widthFactor-1)..tostring(math.floor((gui.snapshot['coolantInfo']['amount']/gui.snapshot['coolantInfo']['max'])*1000)/10)..'%',
-        -- [3] = ccStrings.ensure_width('Hot Fluid:', gui.width*gui.widthFactor-1)..tostring(math.floor((gui.snapshot['hotFluidInfo']['amount']/gui.snapshot['hotFluidInfo']['max'])*1000)/10)..'%',
-    -- }
     local graphContent = {
         [0] = math.floor((gui.snapshot['energyInfo']['stored']/gui.snapshot['energyInfo']['capacity'])*1000)/10, --Power
-        [1] = math.floor((gui.snapshot['fuelInfo']['amount']/gui.snapshot['fuelInfo']['max'])*1000)/10, --Fuel
-        [2] = math.floor((gui.snapshot['coolantInfo']['amount']/gui.snapshot['coolantInfo']['max'])*1000)/10, --Coolant
-        [3] = math.floor((gui.snapshot['hotFluidInfo']['amount']/gui.snapshot['hotFluidInfo']['max'])*1000)/10, --HotFluid
-        -- [4] = math.floor((gui.snapshot['wasteAmount']/gui.snapshot['fuelInfo']['max'])*1000)/10, --Waste
+        [1] = math.floor((gui.snapshot['casingTemperature']+gui.snapshot['fuelInfo']['temperature'])/2/(gui.snapshot['automations']['tempMax']+gui.snapshot['automations']['tempMax']*0.1)), --Temperature
+        [2] = math.floor((gui.snapshot['fuelInfo']['amount']/gui.snapshot['fuelInfo']['max'])*1000)/10, --Fuel
+        [3] = math.floor((gui.snapshot['coolantInfo']['amount']/gui.snapshot['coolantInfo']['max'])*1000)/10, --Coolant
+        [4] = math.floor((gui.snapshot['hotFluidInfo']['amount']/gui.snapshot['hotFluidInfo']['max'])*1000)/10, --HotFluid
+        [5] = math.floor((gui.snapshot['wasteAmount']/gui.snapshot['fuelInfo']['max'])*1000)/10, --Waste
     }
     local graphNames = {
         [0] = 'Power',
-        [1] = 'Fuel',
-        [2] = 'Coolant',
-        [3] = 'Hot Fluid',
-        -- [4] = 'Waste',
+        [1] = 'Temp.',
+        [2] = 'Fuel',
+        [3] = 'Coolant',
+        [4] = 'Steam',
+        [5] = 'Waste',
     }
     local graphColors = {
-        [0] = colors.red,
-        [1] = colors.lime,
-        [2] = colors.blue,
-        [3] = colors.orange,
-        -- [4] = colors.brown,
+        [0] = gui.colors['power'],
+        [1] = gui.colors['temperature'],
+        [2] = gui.colors['fuel'],
+        [3] = gui.colors['coolant'],
+        [4] = gui.colors['steam'],
+        [5] = gui.colors['waste'],
     }
-    for i=1, gui.height-4 do
+    for i=1, gui.height-4 do -- Background
         gui.monitor.setCursorPos(2,2+i)
         gui.monitor.setBackgroundColor(colors.black)
         for i=0, gui.width-3 do
             gui.monitor.write(' ')
         end
     end
-    for k, v in pairs(content) do
+    for k, v in pairs(content) do -- Title Card
         if k == 1 then --Title
             gui.monitor.setTextColor(contentColors[k])
             gui.monitor.setCursorPos(math.ceil((gui.width-(#v-2))/2), 3+k)
             gui.monitor.write(v)
         end
     end
-
-    for k, v in pairs(graphContent) do
-        -- Max Height: gui.height-#content-4
-        -- Max Width: gui.width*gui.widthFactor-2
-        local x = ((math.floor(gui.width*gui.widthFactor)-2)/(4))*(k)+3
-        local graphWidth = (gui.width*gui.widthFactor-2)/4-2
+    local graphWidth = math.floor(((gui.width-4)-(#graphContent+1))/(#graphContent+1))
+    local temp = 0
+    while graphWidth < 3 do -- If there are too many graphs, we must reduce the number of drawn 
+        temp = temp + 1
+        graphWidth = math.floor(((gui.width-4)-(#graphContent+1-temp))/(#graphContent+1-temp))
+    end
+    
+    -- for k, v in pairs(graphContent) do -- Per Graph
+    for k=0, #graphContent-temp do -- Per Graph
         gui.monitor.setTextColor(graphColors[k])
-        for i=1, (gui.height-8) do
-            gui.monitor.setCursorPos(x, gui.height-2-i)
-            gui.monitor.setBackgroundColor(colors.gray)
-            if gui.height-8-i <= #graphNames[k] and gui.height-8-i ~= 0 then
-                gui.monitor.write(string.sub(graphNames[k], gui.height-8-i, gui.height-8-i))
-                for k=1, graphWidth do
+        for i = 1, graphWidth do -- Per Width Pixel
+            if i == 1 then -- Name of graph
+                for j = 1, gui.height-8 do -- Per Height Pixel
+                    gui.monitor.setBackgroundColor(colors.gray)
+                    if gui.height-8-j <= #graphNames[k] and gui.height-8-j ~= 0 then
+                        gui.monitor.setCursorPos(2+graphWidth*(k)+k+i, gui.height-2-j)
+                        gui.monitor.write(string.sub(graphNames[k], gui.height-8-j, gui.height-8-j))
+                    else
+                        gui.monitor.setCursorPos(2+graphWidth*(k)+k+i, gui.height-2-j)
+                        gui.monitor.write(' ')
+                    end
+                end
+            elseif i == graphWidth then -- End of graph
+                gui.monitor.setBackgroundColor(colors.gray)
+                for j = 1, gui.height-8 do -- Per Height Pixel
+                    gui.monitor.setCursorPos(2+graphWidth*(k)+k+i, gui.height-2-j)
                     gui.monitor.write(' ')
                 end
-            else
-                gui.monitor.write(' ')
-                for k=1, graphWidth do
-                    gui.monitor.write(' ')
+            else -- Main body of graph
+                for j = 1, gui.height-8 do -- Per Height Pixel
+                    if j > 1 and j < gui.height-8 and j-1 <= math.ceil((gui.height-10)*(graphContent[k]/100)) then
+                        gui.monitor.setBackgroundColor(graphColors[k])
+                        gui.monitor.setCursorPos(2+graphWidth*(k)+k+i, gui.height-2-j)
+                        gui.monitor.write(' ')
+                    else
+                        gui.monitor.setBackgroundColor(colors.gray)
+                        gui.monitor.setCursorPos(2+graphWidth*(k)+k+i, gui.height-2-j)
+                        gui.monitor.write(' ')
+                    end
                 end
-            end
-        end
-        for i=2, (gui.height-8)*(v/100) do
-            gui.monitor.setCursorPos(x+1, gui.height-2-i)
-            gui.monitor.setBackgroundColor(graphColors[k])
-            for k=1, graphWidth-1 do
-                gui.monitor.write(' ')
             end
         end
     end
-    local buttons = {
-        [0] = 'SCRAM!',
-    }
-    gui.monitor.setTextColor(colors.white)
-    for k, v in pairs(buttons) do
-        gui.monitor.setCursorPos(gui.width*gui.widthFactor+1, 6+k)
-        if v == 'SCRAM!' then
-            if gui.snapshot['status'] then
-                gui.monitor.setBackgroundColor(colors.green)
-            else
-                gui.monitor.setBackgroundColor(colors.red)
-            end
-            gui.monitor.write(v)
-        end
-    end
+    -- local buttons = {
+    --     [0] = 'SCRAM!',
+    -- }
+    -- gui.monitor.setTextColor(colors.white)
+    -- for k, v in pairs(buttons) do
+    --     gui.monitor.setCursorPos(gui.width*gui.widthFactor+1, 6+k)
+    --     if v == 'SCRAM!' then
+    --         if gui.snapshot['status'] then
+    --             gui.monitor.setBackgroundColor(colors.green)
+    --         else
+    --             gui.monitor.setBackgroundColor(colors.red)
+    --         end
+    --         gui.monitor.write(v)
+    --     end
+    -- end
 end --end page8
 
 function gui.page7() -- Rods Page
