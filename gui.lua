@@ -315,7 +315,8 @@ function gui.formatNum(number)
         suffix = "m"
     elseif absNum >= 0.000001 then -- Micro
         scaled = number * 1000000
-        suffix = "μ"
+        -- suffix = "μ"
+        suffix = string.char(181)
     elseif absNum >= 0.000000001 then -- Nano
         scaled = number * 1000000000
         suffix = "n"
@@ -425,7 +426,7 @@ end --end page1
 
 function gui.page2() -- Power
     local powerBar = ''
-    for i=2, (gui.snapshot['energyInfo']['stored']/gui.snapshot['energyInfo']['capacity'])*gui.width-4 do
+    for i=1, (gui.snapshot['energyInfo']['stored']/gui.snapshot['energyInfo']['capacity'])*(gui.width-4) do
         powerBar = powerBar..' '
     end
     local content = {
@@ -479,7 +480,7 @@ end --end page2
 
 function gui.page3() -- Fuel Page
     local fuelBar = ''
-    for i=2, (gui.snapshot['fuelInfo']['amount']/gui.snapshot['fuelInfo']['max'])*gui.width-4 do
+    for i=1, (gui.snapshot['fuelInfo']['amount']/gui.snapshot['fuelInfo']['max'])*(gui.width-4) do
         fuelBar = fuelBar..' '
     end
     local content = {
@@ -537,7 +538,7 @@ end --end page3
 
 function gui.page4() -- Coolant
     local coolantBar = ''
-    for i=2, (gui.snapshot['coolantInfo']['amount']/gui.snapshot['coolantInfo']['max'])*gui.width-4 do
+    for i=1, (gui.snapshot['coolantInfo']['amount']/gui.snapshot['coolantInfo']['max'])*(gui.width-4) do
         coolantBar = coolantBar..' '
     end
     local content = {
@@ -589,7 +590,7 @@ end --end page4
 
 function gui.page5() -- Hot Fluid
     local hotFluidbar = ''
-    for i=2, (gui.snapshot['hotFluidInfo']['amount']/gui.snapshot['hotFluidInfo']['max'])*gui.width-4 do
+    for i=1, (gui.snapshot['hotFluidInfo']['amount']/gui.snapshot['hotFluidInfo']['max'])*(gui.width-4) do
         hotFluidbar = hotFluidbar..' '
     end
     local content = {
@@ -690,15 +691,15 @@ function gui.page6() -- Graphs
             gui.monitor.write(v)
         end
     end
-    local graphWidth = math.floor(((gui.width-4)-(#graphContent+1))/(#graphContent+1))
-    local temp = 0
+    local graphWidth = math.floor(((gui.width-4)-(#graphContent))/(#graphContent+1))
+    local removedGraphs = 0
     while graphWidth < 3 do -- If there are too many graphs, we must reduce the number of drawn 
-        temp = temp + 1
-        graphWidth = math.floor(((gui.width-4)-(#graphContent+1-temp))/(#graphContent+1-temp))
+        removedGraphs = removedGraphs + 1
+        graphWidth = math.floor(((gui.width-4)-(#graphContent-removedGraphs))/(#graphContent+1-removedGraphs))
     end
     
     -- for k, v in pairs(graphContent) do -- Per Graph
-    for k=0, #graphContent-temp do -- Per Graph
+    for k=0, #graphContent-removedGraphs do -- Per Graph
         gui.monitor.setTextColor(graphColors[k])
         for i = 1, graphWidth do -- Per Width Pixel
             if i == 1 then -- Name of graph
