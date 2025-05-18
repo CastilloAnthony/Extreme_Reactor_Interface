@@ -297,7 +297,7 @@ function remote.requestSnapshot()
             end
         end
     end
-    gui.snapshot = snapshot
+    gui.updateSnapshot(snapshot)
 end --end requestSnapshot
 
 function remote.checkMessages(event, side, channel, replyChannel, message, distance)
@@ -638,6 +638,10 @@ function remote.initialize()
     if tempModem ~= false then
         remote.modem = tempModem
         remote.modem.open(7)
+    end
+    if os.getComputerLabel() == nil then
+        os.setComputerLabel('Remote Device '..os.getComputerID())
+        interface.write('Set computer\'s label to '..os.getComputerLabel())
     end
     remote.scanForServer()
     -- remote.readServerKeys()

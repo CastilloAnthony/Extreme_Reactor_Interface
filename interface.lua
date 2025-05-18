@@ -738,7 +738,6 @@ function interface.writeAutomations()
             ['powerMin'] = 10,
             ['powerMax'] = 90,
             ['tempToggle'] = true,
-            ['tempMin'] = 10,
             ['tempMax'] = 2000,
             ['controlRodsToggle'] = true,
         }
@@ -768,12 +767,24 @@ function interface.manageAutomations() -- Run in Parallel
         os.sleep(interface.fps)
         if interface.automations['powerToggle'] then
             if interface.reactor.getActive() then -- Is active
-                if (gui.snapshot['energyInfo']['stored']/gui.snapshot['energyInfo']['capacity'])*100 >= interface.automations['powerMax'] then
-                    interface.reactor.setActive(false)
+                if not interface.reactor.isActivelyCooled() then
+                    if (gui.snapshot['energyInfo']['stored']/gui.snapshot['energyInfo']['capacity'])*100 >= interface.automations['powerMax'] then
+                        interface.reactor.setActive(false)
+                    end
+                else
+                    if (gui.snapshot['hotFluidInfo']['amount']/gui.snapshot['hotFluidInfo']['max'])*100 >= interface.automations['powerMax'] then
+                        interface.reactor.setActive(false)
+                    end
                 end
             else -- Is not active
-                if (gui.snapshot['energyInfo']['stored']/gui.snapshot['energyInfo']['capacity'])*100 <= interface.automations['powerMin'] then
-                    interface.reactor.setActive(true)
+                if not interface.reactor.isActivelyCooled() then
+                    if (gui.snapshot['energyInfo']['stored']/gui.snapshot['energyInfo']['capacity'])*100 <= interface.automations['powerMin'] then
+                        interface.reactor.setActive(true)
+                    end
+                else
+                    if (gui.snapshot['hotFluidInfo']['amount']/gui.snapshot['hotFluidInfo']['max'])*100 <= interface.automations['powerMin'] then
+                        interface.reactor.setActive(true)
+                    end
                 end
             end
         end

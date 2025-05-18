@@ -19,9 +19,10 @@ gui.colors = {
     ['temperature'] = colors.orange,
     ['fuel'] = colors.yellow,
     ['coolant'] = colors.blue,
-    ['steam'] = colors.white,
+    ['vapor'] = colors.white,
     ['waste'] = colors.brown,
 }
+gui.pages = nil
 
 function gui.initialize(monitor)
     gui.monitor = monitor
@@ -59,6 +60,11 @@ function gui.log(string, storage)
     end
 end --end log
 
+function gui.getNumPages()
+    gui.log('Page Number gotten is '..#gui.pages)
+    return #gui.pages
+end
+
 function gui.readClients() --Only for Interface/Server; not remote
     local file = fs.open('./er_interface/keys/clients', 'r')
     local clients = textutils.unserialize(file.readAll())
@@ -93,24 +99,40 @@ function gui.writeSettings(settings)
 end --end writeSettings
 
 function gui.getPageTitle(pageNum)
-    if pageNum == 1 then
-        return 'Home'
-    elseif pageNum == 2 then
-        return 'Power'
-    elseif pageNum == 3 then
-        return 'Fuel'
-    elseif pageNum == 4 then
-        return 'Coolant'
-    elseif pageNum == 5 then
-        return 'Hot Fluid'
-    elseif pageNum == 6 then
-        return 'Graphs'
-    elseif pageNum == 7 then
-        return 'Rod Statistics'
-    elseif pageNum == 8 then
-        return 'Automations'
-    elseif pageNum == 9 then
-        return 'Connection'
+    if not gui.snapshot['activelyCooled'] then
+        if pageNum == 1 then
+            return 'Home'
+        elseif pageNum == 2 then
+            return 'Fuel'
+        elseif pageNum == 3 then
+            return 'Power'
+        elseif pageNum == 4 then
+            return 'Graphs'
+        elseif pageNum == 5 then
+            return 'Rod Statistics'
+        elseif pageNum == 6 then
+            return 'Automations'
+        elseif pageNum == 7 then
+            return 'Connection'
+        end
+    else
+        if pageNum == 1 then
+            return 'Home'
+        elseif pageNum == 2 then
+            return 'Fuel'
+        elseif pageNum == 3 then
+            return 'Vapor'
+        elseif pageNum == 4 then
+            return 'Coolant'
+        elseif pageNum == 5 then
+            return 'Graphs'
+        elseif pageNum == 6 then
+            return 'Rod Statistics'
+        elseif pageNum == 7 then
+            return 'Automations'
+        elseif pageNum == 8 then
+            return 'Connection'
+        end
     end
 end --end getPageTitle
 
@@ -118,14 +140,16 @@ function gui.nextPage(forward) -- true/false forwards/backwards
     gui.readSettings()
     if forward ~= nil then
         if forward == true then
-            if gui.settings['currentPage'] == gui.totalPages then
+            -- if gui.settings['currentPage'] == gui.totalPages then
+            if gui.settings['currentPage'] == gui.getNumPages() then
                 gui.settings['currentPage'] = 1
             else
                 gui.settings['currentPage'] = gui.settings['currentPage'] + 1
             end
         elseif forward == false then
             if gui.settings['currentPage'] == 1 then
-                gui.settings['currentPage'] = gui.totalPages
+                -- gui.settings['currentPage'] = gui.totalPages
+                gui.settings['currentPage'] = gui.getNumPages()
             else
                 gui.settings['currentPage'] = gui.settings['currentPage'] - 1
             end
@@ -288,6 +312,33 @@ end --end login
 
 function gui.updateSnapshot(snapshot)
     gui.snapshot = snapshot
+    if not gui.snapshot['activelyCooled'] then
+        gui.pages = {
+            [1] = gui.pageSnapshot,
+            [2] = gui.pageFuel,
+            [3] = gui.pagePower,
+            [4] = gui.pageGraphs,
+            [5] = gui.pageRods,
+            [6] = gui.pageAutomations,
+            [7] = gui.pageConnections,
+        }
+        gui.readSettings()
+        if gui.settings['currentPage'] > #gui.pages then
+            gui.settings['currentPage'] = #gui.pages
+            gui.writeSettings(gui.settings)
+        end
+    else 
+        gui.pages = {
+            [1] = gui.pageSnapshot,
+            [2] = gui.pageFuel,
+            [3] = gui.pageVapor,
+            [4] = gui.pageCoolant,
+            [5] = gui.pageGraphs,
+            [6] = gui.pageRods,
+            [7] = gui.pageAutomations,
+            [8] = gui.pageConnections,
+        }
+    end
 end --end updateSnapshot
 
 function gui.formatNum(number)
@@ -328,65 +379,114 @@ function gui.main()
     gui.monitor.setVisible(false)
     gui.readSettings()
     gui.clearScreen()
-    if gui.settings['currentPage'] == 1 then
-        gui.page1()
-    elseif gui.settings['currentPage'] == 2 then
-        gui.page2()
-    elseif gui.settings['currentPage'] == 3 then
-        gui.page3()
-    elseif gui.settings['currentPage'] == 4 then
-        gui.page4()
-    elseif gui.settings['currentPage'] == 5 then
-        gui.page5()
-    elseif gui.settings['currentPage'] == 6 then
-        gui.page6()
-    elseif gui.settings['currentPage'] == 7 then
-        gui.page7()
-    elseif gui.settings['currentPage'] == 8 then
-        gui.page8()
-    elseif gui.settings['currentPage'] == 9 then
-        gui.page9()
-    end
+    gui.pages[gui.settings['currentPage']]()
+    -- if not gui.snapshot['activelyCooled'] then
+    --     if gui.settings['currentPage'] == 1 then
+    --         gui.pageSnapshot()
+    --     elseif gui.settings['currentPage'] == 2 then
+    --         gui.pageFuel()
+    --     elseif gui.settings['currentPage'] == 3 then
+    --         gui.pagePower()
+    --     elseif gui.settings['currentPage'] == 4 then
+    --         gui.pageGraphs()
+    --     elseif gui.settings['currentPage'] == 5 then
+    --         gui.pageRods()
+    --     elseif gui.settings['currentPage'] == 6 then
+    --         gui.pageAutomations()
+    --     elseif gui.settings['currentPage'] == 7 then
+    --         gui.pageConnection()
+    --     end
+    -- else
+    --     if gui.settings['currentPage'] == 1 then
+    --         gui.pageSnapshot()
+    --     elseif gui.settings['currentPage'] == 2 then
+    --         gui.pageFuel()
+    --     elseif gui.settings['currentPage'] == 3 then
+    --         gui.pageVapor()
+    --     elseif gui.settings['currentPage'] == 4 then
+    --         gui.pageCoolant()
+    --     elseif gui.settings['currentPage'] == 5 then
+    --         gui.pageGraphs()
+    --     elseif gui.settings['currentPage'] == 6 then
+    --         gui.pageRods()
+    --     elseif gui.settings['currentPage'] == 7 then
+    --         gui.pageAutomations()
+    --     elseif gui.settings['currentPage'] == 8 then
+    --         gui.pageConnection()
+    --     end
+    -- end
     gui.updateTime()
     gui.drawButtons()
     gui.monitor.setVisible(true)
 end --end main
 
-function gui.page1() --Snapshot Report
-    local content = {
-        [0] = 'Snapshot Report: ',
-        [1] = gui.snapshot['report']['datestamp'],
-        [2] = ccStrings.ensure_width('Server Name', gui.width*gui.widthFactor)..'ID',
-        [3] = ccStrings.ensure_width(string.sub(gui.snapshot['report']['origin']['label'], 0, gui.width*gui.widthFactor-1), gui.width*gui.widthFactor)..gui.snapshot['report']['origin']['id'],
-        [4] = '',
-        [5] = '',
-        [6] = 'reactorStatus',
-        [7] = '',
-        [8] = ccStrings.ensure_width('Power (FE):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['energyInfo']['stored']),
-        [9] = ccStrings.ensure_width('Case Temp. (C):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['casingTemperature']),
-        [10] = ccStrings.ensure_width('Fuel (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['fuelInfo']['amount']),
-        [11] = ccStrings.ensure_width('Coolant (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['coolantInfo']['amount']),
-        [12] = ccStrings.ensure_width('Steam (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['hotFluidInfo']['amount']),
-        [13] = ccStrings.ensure_width('Waste (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['wasteAmount']),
-        [14] = '',
-    }
-    local contentColors = {
-        [0] = colors.yellow,
-        [1] = colors.white,
-        [2] = colors.yellow,
-        [3] = colors.white,
-        [4] = gui.stdBgColor,
-        [5] = gui.stdBgColor, -- Empty Space
-        [6] = colors.yellow,
-        [7] = gui.stdBgColor, -- Empty Space
-        [8] = gui.colors['power'],
-        [9] = gui.colors['temperature'],
-        [10] = gui.colors['fuel'],
-        [11] = gui.colors['coolant'],
-        [12] = gui.colors['steam'],
-        [13] = gui.colors['waste'],
-        [14] = colors.lightGray,
-    }
+function gui.pageSnapshot() --Snapshot Report
+    local content, contentColors = nil, nil
+    if not gui.snapshot['activelyCooled'] then
+        content = {
+            [0] = 'Snapshot Report: ',
+            [1] = gui.snapshot['report']['datestamp'],
+            [2] = ccStrings.ensure_width('Server Name', gui.width*gui.widthFactor)..'ID',
+            [3] = ccStrings.ensure_width(string.sub(gui.snapshot['report']['origin']['label'], 0, gui.width*gui.widthFactor-1), gui.width*gui.widthFactor)..gui.snapshot['report']['origin']['id'],
+            [4] = '',
+            [5] = '',
+            [6] = 'reactorStatus',
+            [7] = '',
+            [8] = ccStrings.ensure_width('Case Temp. (C):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['casingTemperature']),
+            [9] = ccStrings.ensure_width('Fuel (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['fuelInfo']['amount']),
+            [10] = ccStrings.ensure_width('Waste (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['wasteAmount']),
+            [11] = ccStrings.ensure_width('Power (FE):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['energyInfo']['stored']),
+            [12] = '',
+        }
+        contentColors = {
+            [0] = colors.yellow,
+            [1] = colors.white,
+            [2] = colors.yellow,
+            [3] = colors.white,
+            [4] = gui.stdBgColor,
+            [5] = gui.stdBgColor, -- Empty Space
+            [6] = colors.yellow,
+            [7] = gui.stdBgColor, -- Empty Space
+            [8] = gui.colors['temperature'], 
+            [9] = gui.colors['fuel'],
+            [10] = gui.colors['waste'],
+            [11] = gui.colors['power'],    
+            [12] = colors.lightGray,
+        }
+    else
+        content = {
+            [0] = 'Snapshot Report: ',
+            [1] = gui.snapshot['report']['datestamp'],
+            [2] = ccStrings.ensure_width('Server Name', gui.width*gui.widthFactor)..'ID',
+            [3] = ccStrings.ensure_width(string.sub(gui.snapshot['report']['origin']['label'], 0, gui.width*gui.widthFactor-1), gui.width*gui.widthFactor)..gui.snapshot['report']['origin']['id'],
+            [4] = '',
+            [5] = '',
+            [6] = 'reactorStatus',
+            [7] = '',
+            [8] = ccStrings.ensure_width('Case Temp. (C):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['casingTemperature']),
+            [9] = ccStrings.ensure_width('Fuel (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['fuelInfo']['amount']),
+            [10] = ccStrings.ensure_width('Waste (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['wasteAmount']),
+            [11] = ccStrings.ensure_width('Vapor (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['hotFluidInfo']['amount']),
+            [12] = ccStrings.ensure_width('Coolant (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['coolantInfo']['amount']),
+            [13] = '',
+        }
+        contentColors = {
+            [0] = colors.yellow,
+            [1] = colors.white,
+            [2] = colors.yellow,
+            [3] = colors.white,
+            [4] = gui.stdBgColor,
+            [5] = gui.stdBgColor, -- Empty Space
+            [6] = colors.yellow,
+            [7] = gui.stdBgColor, -- Empty Space
+            [8] = gui.colors['temperature'],
+            [9] = gui.colors['fuel'],
+            [10] = gui.colors['waste'],
+            [11] = gui.colors['vapor'],
+            [12] = gui.colors['coolant'],
+            [13] = colors.lightGray,
+        }
+    end
     gui.monitor.setBackgroundColor(gui.stdBgColor)
     for k, v in pairs(content) do
         if k > 4 then
@@ -422,9 +522,9 @@ function gui.page1() --Snapshot Report
             gui.monitor.setBackgroundColor(gui.stdBgColor)
         end
     end
-end --end page1
+end --end page
 
-function gui.page2() -- Power
+function gui.pagePower() -- Power
     local powerBar = ''
     for i=1, (gui.snapshot['energyInfo']['stored']/gui.snapshot['energyInfo']['capacity'])*(gui.width-4) do
         powerBar = powerBar..' '
@@ -476,9 +576,9 @@ function gui.page2() -- Power
             gui.monitor.write(v)
         end
     end
-end --end page2
+end --end page
 
-function gui.page3() -- Fuel Page
+function gui.pageFuel() -- Fuel Page
     local fuelBar = ''
     for i=1, (gui.snapshot['fuelInfo']['amount']/gui.snapshot['fuelInfo']['max'])*(gui.width-4) do
         fuelBar = fuelBar..' '
@@ -534,9 +634,9 @@ function gui.page3() -- Fuel Page
             gui.monitor.write(v)
         end
     end
-end --end page3
+end --end page
 
-function gui.page4() -- Coolant
+function gui.pageCoolant() -- Coolant
     local coolantBar = ''
     for i=1, (gui.snapshot['coolantInfo']['amount']/gui.snapshot['coolantInfo']['max'])*(gui.width-4) do
         coolantBar = coolantBar..' '
@@ -586,19 +686,19 @@ function gui.page4() -- Coolant
             gui.monitor.write(v)
         end
     end
-end --end page4
+end --end page
 
-function gui.page5() -- Hot Fluid
-    local hotFluidbar = ''
+function gui.pageVapor() -- Hot Fluid
+    local vaporbar = ''
     for i=1, (gui.snapshot['hotFluidInfo']['amount']/gui.snapshot['hotFluidInfo']['max'])*(gui.width-4) do
-        hotFluidbar = hotFluidbar..' '
+        vaporbar = vaporbar..' '
     end
     local content = {
         [0] = '',
-        [1] = 'Steam Statistics',
+        [1] = 'Vapor Statistics',
         [2] = '',
-        [3] = ccStrings.ensure_width('Steam:', gui.width*gui.widthFactor-1)..tostring(math.floor((gui.snapshot['hotFluidInfo']['amount']/gui.snapshot['hotFluidInfo']['max'])*1000)/10)..'%',
-        [4] = 'hotFluidbar',
+        [3] = ccStrings.ensure_width('Vapor:', gui.width*gui.widthFactor-1)..tostring(math.floor((gui.snapshot['hotFluidInfo']['amount']/gui.snapshot['hotFluidInfo']['max'])*1000)/10)..'%',
+        [4] = 'vaporbar',
         [5] = '',
         [6] = ccStrings.ensure_width('Stored (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['hotFluidInfo']['amount']),
         [7] = ccStrings.ensure_width('Capacity (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['hotFluidInfo']['max']),
@@ -608,15 +708,15 @@ function gui.page5() -- Hot Fluid
     }
     local contentColors = {
         [0] = gui.stdBgColor,
-        [1] = gui.colors['steam'],
+        [1] = gui.colors['vapor'],
         [2] = gui.stdBgColor,
-        [3] = gui.colors['steam'],
-        [4] = gui.colors['steam'],
+        [3] = gui.colors['vapor'],
+        [4] = gui.colors['vapor'],
         [5] = gui.stdBgColor,
-        [6] = gui.colors['steam'],
-        [7] = gui.colors['steam'],
-        [8] = gui.colors['steam'],
-        [9] = gui.colors['steam'],
+        [6] = gui.colors['vapor'],
+        [7] = gui.colors['vapor'],
+        [8] = gui.colors['vapor'],
+        [9] = gui.colors['vapor'],
         [10] = gui.stdBgColor,
     }
     for k, v in pairs(content) do
@@ -629,10 +729,10 @@ function gui.page5() -- Hot Fluid
             gui.monitor.setTextColor(contentColors[k])
             gui.monitor.setCursorPos(math.ceil((gui.width-(#v-2))/2), 3+k)
             gui.monitor.write(v)
-        elseif v == 'hotFluidbar' then
+        elseif v == 'vaporbar' then
             gui.monitor.setCursorPos(3,3+k)
             gui.monitor.setBackgroundColor(contentColors[k])
-            gui.monitor.write(hotFluidbar)
+            gui.monitor.write(vaporbar)
             gui.monitor.setBackgroundColor(gui.stdBgColor)
         else
             gui.monitor.setCursorPos(3,3+k)
@@ -640,9 +740,9 @@ function gui.page5() -- Hot Fluid
             gui.monitor.write(v)
         end
     end
-end --end page5
+end --end page
 
-function gui.page6() -- Graphs
+function gui.pageGraphs() -- Graphs
     local content = {
         [0] = '',
         [1] = 'Graphs',
@@ -653,30 +753,50 @@ function gui.page6() -- Graphs
         [1] = colors.yellow,
         [2] = gui.stdBgColor,
     }
-    local graphContent = {
-        [0] = math.floor((gui.snapshot['energyInfo']['stored']/gui.snapshot['energyInfo']['capacity'])*1000)/10, --Power
-        [1] = math.floor((gui.snapshot['casingTemperature']+gui.snapshot['fuelInfo']['temperature'])/2/(gui.snapshot['automations']['tempMax']+gui.snapshot['automations']['tempMax']*0.1)), --Temperature
-        [2] = math.floor((gui.snapshot['fuelInfo']['amount']/gui.snapshot['fuelInfo']['max'])*1000)/10, --Fuel
-        [3] = math.floor((gui.snapshot['coolantInfo']['amount']/gui.snapshot['coolantInfo']['max'])*1000)/10, --Coolant
-        [4] = math.floor((gui.snapshot['hotFluidInfo']['amount']/gui.snapshot['hotFluidInfo']['max'])*1000)/10, --HotFluid
-        [5] = math.floor((gui.snapshot['wasteAmount']/gui.snapshot['fuelInfo']['max'])*1000)/10, --Waste
-    }
-    local graphNames = {
-        [0] = 'Power',
-        [1] = 'Temp.',
-        [2] = 'Fuel',
-        [3] = 'Coolant',
-        [4] = 'Steam',
-        [5] = 'Waste',
-    }
-    local graphColors = {
-        [0] = gui.colors['power'],
-        [1] = gui.colors['temperature'],
-        [2] = gui.colors['fuel'],
-        [3] = gui.colors['coolant'],
-        [4] = gui.colors['steam'],
-        [5] = gui.colors['waste'],
-    }
+    local graphContent, graphNames, graphColors = nil, nil, nil
+    if not gui.snapshot['activelyCooled'] then
+        graphContent = {
+            [0] = math.floor((gui.snapshot['casingTemperature']+gui.snapshot['fuelInfo']['temperature'])/2/(gui.snapshot['automations']['tempMax']+gui.snapshot['automations']['tempMax']*0.1)), --Temperature
+            [1] = math.floor((gui.snapshot['fuelInfo']['amount']/gui.snapshot['fuelInfo']['max'])*1000)/10, --Fuel
+            [2] = math.floor((gui.snapshot['wasteAmount']/gui.snapshot['fuelInfo']['max'])*1000)/10, --Waste
+            [3] = math.floor((gui.snapshot['energyInfo']['stored']/gui.snapshot['energyInfo']['capacity'])*1000)/10, --Power
+        }
+        graphNames = {
+            [0] = 'Temp.',
+            [1] = 'Fuel',
+            [2] = 'Waste',
+            [3] = 'Power',
+        }
+        graphColors = {
+            [0] = gui.colors['temperature'],
+            [1] = gui.colors['fuel'],
+            [2] = gui.colors['waste'],
+            [3] = gui.colors['power'],
+        }
+    else
+        graphContent = {
+            [0] = math.floor((gui.snapshot['casingTemperature']+gui.snapshot['fuelInfo']['temperature'])/2/(gui.snapshot['automations']['tempMax']+gui.snapshot['automations']['tempMax']*0.1)), --Temperature
+            [1] = math.floor((gui.snapshot['fuelInfo']['amount']/gui.snapshot['fuelInfo']['max'])*1000)/10, --Fuel
+            [2] = math.floor((gui.snapshot['wasteAmount']/gui.snapshot['fuelInfo']['max'])*1000)/10, --Waste
+            [3] = math.floor((gui.snapshot['hotFluidInfo']['amount']/gui.snapshot['hotFluidInfo']['max'])*1000)/10, --Vapor
+            [4] = math.floor((gui.snapshot['coolantInfo']['amount']/gui.snapshot['coolantInfo']['max'])*1000)/10, --Coolant
+            
+        }
+        graphNames = {
+            [0] = 'Temp.',
+            [1] = 'Fuel',
+            [2] = 'Waste',
+            [3] = 'Vapor',
+            [4] = 'Coolant',
+        }
+        graphColors = {
+            [0] = gui.colors['temperature'],
+            [1] = gui.colors['fuel'],
+            [2] = gui.colors['waste'],
+            [3] = gui.colors['vapor'],
+            [4] = gui.colors['coolant'],
+        }
+    end
     for i=1, gui.height-4 do -- Background
         gui.monitor.setCursorPos(2,2+i)
         gui.monitor.setBackgroundColor(colors.black)
@@ -721,7 +841,7 @@ function gui.page6() -- Graphs
                 end
             else -- Main body of graph
                 for j = 1, gui.height-8 do -- Per Height Pixel
-                    if j > 1 and j < gui.height-8 and j-1 <= math.ceil((gui.height-10)*(graphContent[k]/100)) then
+                    if j > 1 and j < gui.height-8 and j-1 <= (gui.height-10)*(graphContent[k]/100) then
                         gui.monitor.setBackgroundColor(graphColors[k])
                         gui.monitor.setCursorPos(2+graphWidth*(k)+k+i, gui.height-2-j)
                         gui.monitor.write(' ')
@@ -749,9 +869,9 @@ function gui.page6() -- Graphs
     --         gui.monitor.write(v)
     --     end
     -- end
-end --end page8
+end --end page
 
-function gui.page7() -- Rods Page
+function gui.pageRods() -- Rods Page
     local buttons = {
         [0] = '-1', 
         [1] = '-5',
@@ -810,9 +930,9 @@ function gui.page7() -- Rods Page
             gui.monitor.write(v)
         end
     end
-end --end page6
+end --end page
 
-function gui.page8() -- Automations
+function gui.pageAutomations() -- Automations
     local buttons = {
         [0] = '-1', 
         [1] = '-5',
@@ -821,23 +941,44 @@ function gui.page8() -- Automations
         [4] = '+5',
         [5] = '+1',
     }
-    local content = {
-        [0] = '',
-        [1] = 'Automations',
-        [2] = '',
-        [3] = 'Power',
-        [4] = ccStrings.ensure_width('Max Power %', gui.width*gui.widthFactor-1)..gui.snapshot['automations']['powerMax'],
-        [5] = '      buttons      ',
-        [6] = ccStrings.ensure_width('Min Power %', gui.width*gui.widthFactor-1)..gui.snapshot['automations']['powerMin'],
-        [7] = '      buttons      ',
-        [8] = '',
-        [9] = 'Temperature',
-        [10] = ccStrings.ensure_width('Max Temperature', gui.width*gui.widthFactor-1)..gui.snapshot['automations']['tempMax'],
-        [11] = '      buttons      ',
-        [12] = '',
-        [13] = 'Control Rods',
-        [14] = '',
-    }
+    local content = nil
+    if not gui.snapshot['activelyCooled'] then
+        content = {
+            [0] = '',
+            [1] = 'Automations',
+            [2] = '',
+            [3] = 'Power',
+            [4] = ccStrings.ensure_width('Max Power %', gui.width*gui.widthFactor-1)..gui.snapshot['automations']['powerMax'],
+            [5] = '      buttons      ',
+            [6] = ccStrings.ensure_width('Min Power %', gui.width*gui.widthFactor-1)..gui.snapshot['automations']['powerMin'],
+            [7] = '      buttons      ',
+            [8] = '',
+            [9] = 'Temperature',
+            [10] = ccStrings.ensure_width('Max Temperature', gui.width*gui.widthFactor-1)..gui.snapshot['automations']['tempMax'],
+            [11] = '      buttons      ',
+            [12] = '',
+            [13] = 'Control Rods',
+            [14] = '',
+        }
+    else
+        content = {
+            [0] = '',
+            [1] = 'Automations',
+            [2] = '',
+            [3] = 'Vapor',
+            [4] = ccStrings.ensure_width('Max Vapor %', gui.width*gui.widthFactor-1)..gui.snapshot['automations']['powerMax'],
+            [5] = '      buttons      ',
+            [6] = ccStrings.ensure_width('Min Vapor %', gui.width*gui.widthFactor-1)..gui.snapshot['automations']['powerMin'],
+            [7] = '      buttons      ',
+            [8] = '',
+            [9] = 'Temperature',
+            [10] = ccStrings.ensure_width('Max Temperature', gui.width*gui.widthFactor-1)..gui.snapshot['automations']['tempMax'],
+            [11] = '      buttons      ',
+            [12] = '',
+            [13] = 'Control Rods',
+            [14] = '',
+        }
+    end
     local contentColors = {
         [0] = gui.stdBgColor,
         [1] = colors.yellow,
@@ -931,9 +1072,9 @@ function gui.page8() -- Automations
             gui.monitor.write(v)
         end
     end
-end --end page7
+end --end page
 
-function gui.page9() -- Manage Clients // Connection to Server
+function gui.pageConnections() -- Manage Clients // Connection to Server
     if fs.exists('./er_interface/interface.lua') then -- Manage Clients on Server
         local content = {
             [0] = '',
@@ -943,10 +1084,10 @@ function gui.page9() -- Manage Clients // Connection to Server
             [3] = ccStrings.ensure_width(ccStrings.ensure_width('ID', 4)..' '..ccStrings.ensure_width('Name', gui.width*gui.widthFactor-1-5)..' '..'Idle', gui.width-4),
         }
         local contentColors = {
-        [0] = gui.stdBgColor,
-        [1] = colors.yellow,
-        [2] = gui.stdBgColor,
-        [3] = colors.yellow,
+            [0] = gui.stdBgColor,
+            [1] = colors.yellow,
+            [2] = gui.stdBgColor,
+            [3] = colors.yellow,
         }
         local contentBackgroundColors = {
             [0] = colors.black,
