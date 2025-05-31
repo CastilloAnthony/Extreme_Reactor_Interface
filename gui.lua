@@ -99,7 +99,7 @@ function gui.writeSettings(settings)
 end --end writeSettings
 
 function gui.getPageTitle(pageNum)
-    if not gui.snapshot['activelyCooled'] then
+    if not gui.snapshot['reactor']['activelyCooled'] then
         if pageNum == 1 then
             return 'Home'
         elseif pageNum == 2 then
@@ -312,7 +312,7 @@ end --end login
 
 function gui.updateSnapshot(snapshot)
     gui.snapshot = snapshot
-    if not gui.snapshot['activelyCooled'] then
+    if not gui.snapshot['reactor']['activelyCooled'] then
         gui.pages = {
             [1] = gui.pageSnapshot,
             [2] = gui.pageFuel,
@@ -424,7 +424,7 @@ end --end main
 
 function gui.pageSnapshot() --Snapshot Report
     local content, contentColors = nil, nil
-    if not gui.snapshot['activelyCooled'] then
+    if not gui.snapshot['reactor']['activelyCooled'] then
         content = {
             [0] = 'Snapshot Report: ',
             [1] = gui.snapshot['report']['datestamp'],
@@ -434,10 +434,10 @@ function gui.pageSnapshot() --Snapshot Report
             [5] = '',
             [6] = 'reactorStatus',
             [7] = '',
-            [8] = ccStrings.ensure_width('Case Temp. (C):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['casingTemperature']),
-            [9] = ccStrings.ensure_width('Fuel (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['fuelInfo']['amount']),
-            [10] = ccStrings.ensure_width('Waste (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['wasteAmount']),
-            [11] = ccStrings.ensure_width('Power (FE):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['energyInfo']['stored']),
+            [8] = ccStrings.ensure_width('Case Temp. (C):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['reactor']['casingTemperature']),
+            [9] = ccStrings.ensure_width('Fuel (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['reactor']['fuelInfo']['amount']),
+            [10] = ccStrings.ensure_width('Waste (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['reactor']['wasteAmount']),
+            [11] = ccStrings.ensure_width('Power (FE):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['reactor']['energyInfo']['stored']),
             [12] = '',
         }
         contentColors = {
@@ -465,11 +465,11 @@ function gui.pageSnapshot() --Snapshot Report
             [5] = '',
             [6] = 'reactorStatus',
             [7] = '',
-            [8] = ccStrings.ensure_width('Case Temp. (C):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['casingTemperature']),
-            [9] = ccStrings.ensure_width('Fuel (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['fuelInfo']['amount']),
-            [10] = ccStrings.ensure_width('Waste (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['wasteAmount']),
-            [11] = ccStrings.ensure_width('Vapor (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['hotFluidInfo']['amount']),
-            [12] = ccStrings.ensure_width('Coolant (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['coolantInfo']['amount']),
+            [8] = ccStrings.ensure_width('Case Temp. (C):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['reactor']['casingTemperature']),
+            [9] = ccStrings.ensure_width('Fuel (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['reactor']['fuelInfo']['amount']),
+            [10] = ccStrings.ensure_width('Waste (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['reactor']['wasteAmount']),
+            [11] = ccStrings.ensure_width('Vapor (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['reactor']['hotFluidInfo']['amount']),
+            [12] = ccStrings.ensure_width('Coolant (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['reactor']['coolantInfo']['amount']),
             [13] = '',
         }
         contentColors = {
@@ -507,7 +507,7 @@ function gui.pageSnapshot() --Snapshot Report
             gui.monitor.setTextColor(contentColors[k])
             gui.monitor.write(ccStrings.ensure_width('Reactor Status:', gui.width*gui.widthFactor-1))
             gui.monitor.setCursorPos(2+gui.width*gui.widthFactor,3+k)
-            if gui.snapshot['status'] == true then
+            if gui.snapshot['reactor']['status'] == true then
                 gui.monitor.setBackgroundColor(colors.green)
                 gui.monitor.setTextColor(colors.white)
                 gui.monitor.write(' ON  ')
@@ -528,19 +528,19 @@ end --end page
 
 function gui.pagePower() -- Power
     local powerBar = ''
-    for i=1, (gui.snapshot['energyInfo']['stored']/gui.snapshot['energyInfo']['capacity'])*(gui.width-4) do
+    for i=1, (gui.snapshot['reactor']['energyInfo']['stored']/gui.snapshot['reactor']['energyInfo']['capacity'])*(gui.width-4) do
         powerBar = powerBar..' '
     end
     local content = {
         [0] = '',
         [1] = 'Power Statistics',
         [2] = '',
-        [3] = ccStrings.ensure_width('Power:', gui.width*gui.widthFactor-1)..tostring(math.floor((gui.snapshot['energyInfo']['stored']/gui.snapshot['energyInfo']['capacity'])*1000)/10)..'%',
+        [3] = ccStrings.ensure_width('Power:', gui.width*gui.widthFactor-1)..tostring(math.floor((gui.snapshot['reactor']['energyInfo']['stored']/gui.snapshot['reactor']['energyInfo']['capacity'])*1000)/10)..'%',
         [4] = 'powerBar',
         [5] = '',
-        [6] = ccStrings.ensure_width('Stored (FE):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['energyInfo']['stored']),
-        [7] = ccStrings.ensure_width('Capacity (FE):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['energyInfo']['capacity']),
-        [8] = ccStrings.ensure_width('FE/t:', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['energyInfo']['lastTick']),
+        [6] = ccStrings.ensure_width('Stored (FE):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['reactor']['energyInfo']['stored']),
+        [7] = ccStrings.ensure_width('Capacity (FE):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['reactor']['energyInfo']['capacity']),
+        [8] = ccStrings.ensure_width('FE/t:', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['reactor']['energyInfo']['lastTick']),
         -- [9] = ccStrings.ensure_width('Delta Power:', gui.width*gui.widthFactor-1)..gui.formatNum((gui.snapshot['energyInfo']['stored']-gui.oldSnapshot['energyInfo']['stored'])),
         [9] = '',
     }
@@ -582,23 +582,23 @@ end --end page
 
 function gui.pageFuel() -- Fuel Page
     local fuelBar = ''
-    for i=1, (gui.snapshot['fuelInfo']['amount']/gui.snapshot['fuelInfo']['max'])*(gui.width-4) do
+    for i=1, (gui.snapshot['reactor']['fuelInfo']['amount']/gui.snapshot['reactor']['fuelInfo']['max'])*(gui.width-4) do
         fuelBar = fuelBar..' '
     end
     local content = {
         [0] = '',
         [1] = 'Fuel Statistics',
         [2] = '',
-        [3] = ccStrings.ensure_width('Fuel:', gui.width*gui.widthFactor-1)..tostring(math.floor((gui.snapshot['fuelInfo']['amount']/gui.snapshot['fuelInfo']['max'])*1000)/10)..'%',
+        [3] = ccStrings.ensure_width('Fuel:', gui.width*gui.widthFactor-1)..tostring(math.floor((gui.snapshot['reactor']['fuelInfo']['amount']/gui.snapshot['reactor']['fuelInfo']['max'])*1000)/10)..'%',
         [4] = 'fuelBar',
         [5] = '',
-        [6] = ccStrings.ensure_width('Stored (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['fuelInfo']['amount']),
-        [7] = ccStrings.ensure_width('Capacity (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['fuelInfo']['max']),
-        [8] = ccStrings.ensure_width('mB/t:', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['fuelInfo']['lastTick']),
-        [9] = ccStrings.ensure_width('Reactivity:', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['fuelInfo']['reactivity']),
-        [10] = ccStrings.ensure_width('Temperature (C):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['fuelInfo']['temperature']),
-        [11] = ccStrings.ensure_width('Waste (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['wasteAmount']),
-        [12] = '',
+        [6] = ccStrings.ensure_width('Stored (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['reactor']['fuelInfo']['amount']),
+        [7] = ccStrings.ensure_width('Capacity (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['reactor']['fuelInfo']['max']),
+        [8] = ccStrings.ensure_width('mB/t:', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['reactor']['fuelInfo']['lastTick']),
+        -- [9] = ccStrings.ensure_width('Reactivity:', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['reactor']['fuelInfo']['reactivity']),
+        [9] = ccStrings.ensure_width('Temperature (C):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['reactor']['fuelInfo']['temperature']),
+        [10] = ccStrings.ensure_width('Waste (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['reactor']['wasteAmount']),
+        [11] = '',
     }
     local contentColors = {
         [0] = gui.stdBgColor,
@@ -610,10 +610,10 @@ function gui.pageFuel() -- Fuel Page
         [6] = gui.colors['fuel'],
         [7] = gui.colors['fuel'],
         [8] = gui.colors['fuel'],
+        -- [9] = gui.colors['fuel'],
         [9] = gui.colors['fuel'],
         [10] = gui.colors['fuel'],
-        [11] = gui.colors['fuel'],
-        [12] = gui.stdBgColor,
+        [11] = gui.stdBgColor,
     }
     for k, v in pairs(content) do
         gui.monitor.setCursorPos(2,3+k)
@@ -640,20 +640,20 @@ end --end page
 
 function gui.pageCoolant() -- Coolant
     local coolantBar = ''
-    for i=1, (gui.snapshot['coolantInfo']['amount']/gui.snapshot['coolantInfo']['max'])*(gui.width-4) do
+    for i=1, (gui.snapshot['reactor']['coolantInfo']['amount']/gui.snapshot['reactor']['coolantInfo']['max'])*(gui.width-4) do
         coolantBar = coolantBar..' '
     end
     local content = {
         [0] = '',
         [1] = 'Coolant Statistics',
         [2] = '',
-        [3] = ccStrings.ensure_width('Coolant:', gui.width*gui.widthFactor-1)..tostring(math.floor((gui.snapshot['coolantInfo']['amount']/gui.snapshot['coolantInfo']['max'])*1000)/10)..'%',
+        [3] = ccStrings.ensure_width('Coolant:', gui.width*gui.widthFactor-1)..tostring(math.floor((gui.snapshot['reactor']['coolantInfo']['amount']/gui.snapshot['reactor']['coolantInfo']['max'])*1000)/10)..'%',
         [4] = 'coolantBar',
         [5] = '',
-        [6] = ccStrings.ensure_width('Stored (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['coolantInfo']['amount']),
-        [7] = ccStrings.ensure_width('Capacity (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['coolantInfo']['max']),
-        [8] = ccStrings.ensure_width('Type:', gui.width*gui.widthFactor-1)..tostring(gui.snapshot['coolantInfo']['type']),
-        [9] = '',
+        [6] = ccStrings.ensure_width('Stored (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['reactor']['coolantInfo']['amount']),
+        [7] = ccStrings.ensure_width('Capacity (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['reactor']['coolantInfo']['max']),
+        -- [8] = ccStrings.ensure_width('Type:', gui.width*gui.widthFactor-1)..tostring(gui.snapshot['reactor']['coolantInfo']['type']),
+        [8] = '',
     }
     local contentColors = {
         [0] = gui.stdBgColor,
@@ -664,8 +664,8 @@ function gui.pageCoolant() -- Coolant
         [5] = gui.stdBgColor,
         [6] = gui.colors['coolant'],
         [7] = gui.colors['coolant'],
-        [8] = gui.colors['coolant'],
-        [9] = gui.stdBgColor,
+        -- [8] = gui.colors['coolant'],
+        [8] = gui.stdBgColor,
     }
     for k, v in pairs(content) do
         gui.monitor.setCursorPos(2,3+k)
@@ -692,21 +692,21 @@ end --end page
 
 function gui.pageVapor() -- Hot Fluid
     local vaporbar = ''
-    for i=1, (gui.snapshot['hotFluidInfo']['amount']/gui.snapshot['hotFluidInfo']['max'])*(gui.width-4) do
+    for i=1, (gui.snapshot['reactor']['hotFluidInfo']['amount']/gui.snapshot['reactor']['hotFluidInfo']['max'])*(gui.width-4) do
         vaporbar = vaporbar..' '
     end
     local content = {
         [0] = '',
         [1] = 'Vapor Statistics',
         [2] = '',
-        [3] = ccStrings.ensure_width('Vapor:', gui.width*gui.widthFactor-1)..tostring(math.floor((gui.snapshot['hotFluidInfo']['amount']/gui.snapshot['hotFluidInfo']['max'])*1000)/10)..'%',
+        [3] = ccStrings.ensure_width('Vapor:', gui.width*gui.widthFactor-1)..tostring(math.floor((gui.snapshot['reactor']['hotFluidInfo']['amount']/gui.snapshot['reactor']['hotFluidInfo']['max'])*1000)/10)..'%',
         [4] = 'vaporbar',
         [5] = '',
-        [6] = ccStrings.ensure_width('Stored (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['hotFluidInfo']['amount']),
-        [7] = ccStrings.ensure_width('Capacity (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['hotFluidInfo']['max']),
-        [8] = ccStrings.ensure_width('mB/t:', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['hotFluidInfo']['lastTick']),
-        [9] = ccStrings.ensure_width('Type:', gui.width*gui.widthFactor-1)..tostring(gui.snapshot['hotFluidInfo']['type']),
-        [10] = '',
+        [6] = ccStrings.ensure_width('Stored (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['reactor']['hotFluidInfo']['amount']),
+        [7] = ccStrings.ensure_width('Capacity (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['reactor']['hotFluidInfo']['max']),
+        [8] = ccStrings.ensure_width('mB/t:', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['reactor']['hotFluidInfo']['lastTick']),
+        -- [9] = ccStrings.ensure_width('Type:', gui.width*gui.widthFactor-1)..tostring(gui.snapshot['reactor']['hotFluidInfo']['type']),
+        [9] = '',
     }
     local contentColors = {
         [0] = gui.stdBgColor,
@@ -718,8 +718,8 @@ function gui.pageVapor() -- Hot Fluid
         [6] = gui.colors['vapor'],
         [7] = gui.colors['vapor'],
         [8] = gui.colors['vapor'],
-        [9] = gui.colors['vapor'],
-        [10] = gui.stdBgColor,
+        -- [9] = gui.colors['vapor'],
+        [9] = gui.stdBgColor,
     }
     for k, v in pairs(content) do
         gui.monitor.setCursorPos(2,3+k)
@@ -756,12 +756,12 @@ function gui.pageGraphs() -- Graphs
         [2] = gui.stdBgColor,
     }
     local graphContent, graphNames, graphColors = nil, nil, nil
-    if not gui.snapshot['activelyCooled'] then
+    if not gui.snapshot['reactor']['activelyCooled'] then
         graphContent = {
-            [0] = math.floor((gui.snapshot['casingTemperature']+gui.snapshot['fuelInfo']['temperature'])/2/(gui.snapshot['automations']['tempMax']+gui.snapshot['automations']['tempMax']*0.1)), --Temperature
-            [1] = math.floor((gui.snapshot['fuelInfo']['amount']/gui.snapshot['fuelInfo']['max'])*1000)/10, --Fuel
-            [2] = math.floor((gui.snapshot['wasteAmount']/gui.snapshot['fuelInfo']['max'])*1000)/10, --Waste
-            [3] = math.floor((gui.snapshot['energyInfo']['stored']/gui.snapshot['energyInfo']['capacity'])*1000)/10, --Power
+            [0] = math.floor((gui.snapshot['reactor']['casingTemperature']+gui.snapshot['reactor']['fuelInfo']['temperature'])/2/(gui.snapshot['automations']['tempMax']+gui.snapshot['automations']['tempMax']*0.1)), --Temperature
+            [1] = math.floor((gui.snapshot['reactor']['fuelInfo']['amount']/gui.snapshot['reactor']['fuelInfo']['max'])*1000)/10, --Fuel
+            [2] = math.floor((gui.snapshot['reactor']['wasteAmount']/gui.snapshot['reactor']['fuelInfo']['max'])*1000)/10, --Waste
+            [3] = math.floor((gui.snapshot['reactor']['energyInfo']['stored']/gui.snapshot['reactor']['energyInfo']['capacity'])*1000)/10, --Power
         }
         graphNames = {
             [0] = 'Temp.',
@@ -777,12 +777,11 @@ function gui.pageGraphs() -- Graphs
         }
     else
         graphContent = {
-            [0] = math.floor((gui.snapshot['casingTemperature']+gui.snapshot['fuelInfo']['temperature'])/2/(gui.snapshot['automations']['tempMax']+gui.snapshot['automations']['tempMax']*0.1)), --Temperature
-            [1] = math.floor((gui.snapshot['fuelInfo']['amount']/gui.snapshot['fuelInfo']['max'])*1000)/10, --Fuel
-            [2] = math.floor((gui.snapshot['wasteAmount']/gui.snapshot['fuelInfo']['max'])*1000)/10, --Waste
-            [3] = math.floor((gui.snapshot['hotFluidInfo']['amount']/gui.snapshot['hotFluidInfo']['max'])*1000)/10, --Vapor
-            [4] = math.floor((gui.snapshot['coolantInfo']['amount']/gui.snapshot['coolantInfo']['max'])*1000)/10, --Coolant
-            
+            [0] = math.floor(((gui.snapshot['reactor']['casingTemperature']+gui.snapshot['reactor']['fuelInfo']['temperature'])/2)/(gui.snapshot['automations']['tempMax']+gui.snapshot['automations']['tempMax']*0.1)), --Temperature
+            [1] = math.floor((gui.snapshot['reactor']['fuelInfo']['amount']/gui.snapshot['reactor']['fuelInfo']['max'])*1000)/10, --Fuel
+            [2] = math.floor((gui.snapshot['reactor']['wasteAmount']/gui.snapshot['reactor']['fuelInfo']['max'])*1000)/10, --Waste
+            [3] = math.floor((gui.snapshot['reactor']['hotFluidInfo']['amount']/gui.snapshot['reactor']['hotFluidInfo']['max'])*1000)/10, --Vapor
+            [4] = math.floor((gui.snapshot['reactor']['coolantInfo']['amount']/gui.snapshot['reactor']['coolantInfo']['max'])*1000)/10, --Coolant
         }
         graphNames = {
             [0] = 'Temp.',
@@ -896,7 +895,7 @@ function gui.pageRods() -- Rods Page
         [3] = colors.yellow,
         [4] = gui.stdBgColor,
     }
-    for k, v in pairs(gui.snapshot['rodInfo']['rods']) do
+    for k, v in pairs(gui.snapshot['reactor']['rodInfo']['rods']) do
         if (k+1)*2 >= (gui.height-6-2) then
             break
         end
@@ -944,7 +943,7 @@ function gui.pageAutomations() -- Automations
         [5] = '+1',
     }
     local content = nil
-    if not gui.snapshot['activelyCooled'] then
+    if not gui.snapshot['reactor']['activelyCooled'] then
         content = {
             [0] = '',
             [1] = 'Automations',

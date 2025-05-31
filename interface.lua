@@ -137,9 +137,9 @@ function interface.initializeNetwork()
     end
 end --end initializeNetwork
 
-function interface.checkForinterface()
+function interface.checkForReactor()
     for _, i in pairs(peripheral.getNames()) do
-        if string.find(peripheral.getType(i), 'BigReactors') ~= nil then
+        if string.find(peripheral.getType(i), '-Reactor') ~= nil then
             if peripheral.call(i, 'mbIsAssembled') then
                 interface.write('Reactor found!')
                 return peripheral.wrap(i)
@@ -147,9 +147,21 @@ function interface.checkForinterface()
         end
     end
     return false
-end --end checkForinterface
+end --end checkForReactor
 
-function interface.getControlRodsInfo()
+function interface.checkForTurbine()
+    for _, i in pairs(peripheral.getNames()) do
+        if string.find(peripheral.getType(i), '-Turbine') ~= nil then
+            if peripheral.call(i, 'mbIsAssembled') then
+                interface.write('Turbine found!')
+                return peripheral.wrap(i)
+            end
+        end
+    end
+    return false
+end --end checkForReactor
+
+function interface.reactorGetControlRodsInfo()
     local info = {
         ['rodLevels'] = interface.reactor.getControlRodsLevels(),
         ['quantity'] = interface.reactor.getNumberOfControlRods(),
@@ -165,7 +177,7 @@ function interface.getControlRodsInfo()
     return info
 end --end getControlRodsInfo
 
-function interface.getCoolantInfo()
+function interface.reactorGetCoolantInfo()
     local info = {
         ['amount'] = interface.reactor.getCoolantAmount(),
         ['max'] = interface.reactor.getCoolantAmountMax(),
@@ -175,7 +187,7 @@ function interface.getCoolantInfo()
     return info
 end --end getCoolantInfo
 
-function interface.getEnergyInfo()
+function interface.reactorGetEnergyInfo()
     local info = {
         ['capacity'] = interface.reactor.getEnergyCapacity(),
         ['lastTick'] = interface.reactor.getEnergyProducedLastTick(),
@@ -186,7 +198,7 @@ function interface.getEnergyInfo()
     return info
 end --end getEnergyInfo
 
-function interface.getFuelInfo()
+function interface.reactorGetFuelInfo()
     local info = {
         ['amount'] = interface.reactor.getFuelAmount(),
         ['max'] = interface.reactor.getFuelAmountMax(),
@@ -198,7 +210,7 @@ function interface.getFuelInfo()
     return info
 end --end getFuelInfo
 
-function interface.getHotFluidInfo()
+function interface.reactorGetHotFluidInfo()
     local info = {
         ['amount'] = interface.reactor.getHotFluidAmount(),
         ['max'] = interface.reactor.getHotFluidAmountMax(),
@@ -209,7 +221,7 @@ function interface.getHotFluidInfo()
     return info
 end --end getHotFluidInfo
 
-function interface.getMBInfo()
+function interface.reactorGetMBInfo()
     local info = {
         ['min'] = interface.reactor.mbGetMinimumCoordinate(),
         ['max'] = interface.reactor.mbGetMaximumCoordinate(),
@@ -222,24 +234,90 @@ function interface.getMBInfo()
     return info
 end --end getMBInfo
 
+function interface.turbineGetEnergyInfo()
+    local info = {
+        ['capacity'] = interface.turbine.getEnergyCapacity(),
+        ['lastTick'] = interface.turbine.getEnergyProducedLastTick(),
+        ['stats'] = interface.turbine.getEnergyStats(),
+        ['stored'] = interface.turbine.getEnergyStored(),
+        ['storedText'] = interface.turbine.getEnergyStoredAsText(),
+    }
+    return info
+end
+
+function interface.turbineGetFluidInfo()
+    local info = {
+        ['max'] = interface.turbine.getFluidAmountMax(),
+        ['flowRate'] = interface.turbine.getFluidFlowRate(),
+        ['flowRateMax'] = interface.turbine.getFluidFlowRateMax(),
+        ['flowRateMaxMax'] = interface.turbine.getFluidFlowRateMaxMax(), -- Yes this is a function... Strangely
+    }
+    return info
+end
+
+function interface.turbineRotorInfo()
+    local info = {
+        ['bladeEfficiency'] = interface.turbine.getBladeEfficiency(),
+        ['bladeQuantity'] = interface.turbine.getNumberOfBlades(),
+        ['rotorMass'] = interface.turbine.getRotorMass(),
+        ['rotorSpeed'] = interface.turbine.getRotorSpeed(),
+    }
+    return info
+end
+
+function interface.turbineIOInfo()
+    local info = {
+        ['inputAmount'] = interface.turbine.getInputAmount(),
+        ['inputType'] = interface.turbine.getInputType(),
+        ['outputAmount'] = interface.turbine.getOutputAmount(),
+        ['outputType'] = interface.turbine.getOutputType(),
+    }
+    return info
+end
+
+function interface.reactorSnapshot()
+    local info = {
+        ['status'] = interface.reactor.getActive(),
+        ['casingTemperature'] = interface.reactor.getCasingTemperature(),
+        ['variation'] = interface.reactor.getVariant(),
+        ['wasteAmount'] = interface.reactor.getWasteAmount(),
+        ['activelyCooled'] = interface.reactor.isActivelyCooled(),
+        ['coolantInfo'] = interface.reactorGetCoolantInfo(),
+        ['energyInfo'] = interface.reactorGetEnergyInfo(),
+        ['fuelInfo'] = interface.reactorGetFuelInfo(),
+        ['hotFluidInfo'] = interface.reactorGetHotFluidInfo(),
+        ['rodInfo'] = interface.reactorGetControlRodsInfo(),
+        ['mbLocation'] = interface.reactorGetMBInfo(),
+    }
+    return info
+end
+
+function interface.turbineSnapshot()
+    local info = {
+        ['status'] = interface.turbine.getActive(),
+        ['variation'] = interface.turbine.getVariant(),
+        ['inductorStatus'] = interface.turbine.getInductorEngaged(),
+        ['energyInfo'] = interface.turbineGetEnergyInfo(),
+        ['fluidInfo'] = interface.turbineGetFluidInfo(),
+        ['rotorInfo'] = interface.turbineRotorInfo(),
+        ['ioInfo'] = interface.turbineIOInfo(),
+    }
+    return info
+end
+
 function interface.generateSnapshots() -- Run in parallel
     while true do
         -- gui.log('Parallel - Snapshot Handler')
         interface.snapshot = {
-            ['status'] = interface.reactor.getActive(),
-            ['casingTemperature'] = interface.reactor.getCasingTemperature(),
-            ['variation'] = interface.reactor.getVariant(),
-            ['wasteAmount'] = interface.reactor.getWasteAmount(),
-            ['activelyCooled'] = interface.reactor.isActivelyCooled(),
-            ['coolantInfo'] = interface.getCoolantInfo(),
-            ['energyInfo'] = interface.getEnergyInfo(),
-            ['fuelInfo'] = interface.getFuelInfo(),
-            ['hotFluidInfo'] = interface.getHotFluidInfo(),
-            ['rodInfo'] = interface.getControlRodsInfo(),
-            ['mbLocation'] = interface.getMBInfo(),
             ['report'] = {['datestamp'] = os.date(), ['origin'] = interface.getComputerInfo(), ['timestamp'] = os.epoch('local')},
             ['automations'] = interface.automations,
         }
+        if interface.reactor ~= false then
+            interface.snapshot['reactor'] = interface.reactorSnapshot()
+        end
+        if interface.turbine ~= false then
+            interface.snapshot['turbine'] = interface.turbineSnapshot()
+        end
         gui.updateSnapshot(interface.snapshot)
         os.sleep(interface.fps)
     end
@@ -477,8 +555,8 @@ function interface.checkMessages(event, side, channel, replyChannel, message, di
                                     clients[message['origin']['id']..'_'..message['origin']['label']]['lastActivity'] = os.epoch('local')
                                     interface.writeClients(clients)
                                 elseif decryptedMsg['data'] == 'scram' then
-                                    if gui.snapshot['status'] then
-                                        for k, v in pairs(gui.snapshot['rodInfo']['rods']) do
+                                    if gui.snapshot['reactor']['status'] then
+                                        for k, v in pairs(gui.snapshot['reactor']['rodInfo']['rods']) do
                                             interface.reactor.setControlRodLevel(k, 100)
                                         end
                                         interface.reactor.setActive(false)
@@ -488,9 +566,9 @@ function interface.checkMessages(event, side, channel, replyChannel, message, di
                                 end
                             elseif decryptedMsg['type'] == 'adjustRod' then
                                 if decryptedMsg['direction'] == 'up' then
-                                    interface.reactor.setControlRodLevel(decryptedMsg['target'], gui.snapshot['rodInfo']['rods'][decryptedMsg['target']]['level']+decryptedMsg['data'])
+                                    interface.reactor.setControlRodLevel(decryptedMsg['target'], gui.snapshot['reactor']['rodInfo']['rods'][decryptedMsg['target']]['level']+decryptedMsg['data'])
                                 elseif decryptedMsg['direction'] == 'down' then
-                                    interface.reactor.setControlRodLevel(decryptedMsg['target'], gui.snapshot['rodInfo']['rods'][decryptedMsg['target']]['level']-decryptedMsg['data'])
+                                    interface.reactor.setControlRodLevel(decryptedMsg['target'], gui.snapshot['reactor']['rodInfo']['rods'][decryptedMsg['target']]['level']-decryptedMsg['data'])
                                 end
                                 interface.writeAutomations()
                                 clients[message['origin']['id']..'_'..message['origin']['label']]['lastActivity'] = os.epoch('local')
@@ -573,8 +651,8 @@ function interface.clickedButton(event, button, x, y, arg4, arg5)
         elseif gui.settings['currentPageTitle'] == 'Graphs' then -- Graphs
             if y == 6 then
                 if x >=gui.width*gui.widthFactor+1 and x <= gui.width*gui.widthFactor+1+5 then
-                    if gui.snapshot['status'] then
-                        for k, v in pairs(gui.snapshot['rodInfo']['rods']) do
+                    if gui.snapshot['reactor']['status'] then
+                        for k, v in pairs(gui.snapshot['reactor']['rodInfo']['rods']) do
                             interface.reactor.setControlRodLevel(k, 100)
                         end
                         interface.reactor.setActive(false)
@@ -582,7 +660,7 @@ function interface.clickedButton(event, button, x, y, arg4, arg5)
                 end
             end
         elseif gui.settings['currentPageTitle'] == 'Rod Statistics' then -- Control Rods
-            for k, v in pairs(gui.snapshot['rodInfo']['rods']) do
+            for k, v in pairs(gui.snapshot['reactor']['rodInfo']['rods']) do
                 if y == 8+k*2 then
                     if x == math.ceil((gui.width-(#'      buttons      '-2))/2) or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+1 then
                         interface.reactor.setControlRodLevel(k, v['level']-1)
@@ -811,21 +889,21 @@ function interface.manageAutomations() -- Run in Parallel
         if interface.automations['powerToggle'] then
             if interface.reactor.getActive() then -- Is active
                 if not interface.reactor.isActivelyCooled() then
-                    if (gui.snapshot['energyInfo']['stored']/gui.snapshot['energyInfo']['capacity'])*100 >= interface.automations['powerMax'] then
+                    if (gui.snapshot['reactor']['energyInfo']['stored']/gui.snapshot['reactor']['energyInfo']['capacity'])*100 >= interface.automations['powerMax'] then
                         interface.reactor.setActive(false)
                     end
                 else
-                    if (gui.snapshot['hotFluidInfo']['amount']/gui.snapshot['hotFluidInfo']['max'])*100 >= interface.automations['powerMax'] then
+                    if (gui.snapshot['reactor']['hotFluidInfo']['amount']/gui.snapshot['reactor']['hotFluidInfo']['max'])*100 >= interface.automations['powerMax'] then
                         interface.reactor.setActive(false)
                     end
                 end
             else -- Is not active
                 if not interface.reactor.isActivelyCooled() then
-                    if (gui.snapshot['energyInfo']['stored']/gui.snapshot['energyInfo']['capacity'])*100 <= interface.automations['powerMin'] then
+                    if (gui.snapshot['reactor']['energyInfo']['stored']/gui.snapshot['reactor']['energyInfo']['capacity'])*100 <= interface.automations['powerMin'] then
                         interface.reactor.setActive(true)
                     end
                 else
-                    if (gui.snapshot['hotFluidInfo']['amount']/gui.snapshot['hotFluidInfo']['max'])*100 <= interface.automations['powerMin'] then
+                    if (gui.snapshot['reactor']['hotFluidInfo']['amount']/gui.snapshot['reactor']['hotFluidInfo']['max'])*100 <= interface.automations['powerMin'] then
                         interface.reactor.setActive(true)
                     end
                 end
@@ -833,15 +911,15 @@ function interface.manageAutomations() -- Run in Parallel
         end
         if interface.automations['tempoggle'] then
             if interface.reactor.getActive() then -- Is active
-                if gui.snapshot['casingTemperature'] >= interface.automations['tempMax'] then
+                if gui.snapshot['reactor']['casingTemperature'] >= interface.automations['tempMax'] then
                     interface.reactor.setActive(false)
                 end
             end
         end
         if interface.automations['controlRodsToggle'] then -- Use Control Rods to float around slightly positive power output
             if interface.reactor.getActive() then -- Is active
-                for k, v in pairs(gui.snapshot['rodInfo']['rods']) do
-                    interface.reactor.setControlRodLevel(k, math.floor((gui.snapshot['energyInfo']['stored'])/(gui.snapshot['energyInfo']['capacity']*(interface.automations['powerMax']/100))*100))
+                for k, v in pairs(gui.snapshot['reactor']['rodInfo']['rods']) do
+                    interface.reactor.setControlRodLevel(k, math.floor((gui.snapshot['reactor']['energyInfo']['stored'])/(gui.snapshot['reactor']['energyInfo']['capacity']*(interface.automations['powerMax']/100))*100))
                 end
             end
         end
@@ -861,7 +939,8 @@ function interface.initialize()
             ['computerInfo'] = interface.getComputerInfo(),
             ['monitor'] = interface.checkForMonitor(),
             ['modem'] = interface.checkForWirelessModem(),
-            ['reactor'] = interface.checkForinterface(),
+            ['reactor'] = interface.checkForReactor(),
+            ['turbine'] = interface.checkForTurbine(),
         }
     for k, i in pairs(initial) do
         if i == false then
@@ -885,6 +964,7 @@ function interface.initialize()
     interface.monitor = initial['monitor']
     interface.modem = initial['modem']
     interface.reactor = initial['reactor']
+    interface.turbine = initial['turbine']
     interface.initializeMonitor()
     interface.initializeNetwork()
     interface.initialized = true

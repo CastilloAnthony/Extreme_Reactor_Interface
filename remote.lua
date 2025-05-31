@@ -398,13 +398,13 @@ function remote.clickedButton(event, button, x, y, arg4, arg5)
         elseif gui.settings['currentPageTitle'] == 'Graphs' then -- Graphs
             if y == 6 then
                 if x >=gui.width*gui.widthFactor+1 and x <= gui.width*gui.widthFactor+1+5 then
-                    if gui.snapshot['status'] then
+                    if gui.snapshot['reactor']['status'] then
                         remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'command', ['data'] = 'scram'}))})
                     end
                 end
             end
         elseif gui.settings['currentPageTitle'] == 'Rod Statistics' then -- Control Rods
-            for k, v in pairs(gui.snapshot['rodInfo']['rods']) do
+            for k, v in pairs(gui.snapshot['reactor']['rodInfo']['rods']) do
                 if y == 8+k*2 then
                     if x == math.ceil((gui.width-(#'      buttons      '-2))/2) or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+1 then
                         if v['level'] > 0 then
