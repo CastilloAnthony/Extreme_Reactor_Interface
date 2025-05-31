@@ -18,12 +18,13 @@ To install onto a ComputerCraft device type this into the console:
 2. Then run the installer.
 3. When the prompt shows up, type 'y' for server or 'n' for remote.
 4. The installer should now reboot the computer and load up the program.
+
 For first time users, you will have to wait a couple of minutes while cryptography parameters are generated.
 
 ### Todo
 - Help button next to the close button
- - Should bring up a new window with a title bar, a close button, and text that varies depending on the page the interface is on.
+    - Should bring up a new window with a title bar, a close button, and text that varies depending on the page the interface is on.
 - Turbine information pages
- - Turbine automations
+    - Turbine automations
 - Scrolling features / Scroll bar
- - Specifically for Rod Stats, Automations, and Client Management
+    - Specifically for Rod Stats, Automations, and Client Management
