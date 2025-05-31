@@ -1,5 +1,5 @@
 # Extreme_Reactor_Interface
-A user interface program for the Minecraft mod ComputerCraft used to interface the mod with the Extreme Reactors mod. Non-pocket computers can utilize monitors to increase the size of available screen space. For these non-pocket computers, a minimum of a 3-by-3 monitor setup or no screens at all is recommended. The graphs page utilizes this extra screen space very well by stretching the graphs vertically and horizontally. This program is intended to work with just a single reactor. This UI program is written entirely in Lua. Preview images can be viewed here: https://imgur.com/a/VlOrHOI
+A user interface program for the Minecraft mod ComputerCraft used to interface the mod with the Extreme Reactors mod. Non-pocket computers can utilize monitors to increase the size of available screen space. For these non-pocket computers, a minimum of a 3-by-3 monitor setup or no screens at all is recommended. The graphs page utilizes this extra screen space very well by stretching the graphs vertically and horizontally. This program is intended to work with just a single reactor. This UI program is written entirely in Lua. Preview images can be viewed here: https://imgur.com/a/Y7JEOX3
 
 ## Features
 - Clickable buttons
