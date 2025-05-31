@@ -273,13 +273,16 @@ function remote.login()
 end --end login
 
 function remote.requestSnapshot()
-    local timer, snapshot = os.startTimer(60), nil
-    remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'snapshot', ['data'] = nil}))})
-    while snapshot == nil do
+    local timer, keys, snapshot = os.startTimer(60), nil, nil
+    -- remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'snapshot', ['data'] = nil}))})
+    remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'snapshotKey', ['data'] = nil}))})
+    gui.log('Requesting snapshot keys.')
+    while keys == nil do
         local event, side, channel, replyChannel, message, distance = os.pullEvent()
         if event == 'timer' then
             timer = os.startTimer(60)
-            remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'snapshot', ['data'] = nil}))})
+            remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'snapshotKey', ['data'] = nil}))})
+            gui.log('Requesting snapshot keys.')
         elseif event == 'modem_message' then
             if channel == 28 then
                 if message['target'] ~= nil then
@@ -287,8 +290,12 @@ function remote.requestSnapshot()
                         if message['origin'] ~= nil then
                             if message['origin']['label'] == remote.keys['target']['label'] and message['origin']['id'] == remote.keys['target']['id'] then
                                 local unencryptedPacket = textutils.unserialize(crypt.xorEncryptDecrypt(remote.keys['shared'], message['packet']))
-                                if unencryptedPacket['type'] == 'snapshot' then
-                                    snapshot = unencryptedPacket['data']
+                                if unencryptedPacket['type'] == 'snapshotKey' then
+                                    remote.keys['snapshotKey'] = unencryptedPacket['data']
+                                    local file = fs.open('./er_interface/keys/server.key', 'w')
+                                    file.write(textutils.serialize(remote.keys))
+                                    file.close()
+                                    keys = true
                                 end
                             end
                         end
@@ -297,6 +304,30 @@ function remote.requestSnapshot()
             end
         end
     end
+    gui.log('Snapshot Key Acquired')
+    while snapshot == nil do
+        local event, side, channel, replyChannel, message, distance = os.pullEvent()
+        if event == 'modem_message' then
+            if channel == 7 then
+                if message['target'] == nil then
+                    if message['origin'] ~= nil then
+                        if message['origin']['label'] == remote.keys['target']['label'] and message['origin']['id'] == remote.keys['target']['id'] then
+                            if message['packet'] ~= nil then
+                                if message['packet']['type'] ~= nil then
+                                    if message['packet']['type'] == 'broadcast' then
+                                        if message['packet']['snapshot'] ~= nil then
+                                            snapshot = textutils.unserialize(crypt.xorEncryptDecrypt(remote.keys['snapshotKey'], message['packet']['snapshot']))
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+    gui.log('Snapshot Acquired')
     gui.updateSnapshot(snapshot)
 end --end requestSnapshot
 
@@ -304,7 +335,23 @@ function remote.checkMessages(event, side, channel, replyChannel, message, dista
     -- ['ports'] = {['broadcast'] = 7, ['handshake'] = 14, ['requests'] = 21, ['dataTransfer'] = 28},
     -- Message Format: {['origin'] = {}, ['target'] = {}, ['packet'] = {}}
     -- ['packet'] = crypt.encrpt(sharedKey, payload)
-    if channel == 14 then -- Handshakes
+    if channel == 7 then -- Broadcasts // Snapshot retrivel
+        if message['target'] == nil then
+            if message['origin'] ~= nil then
+                if message['origin']['label'] == remote.keys['target']['label'] and message['origin']['id'] == remote.keys['target']['id'] then
+                    if message['packet'] ~= nil then
+                        if message['packet']['type'] ~= nil then
+                            if message['packet']['type'] == 'broadcast' then
+                                if message['packet']['snapshot'] ~= nil then
+                                    gui.updateSnapshot(textutils.unserialize(crypt.xorEncryptDecrypt(remote.keys['snapshotKey'], message['packet']['snapshot'])))
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    elseif channel == 14 then -- Handshakes
     elseif channel == 21 then -- Requests, login attempts, issue commands
     elseif channel == 28 then -- Data Transfers
         if message['target'] ~= nil then
@@ -312,8 +359,12 @@ function remote.checkMessages(event, side, channel, replyChannel, message, dista
                 if message['origin'] ~= nil then
                     if message['origin']['label'] == remote.keys['target']['label'] and message['origin']['id'] == remote.keys['target']['id'] then
                         local unencryptedPacket = textutils.unserialize(crypt.xorEncryptDecrypt(remote.keys['shared'], message['packet']))
-                        if unencryptedPacket['type'] == 'snapshot' then
-                            gui.snapshot = unencryptedPacket['data']
+                        if unencryptedPacket['type'] == 'snapshotKeys' then
+                            -- gui.snapshot = unencryptedPacket['data']
+                            remote.keys['snapshotKey'] = message['packet']['data']
+                            local file = fs.open('./er_interface/keys/server.key', 'w')
+                            file.write(textutils.serialize(remote.keys))
+                            file.close()
                         end
                     end
                 end
@@ -603,24 +654,29 @@ function remote.mouseWheel(event, direction, x, y, arg4, arg5)
     end
 end --end mouseWheel
 
-function remote.snapshotHandler()
+function remote.snapshotHandler() -- Run in Parallel
     while true do
         remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'snapshot', ['data'] = nil}))})
         os.sleep(remote.fps)
     end
 end --end snapshotHandler
 
-function remote.guiHandler()
+function remote.guiHandler() -- Run in Parallel
     while true do
         gui.main()
         os.sleep(remote.fps)
     end
 end --end guiHandler
 
-function remote.eventHandler()
+function remote.eventHandler() -- Run in Parallel
+    local timer = os.startTimer(60)
     while true do
         local event, arg1, arg2, arg3, arg4, arg5 = os.pullEvent()
-        if event == 'modem_message' then
+        if event == 'timer' and arg1 == timer then
+            os.cancelTimer(timer)
+            remote.requestSnapshot()
+            timer = os.startTimer(60)
+        elseif event == 'modem_message' then
             remote.checkMessages(event, arg1, arg2, arg3, arg4, arg5)
         elseif event == 'mouse_up' or event == 'monitor_touch' then
             remote.clickedButton(event, arg1, arg2, arg3, arg4, arg5)
@@ -647,7 +703,7 @@ function remote.initialize()
     -- remote.readServerKeys()
     remote.login()
     remote.requestSnapshot()
-    parallel.waitForAny(remote.snapshotHandler, remote.eventHandler, remote.guiHandler)
+    parallel.waitForAny(remote.eventHandler, remote.guiHandler) --remote.snapshotHandler, 
 end --end initialize
 
 return remote

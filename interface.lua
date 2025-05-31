@@ -224,6 +224,7 @@ end --end getMBInfo
 
 function interface.generateSnapshots() -- Run in parallel
     while true do
+        -- gui.log('Parallel - Snapshot Handler')
         interface.snapshot = {
             ['status'] = interface.reactor.getActive(),
             ['casingTemperature'] = interface.reactor.getCasingTemperature(),
@@ -273,6 +274,7 @@ end --end readPrivateKey
 
 function interface.generateKeyParameters() -- Run in parallel
     while true do
+        -- gui.log('Parallel - Parameter Handler')
         if fs.exists('./er_interface/keys/parameters.tmp') then
             os.sleep(60*5) -- Generate new ones every Five Minutes
             local p, g = crypt.generateParameters(10000, 100000)
@@ -288,32 +290,64 @@ function interface.generateKeyParameters() -- Run in parallel
     end
 end --end generateKeyParameters
 
-function interface.broadcast()
-    local file = fs.open('./er_interface/keys/parameters.tmp', 'r')
-    local params = textutils.unserialize(file.readAll())
-    -- local params = file.read()
-    file.close()
-    local info = {
-        ['origin'] = interface.getComputerInfo(),
-        ['target'] = nil,
-        ['packet'] = {
-            ['type'] = 'broadcast',
-            ['message'] = 'This is an automated broadcast sharing the ports information for an Extreme Reactor Control Server.',
-            ['ports'] = {['broadcast'] = 7, ['handshake'] = 14, ['requests'] = 21, ['dataTransfer'] = 28},
-            ['handshakeParams'] = params,
+function interface.broadcast() -- Run in parallel
+    while true do
+        os.sleep(1)
+        local file = fs.open('./er_interface/keys/parameters.tmp', 'r')
+        local params = textutils.unserialize(file.readAll())
+        -- local params = file.read()
+        file.close()
+        local info = {
+            ['origin'] = interface.getComputerInfo(),
+            ['target'] = nil,
+            ['packet'] = {
+                ['type'] = 'broadcast',
+                ['message'] = 'This is an automated broadcast sharing the ports information for an Extreme Reactor Control Server.',
+                ['ports'] = {['broadcast'] = 7, ['handshake'] = 14, ['requests'] = 21, ['dataTransfer'] = 28},
+                ['handshakeParams'] = params,
+                -- ['snapshot'] = nil,
+            }
         }
-    }
-    interface.modem.transmit(7, 0, info)
+        for _,i in pairs(interface.readClients()) do
+            if (os.epoch('local') - i['lastActivity'])/1000 < 60*5 then
+                info['packet']['snapshot'] = crypt.xorEncryptDecrypt(interface.readSnapshotKey(), textutils.serialize(gui.snapshot))
+                break
+            end
+        end
+        interface.modem.transmit(7, 0, info)
+    end
 end --end broadcast
+
+function interface.readSnapshotKey()
+    if fs.exists('./er_interface/keys/snapshot.key') then
+        local file = fs.open('./er_interface/keys/snapshot.key', 'r')
+        local snapshotKey = file.readAll()
+        file.close()
+        return snapshotKey
+    else
+        local file = fs.open('./er_interface/keys/parameters.tmp', 'r')
+        local params = textutils.unserialize(file.readAll())
+        file.close()
+        local private, _ = crypt.generatePrivatePublicKeys(params['p'], params['g'])
+        local _, public2 = crypt.generatePrivatePublicKeys(params['p'], params['g'])
+        local snapshotKey = crypt.generateSharedKey(private, public2, params['p'])
+        local file = fs.open('./er_interface/keys/snapshot.key', 'w')
+        file.write(snapshotKey)
+        file.close()
+        return snapshotKey
+    end
+end --end readSnapshotKey
 
 function interface.eventHandler() -- Run in parallel
     local timer = os.startTimer(60*5)
     while true do
+        -- gui.log('Parallel - Event Handler')
         local event, arg1, arg2, arg3, arg4, arg5 = os.pullEvent()
-        if event == 'timer' then
-            interface.broadcast()
-            timer = os.startTimer(60*5)
-        elseif event == 'modem_message' then
+        -- gui.log(tostring(event)..tostring(arg1)..tostring(arg2)..tostring(arg3)..tostring(arg4)..tostring(arg5))
+        -- if event == 'timer' then
+        --     interface.broadcast()
+        --     timer = os.startTimer(5) --------------------------------------------------------------------------------------------------------------------------------
+        if event == 'modem_message' then
             interface.checkMessages(event, arg1, arg2, arg3, arg4, arg5)
         elseif event == 'mouse_up' or event == 'monitor_touch' then
             interface.clickedButton(event, arg1, arg2, arg3, arg4, arg5)
@@ -346,26 +380,26 @@ function interface.checkMessages(event, side, channel, replyChannel, message, di
             if message['target']['id'] == interface.getComputerInfo()['id'] and message['target']['label'] == interface.getComputerInfo()['label'] then
                 if message['origin'] ~= nil then
                     local clients = interface.readClients()
-                    if clients[message['origin']['label']] ~= nil then -- Exists
+                    if clients[message['origin']['id']..'_'..message['origin']['label']] ~= nil then -- Exists
                         if message['packet']['attempt'] ~= nil then
-                            interface.modem.transmit(14, 0, {['origin'] = interface.getComputerInfo(), ['target'] = message['origin'], ['packet'] = crypt.xorEncryptDecrypt(clients[message['origin']['label']]['sharedKey'], 'success')})
-                            if crypt.xorEncryptDecrypt(clients[message['origin']['label']]['sharedKey'], message['packet']['attempt']) ~= 'success' then -- Unsuccessful handshake, start over.
-                                clients[message['origin']['label']] = nil
+                            interface.modem.transmit(14, 0, {['origin'] = interface.getComputerInfo(), ['target'] = message['origin'], ['packet'] = crypt.xorEncryptDecrypt(clients[message['origin']['id']..'_'..message['origin']['label']]['sharedKey'], 'success')})
+                            if crypt.xorEncryptDecrypt(clients[message['origin']['id']..'_'..message['origin']['label']]['sharedKey'], message['packet']['attempt']) ~= 'success' then -- Unsuccessful handshake, start over.
+                                clients[message['origin']['id']..'_'..message['origin']['label']] = nil
                                 interface.writeClients(clients)
                             end
                         end
                     else -- Add to clients & their public key & parameters
                         if message['packet']['p'] ~= nil and message['packet']['g'] ~= nil and message['packet']['publicKey'] ~= nil then
-                            clients[message['origin']['label']] = message['origin']
+                            clients[message['origin']['id']..'_'..message['origin']['label']] = message['origin']
                             -- clients[message['origin']['label']]['p'] = message['packet']['p']
                             -- clients[message['origin']['label']]['g'] = message['packet']['g']
                             -- clients[message['origin']['label']]['privateKey'], clients[message['origin']['label']]['publicKey'] = crypt.generatePrivatePublicKeys(message['packet']['p'], message['packet']['g'])
                             local privateKey, publicKey = crypt.generatePrivatePublicKeys(message['packet']['p'], message['packet']['g'])
                             interface.modem.transmit(14, 0, {['origin'] = interface.getComputerInfo(), ['target'] = message['origin'], ['packet'] = {['publicKey'] = publicKey}})
-                            clients[message['origin']['label']]['sharedKey'] = crypt.generateSharedKey(privateKey, message['packet']['publicKey'], message['packet']['p'])
-                            clients[message['origin']['label']]['creationTimestamp'] = os.epoch('local')
-                            clients[message['origin']['label']]['lastLogin'] = os.epoch('local')
-                            clients[message['origin']['label']]['lastActivity'] = os.epoch('local')
+                            clients[message['origin']['id']..'_'..message['origin']['label']]['sharedKey'] = crypt.generateSharedKey(privateKey, message['packet']['publicKey'], message['packet']['p'])
+                            clients[message['origin']['id']..'_'..message['origin']['label']]['creationTimestamp'] = os.epoch('local')
+                            clients[message['origin']['id']..'_'..message['origin']['label']]['lastLogin'] = os.epoch('local')
+                            clients[message['origin']['id']..'_'..message['origin']['label']]['lastActivity'] = os.epoch('local')
                             interface.writeClients(clients)
                             -- interface.modem.transmit(14, 0, {['origin'] = interface.getComputerInfo(), ['target'] = message['origin'], ['packet'] = {['publicKey'] = clients[message['origin']['label']]['publicKey']}})
                         end
@@ -378,26 +412,27 @@ function interface.checkMessages(event, side, channel, replyChannel, message, di
             if message['target']['id'] == interface.getComputerInfo()['id'] and message['target']['label'] == interface.getComputerInfo()['label'] then
                 if message['origin'] ~= nil then
                     local clients = interface.readClients()
-                    if clients[message['origin']['label']] ~= nil then -- Exists
+                    if clients[message['origin']['id']..'_'..message['origin']['label']] ~= nil then -- Exists
                         -- if session[messager['origin']['label']] -- Check if already logged in (TBD)
-                        if clients[message['origin']['label']]['id'] == message['origin']['id'] then 
-                            local decryptedMsg = textutils.unserialize(crypt.xorEncryptDecrypt(clients[message['origin']['label']]['sharedKey'], message['packet']))
+                        if clients[message['origin']['id']..'_'..message['origin']['label']]['id'] == message['origin']['id'] then 
+                            local decryptedMsg = textutils.unserialize(crypt.xorEncryptDecrypt(clients[message['origin']['id']..'_'..message['origin']['label']]['sharedKey'], message['packet']))
                             if decryptedMsg['type'] == 'login' then
                                 if interface.verifyLogin(decryptedMsg['data']) then
                                     gui.log('User logged in from '..message['origin']['label']..' with device id '..message['origin']['id'])
                                     -- interface.session[message['origin']['label']] = message['origin']
                                     -- interface.session[message['origin']['label']]['timestamp'] = os.clock()
-                                    interface.modem.transmit(28, 0, {['origin'] = interface.getComputerInfo(), ['target'] = message['origin'], ['packet'] = crypt.xorEncryptDecrypt(clients[message['origin']['label']]['sharedKey'], textutils.serialize({['type'] = 'login', ['data'] = 'Granted'}))})
-                                    clients[message['origin']['label']]['lastLogin'] = os.epoch('local')
-                                    clients[message['origin']['label']]['lastActivity'] = os.epoch('local')
+                                    interface.modem.transmit(28, 0, {['origin'] = interface.getComputerInfo(), ['target'] = message['origin'], ['packet'] = crypt.xorEncryptDecrypt(clients[message['origin']['id']..'_'..message['origin']['label']]['sharedKey'], textutils.serialize({['type'] = 'login', ['data'] = 'Granted'}))})
+                                    clients[message['origin']['id']..'_'..message['origin']['label']]['lastLogin'] = os.epoch('local')
+                                    clients[message['origin']['id']..'_'..message['origin']['label']]['lastActivity'] = os.epoch('local')
                                     interface.writeClients(clients)
                                 else
                                     gui.log('Failed login attempt from: '..message['origin']['label']..' with ID '..message['origin']['id'])
-                                    interface.modem.transmit(28, 0, {['origin'] = interface.getComputerInfo(), ['target'] = message['origin'], ['packet'] = crypt.xorEncryptDecrypt(clients[message['origin']['label']]['sharedKey'], textutils.serialize({['type'] = 'login', ['data'] = 'Denied'}))})
+                                    interface.modem.transmit(28, 0, {['origin'] = interface.getComputerInfo(), ['target'] = message['origin'], ['packet'] = crypt.xorEncryptDecrypt(clients[message['origin']['id']..'_'..message['origin']['label']]['sharedKey'], textutils.serialize({['type'] = 'login', ['data'] = 'Denied'}))})
                                 end
-                            elseif decryptedMsg['type'] == 'snapshot' then
-                                interface.modem.transmit(28, 0, {['origin'] = interface.getComputerInfo(), ['target'] = message['origin'], ['packet'] = crypt.xorEncryptDecrypt(clients[message['origin']['label']]['sharedKey'], textutils.serialize({['type'] = 'snapshot', ['data'] = gui.snapshot}))})
-                                clients[message['origin']['label']]['lastActivity'] = os.epoch('local')
+                            elseif decryptedMsg['type'] == 'snapshotKey' then
+                                -- interface.modem.transmit(28, 0, {['origin'] = interface.getComputerInfo(), ['target'] = message['origin'], ['packet'] = crypt.xorEncryptDecrypt(clients[message['origin']['id']..'_'..message['origin']['label']]['sharedKey'], textutils.serialize({['type'] = 'snapshot', ['data'] = gui.snapshot}))})
+                                interface.modem.transmit(28, 0, {['origin'] = interface.getComputerInfo(), ['target'] = message['origin'], ['packet'] = crypt.xorEncryptDecrypt(clients[message['origin']['id']..'_'..message['origin']['label']]['sharedKey'], textutils.serialize({['type'] = 'snapshotKey', ['data'] = interface.readSnapshotKey()}))})
+                                clients[message['origin']['id']..'_'..message['origin']['label']]['lastActivity'] = os.epoch('local')
                                 interface.writeClients(clients)
                             elseif decryptedMsg['type'] == 'command' then
                                 if decryptedMsg['data'] == 'toggleReactor' then
@@ -406,7 +441,7 @@ function interface.checkMessages(event, side, channel, replyChannel, message, di
                                     else
                                         interface.reactor.setActive(true)
                                     end
-                                    clients[message['origin']['label']]['lastActivity'] = os.epoch('local')
+                                    clients[message['origin']['id']..'_'..message['origin']['label']]['lastActivity'] = os.epoch('local')
                                     interface.writeClients(clients)
                                 elseif decryptedMsg['data'] == 'powerToggle' then
                                     if gui.snapshot['automations']['powerToggle'] then
@@ -415,7 +450,7 @@ function interface.checkMessages(event, side, channel, replyChannel, message, di
                                         interface.automations['powerToggle'] = true
                                     end
                                     interface.writeAutomations()
-                                    clients[message['origin']['label']]['lastActivity'] = os.epoch('local')
+                                    clients[message['origin']['id']..'_'..message['origin']['label']]['lastActivity'] = os.epoch('local')
                                     interface.writeClients(clients)
                                 elseif decryptedMsg['data'] == 'tempToggle' then
                                     if gui.snapshot['automations']['tempToggle'] then
@@ -424,7 +459,7 @@ function interface.checkMessages(event, side, channel, replyChannel, message, di
                                         interface.automations['tempToggle'] = true
                                     end
                                     interface.writeAutomations()
-                                    clients[message['origin']['label']]['lastActivity'] = os.epoch('local')
+                                    clients[message['origin']['id']..'_'..message['origin']['label']]['lastActivity'] = os.epoch('local')
                                     interface.writeClients(clients)
                                 elseif decryptedMsg['data'] == 'controlRodsToggle' then
                                     if gui.snapshot['automations']['controlRodsToggle'] then
@@ -433,7 +468,7 @@ function interface.checkMessages(event, side, channel, replyChannel, message, di
                                         interface.automations['controlRodsToggle'] = true
                                     end
                                     interface.writeAutomations()
-                                    clients[message['origin']['label']]['lastActivity'] = os.epoch('local')
+                                    clients[message['origin']['id']..'_'..message['origin']['label']]['lastActivity'] = os.epoch('local')
                                     interface.writeClients(clients)
                                 elseif decryptedMsg['data'] == 'scram' then
                                     if gui.snapshot['status'] then
@@ -442,7 +477,7 @@ function interface.checkMessages(event, side, channel, replyChannel, message, di
                                         end
                                         interface.reactor.setActive(false)
                                     end
-                                    clients[message['origin']['label']]['lastActivity'] = os.epoch('local')
+                                    clients[message['origin']['id']..'_'..message['origin']['label']]['lastActivity'] = os.epoch('local')
                                     interface.writeClients(clients)
                                 end
                             elseif decryptedMsg['type'] == 'adjustRod' then
@@ -452,7 +487,7 @@ function interface.checkMessages(event, side, channel, replyChannel, message, di
                                     interface.reactor.setControlRodLevel(decryptedMsg['target'], gui.snapshot['rodInfo']['rods'][decryptedMsg['target']]['level']-decryptedMsg['data'])
                                 end
                                 interface.writeAutomations()
-                                clients[message['origin']['label']]['lastActivity'] = os.epoch('local')
+                                clients[message['origin']['id']..'_'..message['origin']['label']]['lastActivity'] = os.epoch('local')
                                 interface.writeClients(clients)
                             elseif decryptedMsg['type'] == 'powerMax' then
                                 if decryptedMsg['direction'] == 'up' then
@@ -465,7 +500,7 @@ function interface.checkMessages(event, side, channel, replyChannel, message, di
                                     end
                                 end
                                 interface.writeAutomations()
-                                clients[message['origin']['label']]['lastActivity'] = os.epoch('local')
+                                clients[message['origin']['id']..'_'..message['origin']['label']]['lastActivity'] = os.epoch('local')
                                 interface.writeClients(clients)
                             elseif decryptedMsg['type'] == 'powerMin' then
                                 if decryptedMsg['direction'] == 'up' then
@@ -478,7 +513,7 @@ function interface.checkMessages(event, side, channel, replyChannel, message, di
                                     end
                                 end
                                 interface.writeAutomations()
-                                clients[message['origin']['label']]['lastActivity'] = os.epoch('local')
+                                clients[message['origin']['id']..'_'..message['origin']['label']]['lastActivity'] = os.epoch('local')
                                 interface.writeClients(clients)
                             elseif decryptedMsg['type'] == 'tempMax' then
                                 if decryptedMsg['direction'] == 'up' then
@@ -491,7 +526,7 @@ function interface.checkMessages(event, side, channel, replyChannel, message, di
                                     end
                                 end
                                 interface.writeAutomations()
-                                clients[message['origin']['label']]['lastActivity'] = os.epoch('local')
+                                clients[message['origin']['id']..'_'..message['origin']['label']]['lastActivity'] = os.epoch('local')
                                 interface.writeClients(clients)
                             end
                         end
@@ -664,7 +699,7 @@ function interface.clickedButton(event, button, x, y, arg4, arg5)
                     local clients = interface.readClients()
                     for _, i in pairs(clients) do
                         if y-6 == count then
-                            clients[i['label']] = nil
+                            clients[i['id']..'_'..i['label']] = nil
                             interface.writeClients(clients)
                             break
                         end
@@ -690,8 +725,9 @@ end --end mouseWheel
 
 function interface.guiHandler() -- Run in parallel
     while true do
-        gui.main()
+        -- gui.log('Parallel - Gui Handler')
         os.sleep(interface.fps)
+        gui.main()
     end
 end --end guiHandler
 
@@ -764,6 +800,7 @@ end --end readAutomations
 
 function interface.manageAutomations() -- Run in Parallel
     while true do
+        -- gui.log('Parallel - Automations')
         os.sleep(interface.fps)
         if interface.automations['powerToggle'] then
             if interface.reactor.getActive() then -- Is active
@@ -789,8 +826,8 @@ function interface.manageAutomations() -- Run in Parallel
             end
         end
         if interface.automations['tempoggle'] then
-            if gui.snapshot['casingTemperature'] >= interface.automations['tempMax'] then
-                if interface.reactor.getActive() then -- Is active
+            if interface.reactor.getActive() then -- Is active
+                if gui.snapshot['casingTemperature'] >= interface.automations['tempMax'] then
                     interface.reactor.setActive(false)
                 end
             end
@@ -834,7 +871,7 @@ function interface.initialize()
     end
     if not fs.exists('./er_interface/keys/parameters.tmp') then
         interface.write('Generating first run security parameters. This may take a few minutes...')
-        local p, g = crypt.generateParameters(1000, 10000)
+        local p, g = crypt.generateParameters(1000, 10000)      
         local file = fs.open('./er_interface/keys/parameters.tmp', 'w')
         file.write(textutils.serialize({['p'] = p, ['g'] = g}))
         file.close()
@@ -847,7 +884,7 @@ function interface.initialize()
     interface.initialized = true
     interface.login()
     interface.readAutomations()
-    parallel.waitForAny(interface.generateKeyParameters, interface.generateSnapshots, interface.eventHandler, interface.guiHandler, interface.manageAutomations)
+    parallel.waitForAny(interface.generateKeyParameters, interface.generateSnapshots, interface.eventHandler, interface.guiHandler, interface.manageAutomations, interface.broadcast)
 end --end initialize
 
 return interface

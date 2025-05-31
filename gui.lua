@@ -37,9 +37,9 @@ function gui.log(string, storage)
     table.insert(gui.logList, logging)
     local file = nil
     if storage ~= nil then
-        file = fs.open(storage..'er_interface/logs/'..os.date('%F'), 'a')
+        file = fs.open(storage..'er_interface/logs/'..os.date('%F')..'.log', 'a')
     else
-        file = fs.open('./'..'er_interface/logs/'..os.date('%F'), 'a')
+        file = fs.open('./'..'er_interface/logs/'..os.date('%F')..'.log', 'a')
     end 
     file.write(logging['time']..' '..logging['message']..'\n')
     file.close()
@@ -61,14 +61,19 @@ function gui.log(string, storage)
 end --end log
 
 function gui.getNumPages()
-    gui.log('Page Number gotten is '..#gui.pages)
+    -- gui.log('Page Number gotten is '..#gui.pages)
     return #gui.pages
-end
+end --end getNumPages
+
+function gui.compareElementsByID(a, b)
+    return tonumber(a['id']) < tonumber(b['id'])
+end --end compareKeys
 
 function gui.readClients() --Only for Interface/Server; not remote
     local file = fs.open('./er_interface/keys/clients', 'r')
     local clients = textutils.unserialize(file.readAll())
     file.close()
+    table.sort(clients, gui.compareElementsByID)
     return clients
 end --end readClients
 
@@ -379,6 +384,8 @@ function gui.main()
     gui.monitor.setVisible(false)
     gui.readSettings()
     gui.clearScreen()
+    -- gui.log('Drawing page: '..gui.settings['currentPage'])
+    -- gui.log('Page drawn was: '..tostring(gui.pages[gui.settings['currentPage']]))
     gui.pages[gui.settings['currentPage']]()
     -- if not gui.snapshot['activelyCooled'] then
     --     if gui.settings['currentPage'] == 1 then
@@ -1015,7 +1022,7 @@ function gui.pageAutomations() -- Automations
                 gui.monitor.setBackgroundColor(colors.black)
                 gui.monitor.write(' ')
             end
-        elseif v == 'Power' then
+        elseif v == 'Power' or v == 'Vapor' then
             gui.monitor.setBackgroundColor(colors.black)
             gui.monitor.setCursorPos(3,3+k)
             gui.monitor.setTextColor(contentColors[k])

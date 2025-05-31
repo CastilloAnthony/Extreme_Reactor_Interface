@@ -77,7 +77,6 @@ function crypt.findPrimitiveRoots(n)
     for g = 2, n - 1 do
         if crypt.gcd(g, n) == 1 and crypt.isPrimitiveRoot(g, n, phi, factors) then
             roots[#roots + 1] = g
-            os.sleep(0)
         end
     end
     return roots
@@ -86,7 +85,6 @@ end --end findPrimitiveRoots
 function crypt.generateParameters(min, max) -- 1000, 10000
     while true do
         local n = math.random(min, max)
-        os.sleep(0)
         if crypt.prime(n) then
             local primitiveRoots = crypt.findPrimitiveRoots(n)
             if #primitiveRoots > 0 then
@@ -100,13 +98,13 @@ end --end generateParameters
 function crypt.generatePrivatePublicKeys(p, g)
     local key = 4 -- Smallest non-prime
     while not crypt.prime(key) do
-        local temp = math.random(os.getComputerID(), os.clock()^os.getComputerID())
+        local temp = math.random(os.getComputerID()+3, (os.epoch('local')+os.clock())+(os.getComputerID()+1))
         if crypt.prime(temp) then
-            os.sleep(0)
             if crypt.modExp(g, temp, p) > 3 then
                 key = temp
             end
         end
+        os.sleep(0)
     end
     return key, crypt.modExp(g, key, p)
 end --end generatePrivatePublicKeys
@@ -115,7 +113,7 @@ function crypt.generateSharedKey(private, public, p)
     return crypt.modExp(public, private, p)
 end --end generateSharedKey
 
-function crypt.encrypt(sharedKey, payload)
+function crypt.encrypt(sharedKey, payload) -- Deprecated
     encryption = ''
     for i=1, #payload do
         encryption = encryption..tostring(sharedKey*string.byte(string.sub(payload, i, i)))..' '
@@ -123,7 +121,7 @@ function crypt.encrypt(sharedKey, payload)
     return encryption
 end --end encrypt
 
-function crypt.decrypt(sharedKey, payload)
+function crypt.decrypt(sharedKey, payload) -- Deprecated
     decryption = ''
     previous = 1
     for i=1, #payload do
