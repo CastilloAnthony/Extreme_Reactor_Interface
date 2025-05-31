@@ -697,7 +697,7 @@ function remote.initialize()
     end
     if os.getComputerLabel() == nil then
         os.setComputerLabel('Remote Device '..os.getComputerID())
-        interface.write('Set computer\'s label to '..os.getComputerLabel())
+        remote.write('Set computer\'s label to '..os.getComputerLabel())
     end
     remote.scanForServer()
     -- remote.readServerKeys()
