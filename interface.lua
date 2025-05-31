@@ -349,6 +349,7 @@ function interface.eventHandler() -- Run in parallel
         --     timer = os.startTimer(5) --------------------------------------------------------------------------------------------------------------------------------
         if event == 'modem_message' then
             interface.checkMessages(event, arg1, arg2, arg3, arg4, arg5)
+            os.sleep(interface.fps)
         elseif event == 'mouse_up' or event == 'monitor_touch' then
             interface.clickedButton(event, arg1, arg2, arg3, arg4, arg5)
         elseif event == 'mouse_wheel' then
@@ -370,6 +371,10 @@ function interface.writeClients(clients)
     -- local clients = textutils.serialize(clients)
     file.close()
 end --end writeClients
+
+function interface.compareElementsByID(a, b)
+    return tonumber(a['id']) < tonumber(b['id'])
+end --end compareKeys
 
 function interface.checkMessages(event, side, channel, replyChannel, message, distance)
     -- ['ports'] = {['broadcast'] = 7, ['handshake'] = 14, ['requests'] = 21, ['dataTransfer'] = 28},
@@ -400,6 +405,7 @@ function interface.checkMessages(event, side, channel, replyChannel, message, di
                             clients[message['origin']['id']..'_'..message['origin']['label']]['creationTimestamp'] = os.epoch('local')
                             clients[message['origin']['id']..'_'..message['origin']['label']]['lastLogin'] = os.epoch('local')
                             clients[message['origin']['id']..'_'..message['origin']['label']]['lastActivity'] = os.epoch('local')
+                            table.sort(clients, interface.compareElementsByID)
                             interface.writeClients(clients)
                             -- interface.modem.transmit(14, 0, {['origin'] = interface.getComputerInfo(), ['target'] = message['origin'], ['packet'] = {['publicKey'] = clients[message['origin']['label']]['publicKey']}})
                         end

@@ -65,15 +65,10 @@ function gui.getNumPages()
     return #gui.pages
 end --end getNumPages
 
-function gui.compareElementsByID(a, b)
-    return tonumber(a['id']) < tonumber(b['id'])
-end --end compareKeys
-
 function gui.readClients() --Only for Interface/Server; not remote
     local file = fs.open('./er_interface/keys/clients', 'r')
     local clients = textutils.unserialize(file.readAll())
     file.close()
-    table.sort(clients, gui.compareElementsByID)
     return clients
 end --end readClients
 
