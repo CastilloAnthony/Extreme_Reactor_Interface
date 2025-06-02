@@ -23,6 +23,7 @@ gui.colors = {
     ['waste'] = colors.brown,
 }
 gui.pages = nil
+gui.pageTitles = nil
 
 function gui.initialize(monitor)
     gui.monitor = monitor
@@ -99,41 +100,42 @@ function gui.writeSettings(settings)
 end --end writeSettings
 
 function gui.getPageTitle(pageNum)
-    if not gui.snapshot['reactor']['activelyCooled'] then
-        if pageNum == 1 then
-            return 'Home'
-        elseif pageNum == 2 then
-            return 'Fuel'
-        elseif pageNum == 3 then
-            return 'Power'
-        elseif pageNum == 4 then
-            return 'Graphs'
-        elseif pageNum == 5 then
-            return 'Rod Statistics'
-        elseif pageNum == 6 then
-            return 'Automations'
-        elseif pageNum == 7 then
-            return 'Connection'
-        end
-    else
-        if pageNum == 1 then
-            return 'Home'
-        elseif pageNum == 2 then
-            return 'Fuel'
-        elseif pageNum == 3 then
-            return 'Vapor'
-        elseif pageNum == 4 then
-            return 'Coolant'
-        elseif pageNum == 5 then
-            return 'Graphs'
-        elseif pageNum == 6 then
-            return 'Rod Statistics'
-        elseif pageNum == 7 then
-            return 'Automations'
-        elseif pageNum == 8 then
-            return 'Connection'
-        end
-    end
+    return gui.pageTitles[pageNum]
+    -- if not gui.snapshot['reactor']['activelyCooled'] then
+    --     if pageNum == 1 then
+    --         return 'Home'
+    --     elseif pageNum == 2 then
+    --         return 'Fuel'
+    --     elseif pageNum == 3 then
+    --         return 'Power'
+    --     elseif pageNum == 4 then
+    --         return 'Graphs'
+    --     elseif pageNum == 5 then
+    --         return 'Rod Statistics'
+    --     elseif pageNum == 6 then
+    --         return 'Automations'
+    --     elseif pageNum == 7 then
+    --         return 'Connection'
+    --     end
+    -- else
+    --     if pageNum == 1 then
+    --         return 'Home'
+    --     elseif pageNum == 2 then
+    --         return 'Fuel'
+    --     elseif pageNum == 3 then
+    --         return 'Vapor'
+    --     elseif pageNum == 4 then
+    --         return 'Coolant'
+    --     elseif pageNum == 5 then
+    --         return 'Graphs'
+    --     elseif pageNum == 6 then
+    --         return 'Rod Statistics'
+    --     elseif pageNum == 7 then
+    --         return 'Automations'
+    --     elseif pageNum == 8 then
+    --         return 'Connection'
+    --     end
+    -- end
 end --end getPageTitle
 
 function gui.nextPage(forward) -- true/false forwards/backwards
@@ -200,7 +202,7 @@ function gui.updateTime()
         gui.monitor.write(' ')
     end
     gui.monitor.setCursorPos(1,1)
-    gui.monitor.write(os.date())
+    gui.monitor.write(os.date("%F %T"))
     gui.monitor.setCursorPos(x, y)
     gui.monitor.setTextColor(tempText)
     gui.monitor.setBackgroundColor(tempBack)
@@ -312,33 +314,54 @@ end --end login
 
 function gui.updateSnapshot(snapshot)
     gui.snapshot = snapshot
-    if not gui.snapshot['reactor']['activelyCooled'] then
-        gui.pages = {
-            [1] = gui.pageSnapshot,
-            [2] = gui.pageFuel,
-            [3] = gui.pagePower,
-            [4] = gui.pageGraphs,
-            [5] = gui.pageRods,
-            [6] = gui.pageAutomations,
-            [7] = gui.pageConnections,
-        }
-        gui.readSettings()
-        if gui.settings['currentPage'] > #gui.pages then
-            gui.settings['currentPage'] = #gui.pages
-            gui.writeSettings(gui.settings)
-        end
-    else 
-        gui.pages = {
-            [1] = gui.pageSnapshot,
-            [2] = gui.pageFuel,
-            [3] = gui.pageVapor,
-            [4] = gui.pageCoolant,
-            [5] = gui.pageGraphs,
-            [6] = gui.pageRods,
-            [7] = gui.pageAutomations,
-            [8] = gui.pageConnections,
-        }
+    local pages = {[0] = nil,}
+    local pageTitles = {[0] = nil,}
+    if gui.snapshot['turbine']['status'] ~= nil then
+        pages[#pages+1] = gui.turbine_pageSummary
+        pageTitles[#pageTitles+1] = 'Turbine Summary'
     end
+    if gui.snapshot['reactor']['status'] ~= nil then
+        pages[#pages+1] = gui.reactor_summary
+        pageTitles[#pageTitles+1] = 'Reactor Summary'
+    end
+    if gui.snapshot['turbine']['status'] ~= nil then
+        pages[#pages+1] = gui.turbine_pagePower
+        pages[#pages+1] = gui.turbine_pageVapor
+        pages[#pages+1] = gui.turbine_pageCoolant
+        pageTitles[#pageTitles+1] = 'Turbine Power Stats'
+        pageTitles[#pageTitles+1] = 'Turbine Vapor Stats'
+        pageTitles[#pageTitles+1] = 'Turbine Coolant Stats'
+    end
+    if not gui.snapshot['reactor']['activelyCooled'] then
+        pages[#pages+1] = gui.reactor_pageFuel
+        pages[#pages+1] = gui.reactor_pagePower
+        pageTitles[#pageTitles+1] = 'Reactor Fuel Stats'
+        pageTitles[#pageTitles+1] = 'Reactor Power Stats'
+    else
+        pages[#pages+1] = gui.reactor_pageFuel
+        pages[#pages+1] = gui.reactor_pageVapor
+        pages[#pages+1] = gui.reactor_pageCoolant
+        pageTitles[#pageTitles+1] = 'Reactor Fuel Stats'
+        pageTitles[#pageTitles+1] = 'Reactor Vapor Stats'
+        pageTitles[#pageTitles+1] = 'Reactor Coolant Stats'
+    end
+    pages[#pages+1] = gui.pageGraphs
+    pages[#pages+1] = gui.reactor_pageRods
+    pages[#pages+1] = gui.pageAutomations
+    pages[#pages+1] = gui.pageConnections
+    pageTitles[#pageTitles+1] = 'Graphs'
+    pageTitles[#pageTitles+1] = 'Rod Statistics'
+    pageTitles[#pageTitles+1] = 'Automations'
+    pageTitles[#pageTitles+1] = 'Connections'
+    gui.readSettings()
+    if gui.settings['currentPage'] > #pages then
+        gui.settings['currentPage'] = #pages
+        gui.writeSettings(gui.settings)
+    end
+    -- gui.log(textutils.serialize(pages))
+    -- gui.log(textutils.serialize(pageTitles))
+    gui.pages = pages
+    gui.pageTitles = pageTitles
 end --end updateSnapshot
 
 function gui.formatNum(number)
@@ -421,6 +444,118 @@ function gui.main()
     gui.drawButtons()
     gui.monitor.setVisible(true)
 end --end main
+
+function gui.turbine_pageSummary()
+    local content = {
+        [0] = '',
+        [1] = 'Turbine Summary',
+        [2] = '',
+        [3] = 'Snapshot Timestamp: ',
+        [4] = gui.snapshot['report']['datestamp'],
+        [5] = 'status',
+        [6] = 'status2',
+        [7] = '',
+        [8] = ccStrings.ensure_width('Power (FE):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['turbine']['energyInfo']['stored']),
+        [9] = ccStrings.ensure_width('Vapor (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['turbine']['ioInfo']['inputAmount']),
+        [10] = ccStrings.ensure_width('Flow (mB/t):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['turbine']['fluidInfo']['flowRate']),
+        [11] = ccStrings.ensure_width('Coolant (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['turbine']['ioInfo']['outputAmount']),
+        [12] = ccStrings.ensure_width('Speed (RPM):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['turbine']['rotorInfo']['rotorSpeed']),
+        [13] = ccStrings.ensure_width('Efficiency (%):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['turbine']['rotorInfo']['bladeEfficiency']),
+        [14] = '',
+        ['status'] = gui.snapshot['turbine']['status'],
+        ['status2'] = gui.snapshot['turbine']['inductorStatus'],
+        ['statusText'] = 'Turbine Status: ',
+        ['status2Text'] = 'Inductor Status: ',
+    }
+    local contentColors = {
+        [0] = colors.black,
+        [1] = colors.yellow,
+        [2] = colors.black,
+        [3] = colors.yellow,
+        [4] = colors.white,
+        [5] = colors.yellow,
+        [6] = colors.yellow,
+        [7] = colors.black,
+        [8] = gui.colors['power'],
+        [9] = gui.colors['vapor'],
+        [10] = gui.colors['vapor'],
+        [11] = gui.colors['coolant'],
+        [12] = colors.green,
+        [13] = colors.green,
+        [14] = colors.black,
+    }
+    gui.draw_title_content('Turbine Summary', content, colors.yellow, contentColors)
+end --end gui.turbine_pageSummary
+
+function gui.reactor_summary()
+    local content, contentColors  = nil, nil
+    if not gui.snapshot['reactor']['activelyCooled'] then
+        content = {
+            [0] = '',
+            [1] = 'Reactor Summary',
+            [2] = '',
+            [3] = 'Snapshot Timestamp: ',
+            [4] = gui.snapshot['report']['datestamp'],
+            [7] = 'status',
+            [8] = '',
+            [9] = ccStrings.ensure_width('Case Temp. (C):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['reactor']['casingTemperature']),
+            [10] = ccStrings.ensure_width('Fuel (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['reactor']['fuelInfo']['amount']),
+            [11] = ccStrings.ensure_width('Waste (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['reactor']['wasteAmount']),
+            [12] = ccStrings.ensure_width('Power (FE):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['reactor']['energyInfo']['stored']),
+            [13] = '',
+            ['status'] = gui.snapshot['reactor']['status'],
+            ['statusText'] = 'Reactor Status: ',
+        }
+        contentColors = {
+            [0] = colors.black,
+            [1] = colors.yellow,
+            [2] = colors.black,
+            [3] = colors.yellow,
+            [4] = colors.white,
+            [5] = colors.yellow,
+            [6] = colors.black,
+            [7] = gui.colors['temperature'], 
+            [8] = gui.colors['fuel'],
+            [9] = gui.colors['waste'],
+            [10] = gui.colors['power'],    
+            [11] = colors.black,
+        }
+    else
+        content = {
+            [0] = '',
+            [1] = 'Reactor Summary',
+            [2] = '',
+            [3] = 'Snapshot Timestamp: ',
+            [4] = gui.snapshot['report']['datestamp'],
+            [5] = 'status',
+            [6] = '',
+            [7] = ccStrings.ensure_width('Case Temp. (C):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['reactor']['casingTemperature']),
+            [8] = ccStrings.ensure_width('Fuel (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['reactor']['fuelInfo']['amount']),
+            [9] = ccStrings.ensure_width('Waste (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['reactor']['wasteAmount']),
+            [10] = ccStrings.ensure_width('Vapor (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['reactor']['hotFluidInfo']['amount']),
+            [11] = ccStrings.ensure_width('Coolant (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['reactor']['coolantInfo']['amount']),
+            [12] = '',
+            ['status'] = gui.snapshot['reactor']['status'],
+            ['statusText'] = 'Reactor Status: ',
+        }
+        contentColors = {
+            [0] = colors.black,
+            [1] = colors.yellow,
+            [2] = colors.black,
+            [3] = colors.yellow,
+            [4] = colors.white,
+            [5] = colors.yellow,
+            [6] = colors.black,
+            [7] = gui.colors['temperature'], 
+            [8] = gui.colors['fuel'],
+            [9] = gui.colors['waste'],
+            [10] = gui.colors['vapor'],
+            [11] = gui.colors['coolant'],    
+            [12] = colors.black,
+        }
+    end
+    gui.draw_title_content('Reactor Summary', content, colors.yellow, contentColors)
+end --end reactor_summary
 
 function gui.pageSnapshot() --Snapshot Report
     local content, contentColors = nil, nil
@@ -526,23 +661,24 @@ function gui.pageSnapshot() --Snapshot Report
     end
 end --end page
 
-function gui.pagePower() -- Power
+function gui.reactor_pagePower() -- Power
     local powerBar = ''
     for i=1, (gui.snapshot['reactor']['energyInfo']['stored']/gui.snapshot['reactor']['energyInfo']['capacity'])*(gui.width-4) do
         powerBar = powerBar..' '
     end
     local content = {
         [0] = '',
-        [1] = 'Power Statistics',
+        [1] = 'Reactor Power Stats',
         [2] = '',
         [3] = ccStrings.ensure_width('Power:', gui.width*gui.widthFactor-1)..tostring(math.floor((gui.snapshot['reactor']['energyInfo']['stored']/gui.snapshot['reactor']['energyInfo']['capacity'])*1000)/10)..'%',
-        [4] = 'powerBar',
+        [4] = 'bar',
         [5] = '',
         [6] = ccStrings.ensure_width('Stored (FE):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['reactor']['energyInfo']['stored']),
         [7] = ccStrings.ensure_width('Capacity (FE):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['reactor']['energyInfo']['capacity']),
         [8] = ccStrings.ensure_width('FE/t:', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['reactor']['energyInfo']['lastTick']),
         -- [9] = ccStrings.ensure_width('Delta Power:', gui.width*gui.widthFactor-1)..gui.formatNum((gui.snapshot['energyInfo']['stored']-gui.oldSnapshot['energyInfo']['stored'])),
         [9] = '',
+        ['bar'] = powerBar,
     }
     local contentColors = {
         [0] = gui.stdBgColor,
@@ -557,40 +693,41 @@ function gui.pagePower() -- Power
         -- [9] = colors.magenta,
         [9] = gui.stdBgColor,
     }    
-    for k, v in pairs(content) do
-        gui.monitor.setCursorPos(2,3+k)
-        gui.monitor.setBackgroundColor(colors.black)
-        for i=0, gui.width-3 do
-            gui.monitor.write(' ')
-        end
-        if k == 1 then --Title
-            gui.monitor.setTextColor(contentColors[k])
-            gui.monitor.setCursorPos(math.ceil((gui.width-(#v-2))/2), 3+k)
-            gui.monitor.write(v)
-        elseif v == 'powerBar' then
-            gui.monitor.setCursorPos(3,3+k)
-            gui.monitor.setBackgroundColor(contentColors[k])
-            gui.monitor.write(powerBar)
-            gui.monitor.setBackgroundColor(gui.stdBgColor)
-        else
-            gui.monitor.setCursorPos(3,3+k)
-            gui.monitor.setTextColor(contentColors[k])
-            gui.monitor.write(v)
-        end
-    end
+    gui.draw_title_content('Reactor Power Stats', content, gui.colors['power'], contentColors)
+    -- for k, v in pairs(content) do
+    --     gui.monitor.setCursorPos(2,3+k)
+    --     gui.monitor.setBackgroundColor(colors.black)
+    --     for i=0, gui.width-3 do
+    --         gui.monitor.write(' ')
+    --     end
+    --     if k == 1 then --Title
+    --         gui.monitor.setTextColor(contentColors[k])
+    --         gui.monitor.setCursorPos(math.ceil((gui.width-(#v-2))/2), 3+k)
+    --         gui.monitor.write(v)
+    --     elseif v == 'powerBar' then
+    --         gui.monitor.setCursorPos(3,3+k)
+    --         gui.monitor.setBackgroundColor(contentColors[k])
+    --         gui.monitor.write(powerBar)
+    --         gui.monitor.setBackgroundColor(gui.stdBgColor)
+    --     else
+    --         gui.monitor.setCursorPos(3,3+k)
+    --         gui.monitor.setTextColor(contentColors[k])
+    --         gui.monitor.write(v)
+    --     end
+    -- end
 end --end page
 
-function gui.pageFuel() -- Fuel Page
+function gui.reactor_pageFuel() -- Fuel Page
     local fuelBar = ''
     for i=1, (gui.snapshot['reactor']['fuelInfo']['amount']/gui.snapshot['reactor']['fuelInfo']['max'])*(gui.width-4) do
         fuelBar = fuelBar..' '
     end
     local content = {
         [0] = '',
-        [1] = 'Fuel Statistics',
+        [1] = 'Reactor Fuel Stats',
         [2] = '',
         [3] = ccStrings.ensure_width('Fuel:', gui.width*gui.widthFactor-1)..tostring(math.floor((gui.snapshot['reactor']['fuelInfo']['amount']/gui.snapshot['reactor']['fuelInfo']['max'])*1000)/10)..'%',
-        [4] = 'fuelBar',
+        [4] = 'bar',
         [5] = '',
         [6] = ccStrings.ensure_width('Stored (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['reactor']['fuelInfo']['amount']),
         [7] = ccStrings.ensure_width('Capacity (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['reactor']['fuelInfo']['max']),
@@ -599,6 +736,7 @@ function gui.pageFuel() -- Fuel Page
         [9] = ccStrings.ensure_width('Temperature (C):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['reactor']['fuelInfo']['temperature']),
         [10] = ccStrings.ensure_width('Waste (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['reactor']['wasteAmount']),
         [11] = '',
+        ['bar'] = fuelBar,
     }
     local contentColors = {
         [0] = gui.stdBgColor,
@@ -615,45 +753,47 @@ function gui.pageFuel() -- Fuel Page
         [10] = gui.colors['fuel'],
         [11] = gui.stdBgColor,
     }
-    for k, v in pairs(content) do
-        gui.monitor.setCursorPos(2,3+k)
-        gui.monitor.setBackgroundColor(colors.black)
-        for i=0, gui.width-3 do
-            gui.monitor.write(' ')
-        end
-        if k == 1 then --Title
-            gui.monitor.setTextColor(contentColors[k])
-            gui.monitor.setCursorPos(math.ceil((gui.width-(#v-2))/2), 3+k)
-            gui.monitor.write(v)
-        elseif v == 'fuelBar' then
-            gui.monitor.setCursorPos(3,3+k)
-            gui.monitor.setBackgroundColor(contentColors[k])
-            gui.monitor.write(fuelBar)
-            gui.monitor.setBackgroundColor(gui.stdBgColor)
-        else
-            gui.monitor.setCursorPos(3,3+k)
-            gui.monitor.setTextColor(contentColors[k])
-            gui.monitor.write(v)
-        end
-    end
+    gui.draw_title_content('Reactor Fuel Stats', content, gui.colors['fuel'], contentColors)
+    -- for k, v in pairs(content) do
+    --     gui.monitor.setCursorPos(2,3+k)
+    --     gui.monitor.setBackgroundColor(colors.black)
+    --     for i=0, gui.width-3 do
+    --         gui.monitor.write(' ')
+    --     end
+    --     if k == 1 then --Title
+    --         gui.monitor.setTextColor(contentColors[k])
+    --         gui.monitor.setCursorPos(math.ceil((gui.width-(#v-2))/2), 3+k)
+    --         gui.monitor.write(v)
+    --     elseif v == 'fuelBar' then
+    --         gui.monitor.setCursorPos(3,3+k)
+    --         gui.monitor.setBackgroundColor(contentColors[k])
+    --         gui.monitor.write(fuelBar)
+    --         gui.monitor.setBackgroundColor(gui.stdBgColor)
+    --     else
+    --         gui.monitor.setCursorPos(3,3+k)
+    --         gui.monitor.setTextColor(contentColors[k])
+    --         gui.monitor.write(v)
+    --     end
+    -- end
 end --end page
 
-function gui.pageCoolant() -- Coolant
+function gui.reactor_pageCoolant() -- Coolant
     local coolantBar = ''
     for i=1, (gui.snapshot['reactor']['coolantInfo']['amount']/gui.snapshot['reactor']['coolantInfo']['max'])*(gui.width-4) do
         coolantBar = coolantBar..' '
     end
     local content = {
         [0] = '',
-        [1] = 'Coolant Statistics',
+        [1] = 'Reactor Coolant Stats',
         [2] = '',
         [3] = ccStrings.ensure_width('Coolant:', gui.width*gui.widthFactor-1)..tostring(math.floor((gui.snapshot['reactor']['coolantInfo']['amount']/gui.snapshot['reactor']['coolantInfo']['max'])*1000)/10)..'%',
-        [4] = 'coolantBar',
+        [4] = 'bar',
         [5] = '',
         [6] = ccStrings.ensure_width('Stored (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['reactor']['coolantInfo']['amount']),
         [7] = ccStrings.ensure_width('Capacity (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['reactor']['coolantInfo']['max']),
         -- [8] = ccStrings.ensure_width('Type:', gui.width*gui.widthFactor-1)..tostring(gui.snapshot['reactor']['coolantInfo']['type']),
         [8] = '',
+        ['bar'] = coolantBar,
     }
     local contentColors = {
         [0] = gui.stdBgColor,
@@ -667,46 +807,48 @@ function gui.pageCoolant() -- Coolant
         -- [8] = gui.colors['coolant'],
         [8] = gui.stdBgColor,
     }
-    for k, v in pairs(content) do
-        gui.monitor.setCursorPos(2,3+k)
-        gui.monitor.setBackgroundColor(colors.black)
-        for i=0, gui.width-3 do
-            gui.monitor.write(' ')
-        end
-        if k == 1 then --Title
-            gui.monitor.setTextColor(contentColors[k])
-            gui.monitor.setCursorPos(math.ceil((gui.width-(#v-2))/2), 3+k)
-            gui.monitor.write(v)
-        elseif v == 'coolantBar' then
-            gui.monitor.setCursorPos(3,3+k)
-            gui.monitor.setBackgroundColor(contentColors[k])
-            gui.monitor.write(coolantBar)
-            gui.monitor.setBackgroundColor(gui.stdBgColor)
-        else
-            gui.monitor.setCursorPos(3,3+k)
-            gui.monitor.setTextColor(contentColors[k])
-            gui.monitor.write(v)
-        end
-    end
+    gui.draw_title_content('Reactor Coolant Stats', content, gui.colors['coolant'], contentColors)
+    -- for k, v in pairs(content) do
+    --     gui.monitor.setCursorPos(2,3+k)
+    --     gui.monitor.setBackgroundColor(colors.black)
+    --     for i=0, gui.width-3 do
+    --         gui.monitor.write(' ')
+    --     end
+    --     if k == 1 then --Title
+    --         gui.monitor.setTextColor(contentColors[k])
+    --         gui.monitor.setCursorPos(math.ceil((gui.width-(#v-2))/2), 3+k)
+    --         gui.monitor.write(v)
+    --     elseif v == 'coolantBar' then
+    --         gui.monitor.setCursorPos(3,3+k)
+    --         gui.monitor.setBackgroundColor(contentColors[k])
+    --         gui.monitor.write(coolantBar)
+    --         gui.monitor.setBackgroundColor(gui.stdBgColor)
+    --     else
+    --         gui.monitor.setCursorPos(3,3+k)
+    --         gui.monitor.setTextColor(contentColors[k])
+    --         gui.monitor.write(v)
+    --     end
+    -- end
 end --end page
 
-function gui.pageVapor() -- Hot Fluid
+function gui.reactor_pageVapor() -- Hot Fluid
     local vaporbar = ''
     for i=1, (gui.snapshot['reactor']['hotFluidInfo']['amount']/gui.snapshot['reactor']['hotFluidInfo']['max'])*(gui.width-4) do
         vaporbar = vaporbar..' '
     end
     local content = {
         [0] = '',
-        [1] = 'Vapor Statistics',
+        [1] = 'Reactor Vapor Stats',
         [2] = '',
         [3] = ccStrings.ensure_width('Vapor:', gui.width*gui.widthFactor-1)..tostring(math.floor((gui.snapshot['reactor']['hotFluidInfo']['amount']/gui.snapshot['reactor']['hotFluidInfo']['max'])*1000)/10)..'%',
-        [4] = 'vaporbar',
+        [4] = 'bar',
         [5] = '',
         [6] = ccStrings.ensure_width('Stored (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['reactor']['hotFluidInfo']['amount']),
         [7] = ccStrings.ensure_width('Capacity (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['reactor']['hotFluidInfo']['max']),
         [8] = ccStrings.ensure_width('mB/t:', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['reactor']['hotFluidInfo']['lastTick']),
         -- [9] = ccStrings.ensure_width('Type:', gui.width*gui.widthFactor-1)..tostring(gui.snapshot['reactor']['hotFluidInfo']['type']),
         [9] = '',
+        ['bar'] = vaporBar,
     }
     local contentColors = {
         [0] = gui.stdBgColor,
@@ -721,28 +863,138 @@ function gui.pageVapor() -- Hot Fluid
         -- [9] = gui.colors['vapor'],
         [9] = gui.stdBgColor,
     }
-    for k, v in pairs(content) do
-        gui.monitor.setCursorPos(2,3+k)
-        gui.monitor.setBackgroundColor(colors.black)
-        for i=0, gui.width-3 do
-            gui.monitor.write(' ')
-        end
-        if k == 1 then --Title
-            gui.monitor.setTextColor(contentColors[k])
-            gui.monitor.setCursorPos(math.ceil((gui.width-(#v-2))/2), 3+k)
-            gui.monitor.write(v)
-        elseif v == 'vaporbar' then
-            gui.monitor.setCursorPos(3,3+k)
-            gui.monitor.setBackgroundColor(contentColors[k])
-            gui.monitor.write(vaporbar)
-            gui.monitor.setBackgroundColor(gui.stdBgColor)
-        else
-            gui.monitor.setCursorPos(3,3+k)
-            gui.monitor.setTextColor(contentColors[k])
-            gui.monitor.write(v)
-        end
-    end
+    gui.draw_title_content('Reactor Vapor Stats', content, gui.colors['vapor'], contentColors)
+    -- for k, v in pairs(content) do
+    --     gui.monitor.setCursorPos(2,3+k)
+    --     gui.monitor.setBackgroundColor(colors.black)
+    --     for i=0, gui.width-3 do
+    --         gui.monitor.write(' ')
+    --     end
+    --     if k == 1 then --Title
+    --         gui.monitor.setTextColor(contentColors[k])
+    --         gui.monitor.setCursorPos(math.ceil((gui.width-(#v-2))/2), 3+k)
+    --         gui.monitor.write(v)
+    --     elseif v == 'vaporbar' then
+    --         gui.monitor.setCursorPos(3,3+k)
+    --         gui.monitor.setBackgroundColor(contentColors[k])
+    --         gui.monitor.write(vaporbar)
+    --         gui.monitor.setBackgroundColor(gui.stdBgColor)
+    --     else
+    --         gui.monitor.setCursorPos(3,3+k)
+    --         gui.monitor.setTextColor(contentColors[k])
+    --         gui.monitor.write(v)
+    --     end
+    -- end
 end --end page
+
+function gui.turbine_pagePower()
+    local powerBar = ''
+    for i=1, (gui.snapshot['turbine']['energyInfo']['stored']/gui.snapshot['turbine']['energyInfo']['capacity'])*(gui.width-4) do
+        powerBar = powerBar..' '
+    end
+    local content = {
+        [0] = '',
+        [1] = 'Turbine Power Stats',
+        [2] = '',
+        [3] = ccStrings.ensure_width('Power:', gui.width*gui.widthFactor-1)..tostring(math.floor((gui.snapshot['turbine']['energyInfo']['stored']/gui.snapshot['turbine']['energyInfo']['capacity'])*1000)/10)..'%',
+        [4] = 'bar',
+        [5] = '',
+        [6] = ccStrings.ensure_width('Stored (FE):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['turbine']['energyInfo']['stored']),
+        [7] = ccStrings.ensure_width('Capacity (FE):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['turbine']['energyInfo']['capacity']),
+        [8] = ccStrings.ensure_width('FE/t:', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['turbine']['energyInfo']['lastTick']),
+        [9] = ccStrings.ensure_width('Speed (RPM):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['turbine']['rotorInfo']['rotorSpeed']),
+        [10] = ccStrings.ensure_width('Efficiency (%):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['turbine']['rotorInfo']['bladeEfficiency']),
+        [11] = '',
+        ['bar'] = powerBar,
+    }
+    local contentColors = {
+        [0] = colors.black,
+        [1] = gui.colors['power'],
+        [2] = colors.black,
+        [3] = gui.colors['power'],
+        [4] = gui.colors['power'],
+        [5] = colors.black,
+        [6] = gui.colors['power'],
+        [7] = gui.colors['power'],
+        [8] = gui.colors['power'],
+        [9] = gui.colors['power'],
+        [10] = gui.colors['power'],
+        [11] = colors.black,
+    }
+    gui.draw_title_content('Turbine Power Stats', content, gui.colors['power'], contentColors)
+end --end turbine_pagePower
+
+function gui.turbine_pageVapor()
+    local vaporBar = ''
+    for i=1, (gui.snapshot['turbine']['ioInfo']['inputAmount']/gui.snapshot['turbine']['fluidInfo']['max'])*(gui.width-4) do
+        vaporBar = vaporBar..' '
+    end
+    local content = {
+        [0] = '',
+        [1] = 'Turbine Vapor Stats',
+        [2] = '',
+        [3] = ccStrings.ensure_width('Power:', gui.width*gui.widthFactor-1)..tostring(math.floor((gui.snapshot['turbine']['ioInfo']['inputAmount']/gui.snapshot['turbine']['fluidInfo']['max'])*1000)/10)..'%',
+        [4] = 'bar',
+        [5] = '',
+        [6] = ccStrings.ensure_width('Stored (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['turbine']['ioInfo']['inputAmount']),
+        [7] = ccStrings.ensure_width('Capacity (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['turbine']['fluidInfo']['max']),
+        [8] = ccStrings.ensure_width('Flow (mB/t):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['turbine']['fluidInfo']['flowRate']),
+        [9] = ccStrings.ensure_width('Max Flow (mB/t):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['turbine']['fluidInfo']['flowRateMax']),
+        [10] = ccStrings.ensure_width('Type:', gui.width*gui.widthFactor-1)..gui.snapshot['turbine']['ioInfo']['inputType'],
+        [11] = '',
+        ['bar'] = vaporBar,
+    }
+    local contentColors = {
+        [0] = colors.black,
+        [1] = gui.colors['vapor'],
+        [2] = colors.black,
+        [3] = gui.colors['vapor'],
+        [4] = gui.colors['vapor'],
+        [5] = colors.black,
+        [6] = gui.colors['vapor'],
+        [7] = gui.colors['vapor'],
+        [8] = gui.colors['vapor'],
+        [9] = gui.colors['vapor'],
+        [10] = gui.colors['vapor'],
+        [11] = colors.black,
+    }
+    gui.draw_title_content('Turbine Vapor Stats', content, gui.colors['vapor'], contentColors)
+end --end turbine_pageVapor
+
+function gui.turbine_pageCoolant()
+    local coolantBar = ''
+    for i=1, (gui.snapshot['turbine']['ioInfo']['outputAmount']/gui.snapshot['turbine']['fluidInfo']['max'])*(gui.width-4) do
+        coolantBar = coolantBar..' '
+    end
+    local content = {
+        [0] = '',
+        [1] = 'Turbine Vapor Stats',
+        [2] = '',
+        [3] = ccStrings.ensure_width('Power:', gui.width*gui.widthFactor-1)..tostring(math.floor((gui.snapshot['turbine']['ioInfo']['outputAmount']/gui.snapshot['turbine']['fluidInfo']['max'])*1000)/10)..'%',
+        [4] = 'bar',
+        [5] = '',
+        [6] = ccStrings.ensure_width('Stored (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['turbine']['ioInfo']['outputAmount']),
+        [7] = ccStrings.ensure_width('Capacity (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['turbine']['fluidInfo']['max']),
+        [8] = ccStrings.ensure_width('mB/t:', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['turbine']['fluidInfo']['flowRate']),
+        [9] = ccStrings.ensure_width('Type:', gui.width*gui.widthFactor-1)..gui.snapshot['turbine']['ioInfo']['outputType'],
+        [10] = '',
+        ['bar'] = coolantBar,
+    }
+    local contentColors = {
+        [0] = colors.black,
+        [1] = gui.colors['coolant'],
+        [2] = colors.black,
+        [3] = gui.colors['coolant'],
+        [4] = gui.colors['coolant'],
+        [5] = colors.black,
+        [6] = gui.colors['coolant'],
+        [7] = gui.colors['coolant'],
+        [8] = gui.colors['coolant'],
+        [9] = gui.colors['coolant'],
+        [10] = colors.black,
+    }
+    gui.draw_title_content('Turbine Coolant Stats', content, gui.colors['coolant'], contentColors)
+end --end turbine_pageCoolant
 
 function gui.pageGraphs() -- Graphs
     local content = {
@@ -872,18 +1124,18 @@ function gui.pageGraphs() -- Graphs
     -- end
 end --end page
 
-function gui.pageRods() -- Rods Page
-    local buttons = {
-        [0] = '-1', 
-        [1] = '-5',
-        [2] = '-10',
-        [3] = '+10',
-        [4] = '+5',
-        [5] = '+1',
-    }
+function gui.reactor_pageRods() -- Rods Page
+    -- local buttons = {
+    --     [0] = '-1', 
+    --     [1] = '-5',
+    --     [2] = '-10',
+    --     [3] = '+10',
+    --     [4] = '+5',
+    --     [5] = '+1',
+    -- }
     local content = {
         [0] = '',
-        [1] = 'Rod Statistics',
+        [1] = 'Reactor Rod Stats',
         [2] = '',
         [3] = ccStrings.ensure_width('# Name', gui.width*gui.widthFactor-1)..'Level',
         [4] = '',
@@ -906,31 +1158,32 @@ function gui.pageRods() -- Rods Page
     end
     content[#content+1] = ''
     contentColors[#contentColors+1] = gui.stdBgColor
-    for k, v in pairs(content) do
-        gui.monitor.setCursorPos(2,3+k)
-        gui.monitor.setBackgroundColor(colors.black)
-        for i=0, gui.width-3 do
-            gui.monitor.write(' ')
-        end
-        if k == 1 then --Title
-            gui.monitor.setTextColor(contentColors[k])
-            gui.monitor.setCursorPos(math.ceil((gui.width-(#v-2))/2), 3+k)
-            gui.monitor.write(v)
-        elseif v == '      buttons      ' then
-            gui.monitor.setCursorPos(math.ceil((gui.width-(#v-2))/2), 3+k)
-            gui.monitor.setTextColor(contentColors[k])
-            for k, v in pairs(buttons) do
-                gui.monitor.setBackgroundColor(colors.lightGray)
-                gui.monitor.write(v)
-                gui.monitor.setBackgroundColor(colors.black)
-                gui.monitor.write(' ')
-            end
-        else
-            gui.monitor.setCursorPos(3,3+k)
-            gui.monitor.setTextColor(contentColors[k])
-            gui.monitor.write(v)
-        end
-    end
+    gui.draw_title_content('Reactor Rod Stats', content, colors.yellow, contentColors)
+    -- for k, v in pairs(content) do
+    --     gui.monitor.setCursorPos(2,3+k)
+    --     gui.monitor.setBackgroundColor(colors.black)
+    --     for i=0, gui.width-3 do
+    --         gui.monitor.write(' ')
+    --     end
+    --     if k == 1 then --Title
+    --         gui.monitor.setTextColor(contentColors[k])
+    --         gui.monitor.setCursorPos(math.ceil((gui.width-(#v-2))/2), 3+k)
+    --         gui.monitor.write(v)
+    --     elseif v == '      buttons      ' then
+    --         gui.monitor.setCursorPos(math.ceil((gui.width-(#v-2))/2), 3+k)
+    --         gui.monitor.setTextColor(contentColors[k])
+    --         for k, v in pairs(buttons) do
+    --             gui.monitor.setBackgroundColor(colors.lightGray)
+    --             gui.monitor.write(v)
+    --             gui.monitor.setBackgroundColor(colors.black)
+    --             gui.monitor.write(' ')
+    --         end
+    --     else
+    --         gui.monitor.setCursorPos(3,3+k)
+    --         gui.monitor.setTextColor(contentColors[k])
+    --         gui.monitor.write(v)
+    --     end
+    -- end
 end --end page
 
 function gui.pageAutomations() -- Automations
@@ -960,6 +1213,9 @@ function gui.pageAutomations() -- Automations
             [12] = '',
             [13] = 'Control Rods',
             [14] = '',
+            -- ['PowerVapor'] = gui.snapshot['automations']['powerToggle'],
+            -- ['Temperature'] = gui.snapshot['automations']['tempToggle'],
+            -- ['Control Rods'] = gui.snapshot['automations']['controlRodsToggle'],
         }
     else
         content = {
@@ -978,6 +1234,9 @@ function gui.pageAutomations() -- Automations
             [12] = '',
             [13] = 'Control Rods',
             [14] = '',
+            -- ['PowerVapor'] = gui.snapshot['automations']['powerToggle'],
+            -- ['Temperature'] = gui.snapshot['automations']['tempToggle'],
+            -- ['Control Rods'] = gui.snapshot['automations']['controlRodsToggle'],
         }
     end
     local contentColors = {
@@ -997,82 +1256,83 @@ function gui.pageAutomations() -- Automations
         [13] = colors.yellow,
         [14] = gui.stdBgColor,
     }
-    for k, v in pairs(content) do
-        gui.monitor.setCursorPos(2,3+k)
-        gui.monitor.setBackgroundColor(colors.black)
-        for i=0, gui.width-3 do
-            gui.monitor.write(' ')
-        end
-        if k == 1 then --Title
-            gui.monitor.setTextColor(contentColors[k])
-            gui.monitor.setCursorPos(math.ceil((gui.width-(#v-2))/2), 3+k)
-            gui.monitor.write(v)
-        elseif v == '      buttons      ' then
-            gui.monitor.setCursorPos(math.ceil((gui.width-(#v-2))/2), 3+k)
-            gui.monitor.setTextColor(contentColors[k])
-            for k, v in pairs(buttons) do
-                gui.monitor.setBackgroundColor(colors.lightGray)
-                gui.monitor.write(v)
-                gui.monitor.setBackgroundColor(colors.black)
-                gui.monitor.write(' ')
-            end
-        elseif v == 'Power' or v == 'Vapor' then
-            gui.monitor.setBackgroundColor(colors.black)
-            gui.monitor.setCursorPos(3,3+k)
-            gui.monitor.setTextColor(contentColors[k])
-            gui.monitor.write(ccStrings.ensure_width(v, gui.width*gui.widthFactor-1))
-            gui.monitor.setCursorPos(2+gui.width*gui.widthFactor,3+k)
-            if gui.snapshot['automations']['powerToggle'] == true then
-                gui.monitor.setBackgroundColor(colors.green)
-                gui.monitor.setTextColor(colors.white)
-                gui.monitor.write(' ON  ')
-                gui.monitor.setBackgroundColor(gui.stdBgColor)
-            else
-                gui.monitor.setBackgroundColor(colors.red)
-                gui.monitor.setTextColor(colors.white)
-                gui.monitor.write(' OFF ')
-                gui.monitor.setBackgroundColor(gui.stdBgColor)
-            end
-        elseif v == 'Temperature' then
-            gui.monitor.setBackgroundColor(colors.black)
-            gui.monitor.setCursorPos(3,3+k)
-            gui.monitor.setTextColor(contentColors[k])
-            gui.monitor.write(ccStrings.ensure_width(v, gui.width*gui.widthFactor-1))
-            gui.monitor.setCursorPos(2+gui.width*gui.widthFactor,3+k)
-            if gui.snapshot['automations']['tempToggle'] == true then
-                gui.monitor.setBackgroundColor(colors.green)
-                gui.monitor.setTextColor(colors.white)
-                gui.monitor.write(' ON  ')
-                gui.monitor.setBackgroundColor(gui.stdBgColor)
-            else
-                gui.monitor.setBackgroundColor(colors.red)
-                gui.monitor.setTextColor(colors.white)
-                gui.monitor.write(' OFF ')
-                gui.monitor.setBackgroundColor(gui.stdBgColor)
-            end
-        elseif v == 'Control Rods' then
-            gui.monitor.setBackgroundColor(colors.black)
-            gui.monitor.setCursorPos(3,3+k)
-            gui.monitor.setTextColor(contentColors[k])
-            gui.monitor.write(ccStrings.ensure_width(v, gui.width*gui.widthFactor-1))
-            gui.monitor.setCursorPos(2+gui.width*gui.widthFactor,3+k)
-            if gui.snapshot['automations']['controlRodsToggle'] == true then
-                gui.monitor.setBackgroundColor(colors.green)
-                gui.monitor.setTextColor(colors.white)
-                gui.monitor.write(' ON  ')
-                gui.monitor.setBackgroundColor(gui.stdBgColor)
-            else
-                gui.monitor.setBackgroundColor(colors.red)
-                gui.monitor.setTextColor(colors.white)
-                gui.monitor.write(' OFF ')
-                gui.monitor.setBackgroundColor(gui.stdBgColor)
-            end
-        else
-            gui.monitor.setCursorPos(3,3+k)
-            gui.monitor.setTextColor(contentColors[k])
-            gui.monitor.write(v)
-        end
-    end
+    gui.draw_title_content('Automations', content, colors.yellow, contentColors)
+    -- for k, v in pairs(content) do
+    --     gui.monitor.setCursorPos(2,3+k)
+    --     gui.monitor.setBackgroundColor(colors.black)
+    --     for i=0, gui.width-3 do
+    --         gui.monitor.write(' ')
+    --     end
+    --     if k == 1 then --Title
+    --         gui.monitor.setTextColor(contentColors[k])
+    --         gui.monitor.setCursorPos(math.ceil((gui.width-(#v-2))/2), 3+k)
+    --         gui.monitor.write(v)
+    --     elseif v == '      buttons      ' then
+    --         gui.monitor.setCursorPos(math.ceil((gui.width-(#v-2))/2), 3+k)
+    --         gui.monitor.setTextColor(contentColors[k])
+    --         for k, v in pairs(buttons) do
+    --             gui.monitor.setBackgroundColor(colors.lightGray)
+    --             gui.monitor.write(v)
+    --             gui.monitor.setBackgroundColor(colors.black)
+    --             gui.monitor.write(' ')
+    --         end
+    --     elseif v == 'Power' or v == 'Vapor' then
+    --         gui.monitor.setBackgroundColor(colors.black)
+    --         gui.monitor.setCursorPos(3,3+k)
+    --         gui.monitor.setTextColor(contentColors[k])
+    --         gui.monitor.write(ccStrings.ensure_width(v, gui.width*gui.widthFactor-1))
+    --         gui.monitor.setCursorPos(2+gui.width*gui.widthFactor,3+k)
+    --         if gui.snapshot['automations']['powerToggle'] == true then
+    --             gui.monitor.setBackgroundColor(colors.green)
+    --             gui.monitor.setTextColor(colors.white)
+    --             gui.monitor.write(' ON  ')
+    --             gui.monitor.setBackgroundColor(gui.stdBgColor)
+    --         else
+    --             gui.monitor.setBackgroundColor(colors.red)
+    --             gui.monitor.setTextColor(colors.white)
+    --             gui.monitor.write(' OFF ')
+    --             gui.monitor.setBackgroundColor(gui.stdBgColor)
+    --         end
+    --     elseif v == 'Temperature' then
+    --         gui.monitor.setBackgroundColor(colors.black)
+    --         gui.monitor.setCursorPos(3,3+k)
+    --         gui.monitor.setTextColor(contentColors[k])
+    --         gui.monitor.write(ccStrings.ensure_width(v, gui.width*gui.widthFactor-1))
+    --         gui.monitor.setCursorPos(2+gui.width*gui.widthFactor,3+k)
+    --         if gui.snapshot['automations']['tempToggle'] == true then
+    --             gui.monitor.setBackgroundColor(colors.green)
+    --             gui.monitor.setTextColor(colors.white)
+    --             gui.monitor.write(' ON  ')
+    --             gui.monitor.setBackgroundColor(gui.stdBgColor)
+    --         else
+    --             gui.monitor.setBackgroundColor(colors.red)
+    --             gui.monitor.setTextColor(colors.white)
+    --             gui.monitor.write(' OFF ')
+    --             gui.monitor.setBackgroundColor(gui.stdBgColor)
+    --         end
+    --     elseif v == 'Control Rods' then
+    --         gui.monitor.setBackgroundColor(colors.black)
+    --         gui.monitor.setCursorPos(3,3+k)
+    --         gui.monitor.setTextColor(contentColors[k])
+    --         gui.monitor.write(ccStrings.ensure_width(v, gui.width*gui.widthFactor-1))
+    --         gui.monitor.setCursorPos(2+gui.width*gui.widthFactor,3+k)
+    --         if gui.snapshot['automations']['controlRodsToggle'] == true then
+    --             gui.monitor.setBackgroundColor(colors.green)
+    --             gui.monitor.setTextColor(colors.white)
+    --             gui.monitor.write(' ON  ')
+    --             gui.monitor.setBackgroundColor(gui.stdBgColor)
+    --         else
+    --             gui.monitor.setBackgroundColor(colors.red)
+    --             gui.monitor.setTextColor(colors.white)
+    --             gui.monitor.write(' OFF ')
+    --             gui.monitor.setBackgroundColor(gui.stdBgColor)
+    --         end
+    --     else
+    --         gui.monitor.setCursorPos(3,3+k)
+    --         gui.monitor.setTextColor(contentColors[k])
+    --         gui.monitor.write(v)
+    --     end
+    -- end
 end --end page
 
 function gui.pageConnections() -- Manage Clients // Connection to Server
@@ -1116,23 +1376,25 @@ function gui.pageConnections() -- Manage Clients // Connection to Server
         content[#content+1] = ''
         contentColors[#contentColors+1] = gui.stdBgColor
         contentBackgroundColors[#contentBackgroundColors+1] = colors.black
-        for k, v in pairs(content) do
-            gui.monitor.setCursorPos(2,3+k)
-            gui.monitor.setBackgroundColor(colors.black)
-            for i=0, gui.width-3 do
-                gui.monitor.write(' ')
-            end
-            gui.monitor.setBackgroundColor(contentBackgroundColors[k])
-            if k == 1 then --Title
-                gui.monitor.setTextColor(contentColors[k])
-                gui.monitor.setCursorPos(math.ceil((gui.width-(#v-2))/2), 3+k)
-                gui.monitor.write(v)
-            else
-                gui.monitor.setCursorPos(3,3+k)
-                gui.monitor.setTextColor(contentColors[k])
-                gui.monitor.write(v)
-            end
-        end
+        -- for k, v in pairs(content) do
+        --     gui.monitor.setCursorPos(2,3+k)
+        --     gui.monitor.setBackgroundColor(colors.black)
+        --     for i=0, gui.width-3 do
+        --         gui.monitor.write(' ')
+        --     end
+        --     gui.monitor.setBackgroundColor(contentBackgroundColors[k])
+        --     if k == 1 then --Title
+        --         gui.monitor.setTextColor(contentColors[k])
+        --         gui.monitor.setCursorPos(math.ceil((gui.width-(#v-2))/2), 3+k)
+        --         gui.monitor.write(v)
+        --     else
+        --         gui.monitor.setCursorPos(3,3+k)
+        --         gui.monitor.setTextColor(contentColors[k])
+        --         gui.monitor.write(v)
+        --     end
+        -- end
+        content['backgrounds'] = contentBackgroundColors
+        gui.draw_title_content('Manage Clients', content, colors.yellow, contentColors)
     else
         local content = {
             [0] = '',
@@ -1162,27 +1424,180 @@ function gui.pageConnections() -- Manage Clients // Connection to Server
             [10] = colors.white,
             [11] = gui.stdBgColor,
         }
-        for k, v in pairs(content) do
-            gui.monitor.setCursorPos(2,3+k)
-            gui.monitor.setBackgroundColor(colors.black)
-            for i=0, gui.width-3 do
-                gui.monitor.write(' ')
-            end
-            if k == 1 then --Title
-                gui.monitor.setTextColor(contentColors[k])
-                gui.monitor.setCursorPos(math.ceil((gui.width-(#v-2))/2), 3+k)
-                gui.monitor.write(v)
-            else
-                gui.monitor.setCursorPos(3,3+k)
-                gui.monitor.setTextColor(contentColors[k])
-                gui.monitor.write(v)
-            end
-        end
+        -- for k, v in pairs(content) do
+        --     gui.monitor.setCursorPos(2,3+k)
+        --     gui.monitor.setBackgroundColor(colors.black)
+        --     for i=0, gui.width-3 do
+        --         gui.monitor.write(' ')
+        --     end
+        --     if k == 1 then --Title
+        --         gui.monitor.setTextColor(contentColors[k])
+        --         gui.monitor.setCursorPos(math.ceil((gui.width-(#v-2))/2), 3+k)
+        --         gui.monitor.write(v)
+        --     else
+        --         gui.monitor.setCursorPos(3,3+k)
+        --         gui.monitor.setTextColor(contentColors[k])
+        --         gui.monitor.write(v)
+        --     end
+        -- end
+        gui.draw_title_content('Connection Info', content, colors.yellow, contentColors)
     end
 end  --end page
 
-function gui.pageN_format()
-    return
-end  --end page 
+-- function interface.turbineSnapshot()
+--     local info = {
+--         ['status'] = interface.turbine.getActive(),
+--         ['variation'] = interface.turbine.getVariant(),
+--         ['inductorStatus'] = interface.turbine.getInductorEngaged(),
+--         ['energyInfo'] = interface.turbineGetEnergyInfo(),
+--         ['fluidInfo'] = interface.turbineGetFluidInfo(),
+--         ['rotorInfo'] = interface.turbineRotorInfo(),
+--         ['ioInfo'] = interface.turbineIOInfo(),
+--     }
+--     return info
+-- end
+
+function gui.draw_title_content(title, content, titleColor, contentColors)
+    --gui.readSettings() -- +gui.settings['mouseWheel']*100
+    for i=0, gui.height-5 do
+    -- for k, v in pairs(content) do
+        gui.monitor.setCursorPos(2,3+i)
+        if title == 'Manage Clients' and i < #content['backgrounds'] then
+            gui.monitor.setBackgroundColor(content['backgrounds'][i])
+        else
+            gui.monitor.setBackgroundColor(colors.black)
+        end
+        for k=0, gui.width-3 do
+            gui.monitor.write(' ')
+        end
+        if i == 1 then --Title
+            gui.monitor.setTextColor(titleColor)
+            gui.monitor.setCursorPos(math.ceil((gui.width-(#title-2))/2), 3+i)
+            gui.monitor.write(title)
+        elseif content[i] == 'bar' then
+            gui.monitor.setCursorPos(3,3+i)
+            gui.monitor.setBackgroundColor(contentColors[i])
+            gui.monitor.write(content['bar'])
+            gui.monitor.setBackgroundColor(gui.stdBgColor)
+        elseif content[i] == 'status' or content[i] == 'status2' then
+            gui.monitor.setBackgroundColor(colors.black)
+            -- gui.monitor.setCursorPos(2,3+k)
+            gui.monitor.setTextColor(contentColors[i])
+            gui.monitor.setCursorPos(3,3+i)
+            gui.monitor.write(ccStrings.ensure_width(content[content[i]..'Text'], gui.width*gui.widthFactor-1))
+            gui.monitor.setCursorPos(2+gui.width*gui.widthFactor,3+i)
+            if content[content[i]] == true then
+                gui.monitor.setBackgroundColor(colors.green)
+                gui.monitor.setTextColor(colors.white)
+                gui.monitor.write(' ON  ')
+                gui.monitor.setBackgroundColor(gui.stdBgColor)
+            else
+                gui.monitor.setBackgroundColor(colors.red)
+                gui.monitor.setTextColor(colors.white)
+                gui.monitor.write(' OFF ')
+                gui.monitor.setBackgroundColor(gui.stdBgColor)
+            end
+        elseif content[i] == '      buttons      ' then
+            local buttons = {
+                [0] = '-1', 
+                [1] = '-5',
+                [2] = '-10',
+                [3] = '+10',
+                [4] = '+5',
+                [5] = '+1',
+            }
+            gui.monitor.setCursorPos(math.ceil((gui.width-(#content[i]-2))/2), 3+i)
+            gui.monitor.setTextColor(contentColors[i])
+            for k, v in pairs(buttons) do
+                gui.monitor.setBackgroundColor(colors.lightGray)
+                gui.monitor.write(v)
+                gui.monitor.setBackgroundColor(colors.black)
+                gui.monitor.write(' ')
+            end
+        elseif content[i] == 'Power' or content[i] == 'Vapor' then
+            gui.monitor.setBackgroundColor(colors.black)
+            gui.monitor.setCursorPos(3,3+i)
+            gui.monitor.setTextColor(contentColors[i])
+            gui.monitor.write(ccStrings.ensure_width(content[i], gui.width*gui.widthFactor-1))
+            gui.monitor.setCursorPos(2+gui.width*gui.widthFactor,3+i)
+            if gui.snapshot['automations']['powerToggle'] == true then
+                gui.monitor.setBackgroundColor(colors.green)
+                gui.monitor.setTextColor(colors.white)
+                gui.monitor.write(' ON  ')
+                gui.monitor.setBackgroundColor(gui.stdBgColor)
+            else
+                gui.monitor.setBackgroundColor(colors.red)
+                gui.monitor.setTextColor(colors.white)
+                gui.monitor.write(' OFF ')
+                gui.monitor.setBackgroundColor(gui.stdBgColor)
+            end
+        elseif content[i] == 'Temperature' then
+            gui.monitor.setBackgroundColor(colors.black)
+            gui.monitor.setCursorPos(3,3+i)
+            gui.monitor.setTextColor(contentColors[i])
+            gui.monitor.write(ccStrings.ensure_width(content[i], gui.width*gui.widthFactor-1))
+            gui.monitor.setCursorPos(2+gui.width*gui.widthFactor,3+i)
+            if gui.snapshot['automations']['tempToggle'] == true then
+                gui.monitor.setBackgroundColor(colors.green)
+                gui.monitor.setTextColor(colors.white)
+                gui.monitor.write(' ON  ')
+                gui.monitor.setBackgroundColor(gui.stdBgColor)
+            else
+                gui.monitor.setBackgroundColor(colors.red)
+                gui.monitor.setTextColor(colors.white)
+                gui.monitor.write(' OFF ')
+                gui.monitor.setBackgroundColor(gui.stdBgColor)
+            end
+        elseif content[i] == 'Control Rods' then
+            gui.monitor.setBackgroundColor(colors.black)
+            gui.monitor.setCursorPos(3,3+i)
+            gui.monitor.setTextColor(contentColors[i])
+            gui.monitor.write(ccStrings.ensure_width(content[i], gui.width*gui.widthFactor-1))
+            gui.monitor.setCursorPos(2+gui.width*gui.widthFactor,3+i)
+            if gui.snapshot['automations']['controlRodsToggle'] == true then
+                gui.monitor.setBackgroundColor(colors.green)
+                gui.monitor.setTextColor(colors.white)
+                gui.monitor.write(' ON  ')
+                gui.monitor.setBackgroundColor(gui.stdBgColor)
+            else
+                gui.monitor.setBackgroundColor(colors.red)
+                gui.monitor.setTextColor(colors.white)
+                gui.monitor.write(' OFF ')
+                gui.monitor.setBackgroundColor(gui.stdBgColor)
+            end
+        elseif i > #content then
+        else
+            gui.monitor.setCursorPos(3,3+i)
+            gui.monitor.setTextColor(contentColors[i])
+            gui.monitor.write(content[i])
+        end
+    end
+end --end draw_title_content
+
+-- function gui.turbine_pageSummary()
+--     return
+--     local title = 'Turbine'
+--     local content = {
+--         [0] = 'turbiineStatus',
+--         [1] = 'inductorStatus',
+--         [2] = '',
+--     }
+-- end  --end page 
+
+-- function gui.turbine_pagePower()
+--     return
+-- end  --end page 
+
+-- function gui.turbine_pageVapor()
+--     return
+-- end  --end page 
+
+-- function gui.turbine_pageCoolant()
+--     return
+-- end  --end page 
+
+-- function gui.pageN_format()
+--     return
+-- end  --end page 
 
 return gui

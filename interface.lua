@@ -309,7 +309,7 @@ function interface.generateSnapshots() -- Run in parallel
     while true do
         -- gui.log('Parallel - Snapshot Handler')
         interface.snapshot = {
-            ['report'] = {['datestamp'] = os.date(), ['origin'] = interface.getComputerInfo(), ['timestamp'] = os.epoch('local')},
+            ['report'] = {['datestamp'] = os.date("%F %T"), ['origin'] = interface.getComputerInfo(), ['timestamp'] = os.epoch('local')},
             ['automations'] = interface.automations,
         }
         if interface.reactor ~= false then
@@ -527,6 +527,22 @@ function interface.checkMessages(event, side, channel, replyChannel, message, di
                                     end
                                     clients[message['origin']['id']..'_'..message['origin']['label']]['lastActivity'] = os.epoch('local')
                                     interface.writeClients(clients)
+                                elseif decryptedMsg['data'] == 'toggleTurbine' then
+                                    if interface.turbine.getActive() then
+                                        interface.turbine.setActive(false)
+                                    else
+                                        interface.turbine.setActive(true)
+                                    end
+                                    clients[message['origin']['id']..'_'..message['origin']['label']]['lastActivity'] = os.epoch('local')
+                                    interface.writeClients(clients)
+                                elseif decryptedMsg['data'] == 'toggleInductor' then
+                                    if interface.turbine.getInductorEngaged() then
+                                        interface.turbine.setInductorEngaged(false)
+                                    else
+                                        interface.turbine.setInductorEngaged(true)
+                                    end
+                                    clients[message['origin']['id']..'_'..message['origin']['label']]['lastActivity'] = os.epoch('local')
+                                    interface.writeClients(clients)
                                 elseif decryptedMsg['data'] == 'powerToggle' then
                                     if gui.snapshot['automations']['powerToggle'] then
                                         interface.automations['powerToggle'] = false
@@ -638,8 +654,8 @@ function interface.clickedButton(event, button, x, y, arg4, arg5)
             elseif x>=2 and x<=6 then --Prev
                 gui.nextPage(false)
             end
-        elseif gui.settings['currentPageTitle'] == 'Home' then
-            if y == 9 then
+        elseif gui.settings['currentPageTitle'] == 'Reactor Summary' then
+            if y == 8 then
                 if x>=1+gui.width*gui.widthFactor and x<=1+gui.width*gui.widthFactor+5 then
                     if interface.reactor.getActive() then
                         interface.reactor.setActive(false)
@@ -648,17 +664,35 @@ function interface.clickedButton(event, button, x, y, arg4, arg5)
                     end
                 end
             end
-        elseif gui.settings['currentPageTitle'] == 'Graphs' then -- Graphs
-            if y == 6 then
-                if x >=gui.width*gui.widthFactor+1 and x <= gui.width*gui.widthFactor+1+5 then
-                    if gui.snapshot['reactor']['status'] then
-                        for k, v in pairs(gui.snapshot['reactor']['rodInfo']['rods']) do
-                            interface.reactor.setControlRodLevel(k, 100)
-                        end
-                        interface.reactor.setActive(false)
+        elseif gui.settings['currentPageTitle'] == 'Turbine Summary' then
+            if y == 8 then
+                if x>=1+gui.width*gui.widthFactor and x<=1+gui.width*gui.widthFactor+5 then
+                    if interface.turbine.getActive() then
+                        interface.turbine.setActive(false)
+                    else
+                        interface.turbine.setActive(true)
+                    end
+                end
+            elseif y == 9 then
+                if x>=1+gui.width*gui.widthFactor and x<=1+gui.width*gui.widthFactor+5 then
+                    if interface.turbine.getInductorEngaged() then
+                        interface.turbine.setInductorEngaged(false)
+                    else
+                        interface.turbine.setInductorEngaged(true)
                     end
                 end
             end
+        -- elseif gui.settings['currentPageTitle'] == 'Graphs' then -- Graphs
+        --     if y == 6 then
+        --         if x >=gui.width*gui.widthFactor+1 and x <= gui.width*gui.widthFactor+1+5 then
+        --             if gui.snapshot['reactor']['status'] then
+        --                 for k, v in pairs(gui.snapshot['reactor']['rodInfo']['rods']) do
+        --                     interface.reactor.setControlRodLevel(k, 100)
+        --                 end
+        --                 interface.reactor.setActive(false)
+        --             end
+        --         end
+        --     end
         elseif gui.settings['currentPageTitle'] == 'Rod Statistics' then -- Control Rods
             for k, v in pairs(gui.snapshot['reactor']['rodInfo']['rods']) do
                 if y == 8+k*2 then
@@ -776,7 +810,7 @@ function interface.clickedButton(event, button, x, y, arg4, arg5)
                 end
             end
             interface.writeAutomations()
-        elseif gui.settings['currentPageTitle'] == 'Connection' then -- Manage Clients // Server Connection
+        elseif gui.settings['currentPageTitle'] == 'Connections' then -- Manage Clients // Server Connection
             if x > 2 and x < gui.width-2 then
                 if y > 6 and y < gui.height-3 then
                     local count = 1

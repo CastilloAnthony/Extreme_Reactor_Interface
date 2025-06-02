@@ -389,20 +389,30 @@ function remote.clickedButton(event, button, x, y, arg4, arg5)
             elseif x>=2 and x<=6 then --Prev
                 gui.nextPage(false)
             end
-        elseif gui.settings['currentPageTitle'] == 'Home' then
-            if y == 9 then
+        elseif gui.settings['currentPageTitle'] == 'Reactor Summary' then
+            if y == 8 then
                 if x>=1+gui.width*gui.widthFactor and x<=1+gui.width*gui.widthFactor+5 then
                     remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'command', ['data'] = 'toggleReactor'}))})
                 end
             end
-        elseif gui.settings['currentPageTitle'] == 'Graphs' then -- Graphs
-            if y == 6 then
-                if x >=gui.width*gui.widthFactor+1 and x <= gui.width*gui.widthFactor+1+5 then
-                    if gui.snapshot['reactor']['status'] then
-                        remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'command', ['data'] = 'scram'}))})
-                    end
+        elseif gui.settings['currentPageTitle'] == 'Turbine Summary' then
+            if y == 8 then
+                if x>=1+gui.width*gui.widthFactor and x<=1+gui.width*gui.widthFactor+5 then
+                    remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'command', ['data'] = 'toggleTurbine'}))})
+                end
+            elseif y == 9 then
+                if x>=1+gui.width*gui.widthFactor and x<=1+gui.width*gui.widthFactor+5 then
+                    remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'command', ['data'] = 'toggleInductor'}))})
                 end
             end
+        -- elseif gui.settings['currentPageTitle'] == 'Graphs' then -- Graphs
+        --     if y == 6 then
+        --         if x >=gui.width*gui.widthFactor+1 and x <= gui.width*gui.widthFactor+1+5 then
+        --             if gui.snapshot['reactor']['status'] then
+        --                 remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'command', ['data'] = 'scram'}))})
+        --             end
+        --         end
+        --     end
         elseif gui.settings['currentPageTitle'] == 'Rod Statistics' then -- Control Rods
             for k, v in pairs(gui.snapshot['reactor']['rodInfo']['rods']) do
                 if y == 8+k*2 then
