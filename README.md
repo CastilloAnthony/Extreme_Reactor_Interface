@@ -12,6 +12,7 @@ A user interface program for the Minecraft mod ComputerCraft used to interface t
     -Toggle/increment/decrement automations
     -Remove client authorizations
 - Updater script
+    - run "er_interface/updater" to update the program
 - Monitor support
 - Support for power production or vapor production configurations
 - Multiple dynamically selected information pages
@@ -37,3 +38,6 @@ For first time users, you will have to wait a couple of minutes while cryptograp
     - Turbine automations
 - Histograms Page
     - Switchable histograms
+- Version Checker
+    - Checksums so that only changed files are downloaded
+    - Optional auto-updater
