@@ -374,6 +374,7 @@ function remote.checkMessages(event, side, channel, replyChannel, message, dista
 end --end checkMessages
 
 function remote.clickedButton(event, button, x, y, arg4, arg5)
+    gui.readSettings()
     if button == 1 or peripheral.isPresent(tostring(button)) then
         if y == 1 and x == gui.width then -- Terminate Program
             gui.monitor.setBackgroundColor(colors.black)
@@ -388,6 +389,25 @@ function remote.clickedButton(event, button, x, y, arg4, arg5)
                 gui.nextPage(true)
             elseif x>=2 and x<=6 then --Prev
                 gui.nextPage(false)
+            end
+        elseif y == 1 and x == gui.width-1 then -- Toggle Help Window
+            if gui.toggleHelpWindow ~= true then
+                if gui.helpWindow == false then
+                    -- gui.log(textutils.serialize({['width']=gui.width, ['height']=gui.height}))
+                    gui.helpWindow = window.create(gui.monitor, math.floor(gui.width*0.1)+1, math.floor(gui.height*0.1)+1, gui.width-math.floor(gui.width*0.1)*2, gui.height-math.floor(gui.height*0.1)*2, false)
+                    gui.settings['helpWindowWidth'], gui.settings['helpWindowHeight'] = gui.helpWindow.getSize()
+                end
+                gui.toggleHelpWindow = true
+            else
+                gui.toggleHelpWindow = false
+                gui.helpWindow.setVisible(false)
+            end
+            gui.writeSettings()
+        elseif gui.toggleHelpWindow == true then -- Help Window Terminate
+            if x == gui.width-math.floor(gui.width*0.1) and y == math.floor(gui.height*0.1)+1 then
+                gui.toggleHelpWindow = false
+                gui.helpWindow.setVisible(false)
+                gui.writeSettings()
             end
         elseif gui.settings['currentPageTitle'] == 'Reactor Summary' then
             if y == 8 then

@@ -24,6 +24,8 @@ gui.colors = {
 }
 gui.pages = nil
 gui.pageTitles = nil
+gui.helpWindow = false
+gui.toggleHelpWindow = false
 
 function gui.initialize(monitor)
     gui.monitor = monitor
@@ -86,12 +88,14 @@ function gui.writeSettings(settings)
     if settings == 'default' then
         gui.settings = {
             ['currentPage'] = 1, 
-            ['currentPageTitle'] = 'home',
+            ['currentPageTitle'] = '',
             ['storedPower'] = 0, 
             ['deltaPower'] = 0, 
             ['snapshotTime'] = 0, 
             ['deltaTime'] = 0,
             ['mouseWheel'] = 0,
+            ['helpWindowWidth'] = 0, 
+            ['helpWindowHeight'] = 0,
         }
     end
     local file = fs.open('./er_interface/settings.cfg', 'w')
@@ -196,8 +200,12 @@ function gui.updateTime()
     gui.monitor.setBackgroundColor(colors.red)
     gui.monitor.setCursorPos(gui.width, 1)
     gui.monitor.write('X')
+    gui.monitor.setTextColor(colors.white)
+    gui.monitor.setBackgroundColor(colors.lightBlue)
+    gui.monitor.setCursorPos(gui.width-1, 1)
+    gui.monitor.write('?')
     gui.monitor.setBackgroundColor(gui.stdBgColor)
-    for i=1, gui.width-1 do
+    for i=1, gui.width-2 do
         gui.monitor.setCursorPos(i,1)
         gui.monitor.write(' ')
     end
@@ -341,22 +349,26 @@ function gui.updateSnapshot(snapshot)
         pages[#pages+1] = gui.reactor_pageFuel
         pages[#pages+1] = gui.reactor_pageVapor
         pages[#pages+1] = gui.reactor_pageCoolant
+        pages[#pages+1] = gui.reactor_pageRods
         pageTitles[#pageTitles+1] = 'Reactor Fuel Stats'
         pageTitles[#pageTitles+1] = 'Reactor Vapor Stats'
         pageTitles[#pageTitles+1] = 'Reactor Coolant Stats'
+        pageTitles[#pageTitles+1] = 'Rod Statistics Info'
     end
     pages[#pages+1] = gui.pageGraphs
-    pages[#pages+1] = gui.reactor_pageRods
     pages[#pages+1] = gui.pageAutomations
     pages[#pages+1] = gui.pageConnections
     pageTitles[#pageTitles+1] = 'Graphs'
-    pageTitles[#pageTitles+1] = 'Rod Statistics'
     pageTitles[#pageTitles+1] = 'Automations'
-    pageTitles[#pageTitles+1] = 'Connections'
+    if fs.exists('./er_interface/interface.lua') then -- If this file exists then it is a server
+        pageTitles[#pageTitles+1] = 'Manage Clients'
+    else
+        pageTitles[#pageTitles+1] = 'Connection Info'
+    end
     gui.readSettings()
     if gui.settings['currentPage'] > #pages then
         gui.settings['currentPage'] = #pages
-        gui.writeSettings(gui.settings)
+        gui.writeSettings()
     end
     -- gui.log(textutils.serialize(pages))
     -- gui.log(textutils.serialize(pageTitles))
@@ -397,6 +409,54 @@ function gui.formatNum(number)
     end
     return string.format("%.1f%s", scaled, suffix)
 end --end formatNum
+
+function gui.help_page()
+    local folderDir = './er_interface/docs/help/'
+    gui.helpWindow.setVisible(false)
+    -- if gui.helpWindow == false then
+    --     local width, height = gui.monitor.getSize()
+    --     gui.helpWindow = window.create(gui.monitor, width*0.1, height*0.1, width-width*0.2, height-height*0.2, false)
+    --     gui.settings['helpWindowWidth'], gui.settings['helpWindowHeight'] = width-width*0.2, height-height*0.2
+    --     gui.writeSettings()
+    -- else
+        -- gui.helpWindow.setVisible(false)
+    -- end
+    gui.helpWindow.setBackgroundColor(colors.lightBlue)
+    gui.helpWindow.setTextColor(colors.white)
+    for i=1, gui.settings['helpWindowWidth'] do
+        gui.helpWindow.setCursorPos(i, 1)
+        gui.helpWindow.write(' ')
+    end
+    gui.helpWindow.setCursorPos(1, 1)
+    gui.helpWindow.write(gui.getPageTitle(gui.settings['currentPage'])..' - Help')
+    gui.helpWindow.setCursorPos(gui.settings['helpWindowWidth'], 1)
+    gui.helpWindow.setBackgroundColor(colors.red)
+    gui.helpWindow.write('X')
+    local helpText = ''
+    if not fs.exists(folderDir..gui.getPageTitle(gui.settings['currentPage'])..'.txt') then
+        local file = fs.open(folderDir..'default.txt', 'r')
+        helpText = ccStrings.wrap(file.readAll(), gui.settings['helpWindowWidth'])
+        file.close()
+    else
+        local file = fs.open(folderDir..gui.getPageTitle(gui.settings['currentPage'])..'.txt', 'r')
+        helpText = ccStrings.wrap(file.readAll(), gui.settings['helpWindowWidth'])
+        file.close()
+    end
+    gui.helpWindow.setBackgroundColor(colors.blue)
+    gui.helpWindow.setTextColor(colors.white)
+    for i=2, gui.settings['helpWindowHeight'] do
+        gui.helpWindow.setCursorPos(1, i)
+        for k=1, gui.settings['helpWindowWidth'] do
+            gui.helpWindow.write(' ')
+        end
+    end
+    for i=2, #helpText+1 do
+        gui.helpWindow.setCursorPos(1, i)
+        gui.helpWindow.write(helpText[i-1])
+        -- local x, y = gui.helpWindow.getCursorPos()
+    end
+    gui.helpWindow.setVisible(true)
+end
 
 function gui.main()
     gui.monitor.setVisible(false)
@@ -442,6 +502,9 @@ function gui.main()
     -- end
     gui.updateTime()
     gui.drawButtons()
+    if gui.toggleHelpWindow then -- Don't generate more than once... For now...
+        gui.help_page()
+    end
     gui.monitor.setVisible(true)
 end --end main
 
@@ -484,7 +547,7 @@ function gui.turbine_pageSummary()
         [13] = colors.green,
         [14] = colors.black,
     }
-    gui.draw_title_content('Turbine Summary', content, colors.yellow, contentColors)
+    gui.draw_title_content(gui.getPageTitle(gui.settings['currentPage']), content, colors.yellow, contentColors)
 end --end gui.turbine_pageSummary
 
 function gui.reactor_summary()
@@ -554,10 +617,10 @@ function gui.reactor_summary()
             [12] = colors.black,
         }
     end
-    gui.draw_title_content('Reactor Summary', content, colors.yellow, contentColors)
+    gui.draw_title_content(gui.getPageTitle(gui.settings['currentPage']), content, colors.yellow, contentColors)
 end --end reactor_summary
 
-function gui.pageSnapshot() --Snapshot Report
+function gui.pageSnapshot() --Snapshot Report -- Deprecated
     local content, contentColors = nil, nil
     if not gui.snapshot['reactor']['activelyCooled'] then
         content = {
@@ -693,7 +756,7 @@ function gui.reactor_pagePower() -- Power
         -- [9] = colors.magenta,
         [9] = gui.stdBgColor,
     }    
-    gui.draw_title_content('Reactor Power Stats', content, gui.colors['power'], contentColors)
+    gui.draw_title_content(gui.getPageTitle(gui.settings['currentPage']), content, gui.colors['power'], contentColors)
     -- for k, v in pairs(content) do
     --     gui.monitor.setCursorPos(2,3+k)
     --     gui.monitor.setBackgroundColor(colors.black)
@@ -753,7 +816,7 @@ function gui.reactor_pageFuel() -- Fuel Page
         [10] = gui.colors['fuel'],
         [11] = gui.stdBgColor,
     }
-    gui.draw_title_content('Reactor Fuel Stats', content, gui.colors['fuel'], contentColors)
+    gui.draw_title_content(gui.getPageTitle(gui.settings['currentPage']), content, gui.colors['fuel'], contentColors)
     -- for k, v in pairs(content) do
     --     gui.monitor.setCursorPos(2,3+k)
     --     gui.monitor.setBackgroundColor(colors.black)
@@ -807,7 +870,7 @@ function gui.reactor_pageCoolant() -- Coolant
         -- [8] = gui.colors['coolant'],
         [8] = gui.stdBgColor,
     }
-    gui.draw_title_content('Reactor Coolant Stats', content, gui.colors['coolant'], contentColors)
+    gui.draw_title_content(gui.getPageTitle(gui.settings['currentPage']), content, gui.colors['coolant'], contentColors)
     -- for k, v in pairs(content) do
     --     gui.monitor.setCursorPos(2,3+k)
     --     gui.monitor.setBackgroundColor(colors.black)
@@ -863,7 +926,7 @@ function gui.reactor_pageVapor() -- Hot Fluid
         -- [9] = gui.colors['vapor'],
         [9] = gui.stdBgColor,
     }
-    gui.draw_title_content('Reactor Vapor Stats', content, gui.colors['vapor'], contentColors)
+    gui.draw_title_content(gui.getPageTitle(gui.settings['currentPage']), content, gui.colors['vapor'], contentColors)
     -- for k, v in pairs(content) do
     --     gui.monitor.setCursorPos(2,3+k)
     --     gui.monitor.setBackgroundColor(colors.black)
@@ -921,7 +984,7 @@ function gui.turbine_pagePower()
         [10] = gui.colors['power'],
         [11] = colors.black,
     }
-    gui.draw_title_content('Turbine Power Stats', content, gui.colors['power'], contentColors)
+    gui.draw_title_content(gui.getPageTitle(gui.settings['currentPage']), content, gui.colors['power'], contentColors)
 end --end turbine_pagePower
 
 function gui.turbine_pageVapor()
@@ -958,7 +1021,7 @@ function gui.turbine_pageVapor()
         [10] = gui.colors['vapor'],
         [11] = colors.black,
     }
-    gui.draw_title_content('Turbine Vapor Stats', content, gui.colors['vapor'], contentColors)
+    gui.draw_title_content(gui.getPageTitle(gui.settings['currentPage']), content, gui.colors['vapor'], contentColors)
 end --end turbine_pageVapor
 
 function gui.turbine_pageCoolant()
@@ -993,7 +1056,7 @@ function gui.turbine_pageCoolant()
         [9] = gui.colors['coolant'],
         [10] = colors.black,
     }
-    gui.draw_title_content('Turbine Coolant Stats', content, gui.colors['coolant'], contentColors)
+    gui.draw_title_content(gui.getPageTitle(gui.settings['currentPage']), content, gui.colors['coolant'], contentColors)
 end --end turbine_pageCoolant
 
 function gui.pageGraphs() -- Graphs
@@ -1158,7 +1221,7 @@ function gui.reactor_pageRods() -- Rods Page
     end
     content[#content+1] = ''
     contentColors[#contentColors+1] = gui.stdBgColor
-    gui.draw_title_content('Reactor Rod Stats', content, colors.yellow, contentColors)
+    gui.draw_title_content(gui.getPageTitle(gui.settings['currentPage']), content, colors.yellow, contentColors)
     -- for k, v in pairs(content) do
     --     gui.monitor.setCursorPos(2,3+k)
     --     gui.monitor.setBackgroundColor(colors.black)
@@ -1256,7 +1319,7 @@ function gui.pageAutomations() -- Automations
         [13] = colors.yellow,
         [14] = gui.stdBgColor,
     }
-    gui.draw_title_content('Automations', content, colors.yellow, contentColors)
+    gui.draw_title_content(gui.getPageTitle(gui.settings['currentPage']), content, colors.yellow, contentColors)
     -- for k, v in pairs(content) do
     --     gui.monitor.setCursorPos(2,3+k)
     --     gui.monitor.setBackgroundColor(colors.black)
@@ -1409,6 +1472,9 @@ function gui.pageConnections() -- Manage Clients // Connection to Server
             [9] = ccStrings.ensure_width('Latency', gui.width*gui.widthFactor),
             [10] = ccStrings.ensure_width(gui.formatNum((os.epoch('local')-gui.snapshot['report']['timestamp'])/1000)..'s', gui.width*gui.widthFactor),
             [11] = '',
+            [12] = 'Snapshot Timestamp: ',
+            [13] = gui.snapshot['report']['datestamp'],
+            [14] = '',
         }
         local contentColors = {
             [0] = gui.stdBgColor,
@@ -1423,6 +1489,9 @@ function gui.pageConnections() -- Manage Clients // Connection to Server
             [9] = colors.yellow,
             [10] = colors.white,
             [11] = gui.stdBgColor,
+            [12] = colors.yellow,
+            [13] = colors.white,
+            [14] = gui.stdBgColor,
         }
         -- for k, v in pairs(content) do
         --     gui.monitor.setCursorPos(2,3+k)
@@ -1440,7 +1509,7 @@ function gui.pageConnections() -- Manage Clients // Connection to Server
         --         gui.monitor.write(v)
         --     end
         -- end
-        gui.draw_title_content('Connection Info', content, colors.yellow, contentColors)
+        gui.draw_title_content(gui.getPageTitle(gui.settings['currentPage']), content, colors.yellow, contentColors)
     end
 end  --end page
 

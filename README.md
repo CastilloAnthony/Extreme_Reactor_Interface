@@ -2,15 +2,24 @@
 A user interface program for the Minecraft mod ComputerCraft used to interface the mod with the Extreme Reactors mod. Non-pocket computers can utilize monitors to increase the size of available screen space. For these non-pocket computers, a minimum of a 3-by-3 monitor setup or no screens at all is recommended. The graphs page utilizes this extra screen space very well by stretching the graphs vertically and horizontally. This program is intended to work with just a single reactor. This UI program is written entirely in Lua. Preview images can be viewed here: https://imgur.com/a/Y7JEOX3
 
 ## Features
-- Clickable buttons
+- Supports a single reactor and a single turbine simultaneously
+- Clickable buttons including buttons that:
+    -Terminate the program
+    -Open a help window
+    -Switch to next/previous page
+    -Toggle reactor/trubine/inductor status
+    -Increment/decrement control rods
+    -Toggle/increment/decrement automations
+    -Remove client authorizations
 - Updater script
 - Monitor support
-- Support for power production or vapor production configuration
-- Multiple pages (7 or 8 depending on the reactor configuration)
+- Support for power production or vapor production configurations
+- Multiple dynamically selected information pages
 - Password protection and cryptography
 - Remote access to the server via pocket computers or satellite computers
 - Support for multiple remote clients concurrently (suggested limit: TBD)
 - Client management page where you can remove clients and force them to re-establish a connection
+- Automated monitoring and management of various reactor settings
 
 ## Installation
 To install onto a ComputerCraft device type this into the console: 
@@ -22,9 +31,9 @@ To install onto a ComputerCraft device type this into the console:
 For first time users, you will have to wait a couple of minutes while cryptography parameters are generated.
 
 ### Todo
-- Help button next to the close button
-    - Should bring up a new window with a title bar, a close button, and text that varies depending on the page the interface is on.
+- Scrolling features / Scroll bar
+    - Specifically for Rod Stats, Automations, Client Management, and potentially the help window
 - Turbine information pages
     - Turbine automations
-- Scrolling features / Scroll bar
-    - Specifically for Rod Stats, Automations, and Client Management
+- Histograms Page
+    - Switchable histograms

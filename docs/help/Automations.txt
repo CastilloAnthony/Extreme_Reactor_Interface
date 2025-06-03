@@ -1,0 +1,1 @@
+This page allows for the user to enable or disable the server from automating turning off and on the reactor/turbine, turning off the reactor when it reachs too high of a temperature, and the automation of reactor control rods. This page also allows for you to increment or decrement those limits.
