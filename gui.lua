@@ -464,7 +464,11 @@ function gui.main()
     gui.clearScreen()
     -- gui.log('Drawing page: '..gui.settings['currentPage'])
     -- gui.log('Page drawn was: '..tostring(gui.pages[gui.settings['currentPage']]))
-    gui.pages[gui.settings['currentPage']]()
+    if gui.toggleHelpWindow then -- Don't generate more than once... For now...
+        gui.help_page()
+    else
+        gui.pages[gui.settings['currentPage']]()
+    end
     -- if not gui.snapshot['activelyCooled'] then
     --     if gui.settings['currentPage'] == 1 then
     --         gui.pageSnapshot()
@@ -502,16 +506,13 @@ function gui.main()
     -- end
     gui.updateTime()
     gui.drawButtons()
-    if gui.toggleHelpWindow then -- Don't generate more than once... For now...
-        gui.help_page()
-    end
     gui.monitor.setVisible(true)
 end --end main
 
 function gui.turbine_pageSummary()
     local content = {
         [0] = '',
-        [1] = 'Turbine Summary',
+        [1] = gui.getPageTitle(gui.settings['currentPage']),
         [2] = '',
         [3] = 'Snapshot Timestamp: ',
         [4] = gui.snapshot['report']['datestamp'],
@@ -547,15 +548,15 @@ function gui.turbine_pageSummary()
         [13] = colors.green,
         [14] = colors.black,
     }
-    gui.draw_title_content(gui.getPageTitle(gui.settings['currentPage']), content, colors.yellow, contentColors)
+    gui.draw_title_content(content, contentColors)
 end --end gui.turbine_pageSummary
 
 function gui.reactor_summary()
     local content, contentColors  = nil, nil
-    if not gui.snapshot['reactor']['activelyCooled'] then
+    if not gui.snapshot['reactor']['activelyCooled'] then -- Power Configuration
         content = {
             [0] = '',
-            [1] = 'Reactor Summary',
+            [1] = gui.getPageTitle(gui.settings['currentPage']),
             [2] = '',
             [3] = 'Snapshot Timestamp: ',
             [4] = gui.snapshot['report']['datestamp'],
@@ -583,10 +584,10 @@ function gui.reactor_summary()
             [10] = gui.colors['power'],    
             [11] = colors.black,
         }
-    else
+    else -- Vapor Configuration
         content = {
             [0] = '',
-            [1] = 'Reactor Summary',
+            [1] = gui.getPageTitle(gui.settings['currentPage']),
             [2] = '',
             [3] = 'Snapshot Timestamp: ',
             [4] = gui.snapshot['report']['datestamp'],
@@ -617,7 +618,7 @@ function gui.reactor_summary()
             [12] = colors.black,
         }
     end
-    gui.draw_title_content(gui.getPageTitle(gui.settings['currentPage']), content, colors.yellow, contentColors)
+    gui.draw_title_content(content, contentColors)
 end --end reactor_summary
 
 function gui.pageSnapshot() --Snapshot Report -- Deprecated
@@ -731,7 +732,7 @@ function gui.reactor_pagePower() -- Power
     end
     local content = {
         [0] = '',
-        [1] = 'Reactor Power Stats',
+        [1] = gui.getPageTitle(gui.settings['currentPage']),
         [2] = '',
         [3] = ccStrings.ensure_width('Power:', gui.width*gui.widthFactor-1)..tostring(math.floor((gui.snapshot['reactor']['energyInfo']['stored']/gui.snapshot['reactor']['energyInfo']['capacity'])*1000)/10)..'%',
         [4] = 'bar',
@@ -756,7 +757,7 @@ function gui.reactor_pagePower() -- Power
         -- [9] = colors.magenta,
         [9] = gui.stdBgColor,
     }    
-    gui.draw_title_content(gui.getPageTitle(gui.settings['currentPage']), content, gui.colors['power'], contentColors)
+    gui.draw_title_content(content, contentColors)
     -- for k, v in pairs(content) do
     --     gui.monitor.setCursorPos(2,3+k)
     --     gui.monitor.setBackgroundColor(colors.black)
@@ -787,7 +788,7 @@ function gui.reactor_pageFuel() -- Fuel Page
     end
     local content = {
         [0] = '',
-        [1] = 'Reactor Fuel Stats',
+        [1] = gui.getPageTitle(gui.settings['currentPage']),
         [2] = '',
         [3] = ccStrings.ensure_width('Fuel:', gui.width*gui.widthFactor-1)..tostring(math.floor((gui.snapshot['reactor']['fuelInfo']['amount']/gui.snapshot['reactor']['fuelInfo']['max'])*1000)/10)..'%',
         [4] = 'bar',
@@ -816,7 +817,7 @@ function gui.reactor_pageFuel() -- Fuel Page
         [10] = gui.colors['fuel'],
         [11] = gui.stdBgColor,
     }
-    gui.draw_title_content(gui.getPageTitle(gui.settings['currentPage']), content, gui.colors['fuel'], contentColors)
+    gui.draw_title_content(content, contentColors)
     -- for k, v in pairs(content) do
     --     gui.monitor.setCursorPos(2,3+k)
     --     gui.monitor.setBackgroundColor(colors.black)
@@ -847,7 +848,7 @@ function gui.reactor_pageCoolant() -- Coolant
     end
     local content = {
         [0] = '',
-        [1] = 'Reactor Coolant Stats',
+        [1] = gui.getPageTitle(gui.settings['currentPage']),
         [2] = '',
         [3] = ccStrings.ensure_width('Coolant:', gui.width*gui.widthFactor-1)..tostring(math.floor((gui.snapshot['reactor']['coolantInfo']['amount']/gui.snapshot['reactor']['coolantInfo']['max'])*1000)/10)..'%',
         [4] = 'bar',
@@ -870,7 +871,7 @@ function gui.reactor_pageCoolant() -- Coolant
         -- [8] = gui.colors['coolant'],
         [8] = gui.stdBgColor,
     }
-    gui.draw_title_content(gui.getPageTitle(gui.settings['currentPage']), content, gui.colors['coolant'], contentColors)
+    gui.draw_title_content(content, contentColors)
     -- for k, v in pairs(content) do
     --     gui.monitor.setCursorPos(2,3+k)
     --     gui.monitor.setBackgroundColor(colors.black)
@@ -901,7 +902,7 @@ function gui.reactor_pageVapor() -- Hot Fluid
     end
     local content = {
         [0] = '',
-        [1] = 'Reactor Vapor Stats',
+        [1] = gui.getPageTitle(gui.settings['currentPage']),
         [2] = '',
         [3] = ccStrings.ensure_width('Vapor:', gui.width*gui.widthFactor-1)..tostring(math.floor((gui.snapshot['reactor']['hotFluidInfo']['amount']/gui.snapshot['reactor']['hotFluidInfo']['max'])*1000)/10)..'%',
         [4] = 'bar',
@@ -926,7 +927,7 @@ function gui.reactor_pageVapor() -- Hot Fluid
         -- [9] = gui.colors['vapor'],
         [9] = gui.stdBgColor,
     }
-    gui.draw_title_content(gui.getPageTitle(gui.settings['currentPage']), content, gui.colors['vapor'], contentColors)
+    gui.draw_title_content(content, contentColors)
     -- for k, v in pairs(content) do
     --     gui.monitor.setCursorPos(2,3+k)
     --     gui.monitor.setBackgroundColor(colors.black)
@@ -957,7 +958,7 @@ function gui.turbine_pagePower()
     end
     local content = {
         [0] = '',
-        [1] = 'Turbine Power Stats',
+        [1] = gui.getPageTitle(gui.settings['currentPage']),
         [2] = '',
         [3] = ccStrings.ensure_width('Power:', gui.width*gui.widthFactor-1)..tostring(math.floor((gui.snapshot['turbine']['energyInfo']['stored']/gui.snapshot['turbine']['energyInfo']['capacity'])*1000)/10)..'%',
         [4] = 'bar',
@@ -984,7 +985,7 @@ function gui.turbine_pagePower()
         [10] = gui.colors['power'],
         [11] = colors.black,
     }
-    gui.draw_title_content(gui.getPageTitle(gui.settings['currentPage']), content, gui.colors['power'], contentColors)
+    gui.draw_title_content(content, contentColors)
 end --end turbine_pagePower
 
 function gui.turbine_pageVapor()
@@ -994,7 +995,7 @@ function gui.turbine_pageVapor()
     end
     local content = {
         [0] = '',
-        [1] = 'Turbine Vapor Stats',
+        [1] = gui.getPageTitle(gui.settings['currentPage']),
         [2] = '',
         [3] = ccStrings.ensure_width('Power:', gui.width*gui.widthFactor-1)..tostring(math.floor((gui.snapshot['turbine']['ioInfo']['inputAmount']/gui.snapshot['turbine']['fluidInfo']['max'])*1000)/10)..'%',
         [4] = 'bar',
@@ -1021,7 +1022,7 @@ function gui.turbine_pageVapor()
         [10] = gui.colors['vapor'],
         [11] = colors.black,
     }
-    gui.draw_title_content(gui.getPageTitle(gui.settings['currentPage']), content, gui.colors['vapor'], contentColors)
+    gui.draw_title_content(content, contentColors)
 end --end turbine_pageVapor
 
 function gui.turbine_pageCoolant()
@@ -1031,7 +1032,7 @@ function gui.turbine_pageCoolant()
     end
     local content = {
         [0] = '',
-        [1] = 'Turbine Vapor Stats',
+        [1] = gui.getPageTitle(gui.settings['currentPage']),
         [2] = '',
         [3] = ccStrings.ensure_width('Power:', gui.width*gui.widthFactor-1)..tostring(math.floor((gui.snapshot['turbine']['ioInfo']['outputAmount']/gui.snapshot['turbine']['fluidInfo']['max'])*1000)/10)..'%',
         [4] = 'bar',
@@ -1056,13 +1057,13 @@ function gui.turbine_pageCoolant()
         [9] = gui.colors['coolant'],
         [10] = colors.black,
     }
-    gui.draw_title_content(gui.getPageTitle(gui.settings['currentPage']), content, gui.colors['coolant'], contentColors)
+    gui.draw_title_content(content, contentColors)
 end --end turbine_pageCoolant
 
 function gui.pageGraphs() -- Graphs
     local content = {
         [0] = '',
-        [1] = 'Graphs',
+        [1] = gui.getPageTitle(gui.settings['currentPage']),
         [2] = '',
     }
     local contentColors = {
@@ -1198,7 +1199,7 @@ function gui.reactor_pageRods() -- Rods Page
     -- }
     local content = {
         [0] = '',
-        [1] = 'Reactor Rod Stats',
+        [1] = gui.getPageTitle(gui.settings['currentPage']),
         [2] = '',
         [3] = ccStrings.ensure_width('# Name', gui.width*gui.widthFactor-1)..'Level',
         [4] = '',
@@ -1221,7 +1222,7 @@ function gui.reactor_pageRods() -- Rods Page
     end
     content[#content+1] = ''
     contentColors[#contentColors+1] = gui.stdBgColor
-    gui.draw_title_content(gui.getPageTitle(gui.settings['currentPage']), content, colors.yellow, contentColors)
+    gui.draw_title_content(content, contentColors)
     -- for k, v in pairs(content) do
     --     gui.monitor.setCursorPos(2,3+k)
     --     gui.monitor.setBackgroundColor(colors.black)
@@ -1262,7 +1263,7 @@ function gui.pageAutomations() -- Automations
     if not gui.snapshot['reactor']['activelyCooled'] then
         content = {
             [0] = '',
-            [1] = 'Automations',
+            [1] = gui.getPageTitle(gui.settings['currentPage']),
             [2] = '',
             [3] = 'Power',
             [4] = ccStrings.ensure_width('Max Power %', gui.width*gui.widthFactor-1)..gui.snapshot['automations']['powerMax'],
@@ -1283,7 +1284,7 @@ function gui.pageAutomations() -- Automations
     else
         content = {
             [0] = '',
-            [1] = 'Automations',
+            [1] = gui.getPageTitle(gui.settings['currentPage']),
             [2] = '',
             [3] = 'Vapor',
             [4] = ccStrings.ensure_width('Max Vapor %', gui.width*gui.widthFactor-1)..gui.snapshot['automations']['powerMax'],
@@ -1319,7 +1320,7 @@ function gui.pageAutomations() -- Automations
         [13] = colors.yellow,
         [14] = gui.stdBgColor,
     }
-    gui.draw_title_content(gui.getPageTitle(gui.settings['currentPage']), content, colors.yellow, contentColors)
+    gui.draw_title_content(content, contentColors)
     -- for k, v in pairs(content) do
     --     gui.monitor.setCursorPos(2,3+k)
     --     gui.monitor.setBackgroundColor(colors.black)
@@ -1402,7 +1403,7 @@ function gui.pageConnections() -- Manage Clients // Connection to Server
     if fs.exists('./er_interface/interface.lua') then -- Manage Clients on Server
         local content = {
             [0] = '',
-            [1] = 'Manage Clients',
+            [1] = gui.getPageTitle(gui.settings['currentPage']),
             [2] = '',
             -- [3] = ccStrings.ensure_width('Name', gui.width*gui.widthFactor-1)..'ID',
             [3] = ccStrings.ensure_width(ccStrings.ensure_width('ID', 4)..' '..ccStrings.ensure_width('Name', gui.width*gui.widthFactor-1-5)..' '..'Idle', gui.width-4),
@@ -1423,22 +1424,32 @@ function gui.pageConnections() -- Manage Clients // Connection to Server
             -- content[#content+1] = ccStrings.ensure_width(ccStrings.ensure_width(i['label'], gui.width*gui.widthFactor-1)..i['id'], gui.width-4)
             content[#content+1] = ccStrings.ensure_width(ccStrings.ensure_width(tostring(i['id']), 4)..' '..ccStrings.ensure_width(i['label'], gui.width*gui.widthFactor-1-5)..' '..gui.formatNum((os.epoch('local')-i['lastActivity'])/1000)..'s', gui.width-4)
             contentColors[#contentColors+1] = colors.white
+            -- table.insert(content, ccStrings.ensure_width(ccStrings.ensure_width(tostring(i['id']), 4)..' '..ccStrings.ensure_width(i['label'], gui.width*gui.widthFactor-1-5)..' '..gui.formatNum((os.epoch('local')-i['lastActivity'])/1000)..'s', gui.width-4))
+            -- table.insert(contentColors, colors.white)
             local timeoutPeriod = 60*5
             if (os.epoch('local')-i['lastActivity'])/1000 < timeoutPeriod*.2 then -- 1/5 of the Timeout Period
                 contentBackgroundColors[#contentBackgroundColors+1] = colors.green
+                -- table.insert(contentBackgroundColors, colors.green)
             elseif (os.epoch('local')-i['lastActivity'])/1000 < timeoutPeriod*.4 then -- 2/5 of the Timeout Period
                 contentBackgroundColors[#contentBackgroundColors+1] = colors.lime
+                -- table.insert(contentBackgroundColors, colors.lime)
             elseif (os.epoch('local')-i['lastActivity'])/1000 < timeoutPeriod*.6 then -- 3/5 of the Timeout Period
                 contentBackgroundColors[#contentBackgroundColors+1] = colors.yellow
+                -- table.insert(contentBackgroundColors, colors.yellow)
             elseif (os.epoch('local')-i['lastActivity'])/1000 < timeoutPeriod*.8 then -- 4/5 of the Timeout Period
                 contentBackgroundColors[#contentBackgroundColors+1] = colors.orange
+                -- table.insert(contentBackgroundColors, colors.orange)
             else -- The full Timeout Period
                 contentBackgroundColors[#contentBackgroundColors+1] = colors.red
+                -- table.insert(contentBackgroundColors, colors.red)
             end
         end
         content[#content+1] = ''
         contentColors[#contentColors+1] = gui.stdBgColor
         contentBackgroundColors[#contentBackgroundColors+1] = colors.black
+        -- table.insert(content, '')
+        -- table.insert(contentColors, gui.stdBgColor)
+        -- table.insert(contentBackgroundColors, colors.black)
         -- for k, v in pairs(content) do
         --     gui.monitor.setCursorPos(2,3+k)
         --     gui.monitor.setBackgroundColor(colors.black)
@@ -1457,11 +1468,11 @@ function gui.pageConnections() -- Manage Clients // Connection to Server
         --     end
         -- end
         content['backgrounds'] = contentBackgroundColors
-        gui.draw_title_content('Manage Clients', content, colors.yellow, contentColors)
+        gui.draw_title_content(content, contentColors)
     else
         local content = {
             [0] = '',
-            [1] = 'Connection Info',
+            [1] = gui.getPageTitle(gui.settings['currentPage']),
             [2] = '',
             [3] = ccStrings.ensure_width('Client Name', gui.width*gui.widthFactor)..'ID',
             [4] = ccStrings.ensure_width(string.sub(os.getComputerLabel(), 0, gui.width*gui.widthFactor-1), gui.width*gui.widthFactor)..os.getComputerID(),
@@ -1509,7 +1520,7 @@ function gui.pageConnections() -- Manage Clients // Connection to Server
         --         gui.monitor.write(v)
         --     end
         -- end
-        gui.draw_title_content(gui.getPageTitle(gui.settings['currentPage']), content, colors.yellow, contentColors)
+        gui.draw_title_content(content, contentColors)
     end
 end  --end page
 
@@ -1526,12 +1537,12 @@ end  --end page
 --     return info
 -- end
 
-function gui.draw_title_content(title, content, titleColor, contentColors)
+function gui.draw_title_content(content, contentColors)
     --gui.readSettings() -- +gui.settings['mouseWheel']*100
     for i=0, gui.height-5 do
     -- for k, v in pairs(content) do
         gui.monitor.setCursorPos(2,3+i)
-        if title == 'Manage Clients' and i < #content['backgrounds'] then
+        if content[1] == 'Manage Clients' and i < #content['backgrounds'] then
             gui.monitor.setBackgroundColor(content['backgrounds'][i])
         else
             gui.monitor.setBackgroundColor(colors.black)
@@ -1539,10 +1550,11 @@ function gui.draw_title_content(title, content, titleColor, contentColors)
         for k=0, gui.width-3 do
             gui.monitor.write(' ')
         end
-        if i == 1 then --Title
-            gui.monitor.setTextColor(titleColor)
-            gui.monitor.setCursorPos(math.ceil((gui.width-(#title-2))/2), 3+i)
-            gui.monitor.write(title)
+        if i > #content then
+        elseif i == 1 then --Title
+            gui.monitor.setCursorPos(math.ceil((gui.width-(#content[i]-2))/2), 3+i)
+            gui.monitor.setTextColor(contentColors[i])
+            gui.monitor.write(content[i])
         elseif content[i] == 'bar' then
             gui.monitor.setCursorPos(3,3+i)
             gui.monitor.setBackgroundColor(contentColors[i])
@@ -1634,8 +1646,8 @@ function gui.draw_title_content(title, content, titleColor, contentColors)
                 gui.monitor.write(' OFF ')
                 gui.monitor.setBackgroundColor(gui.stdBgColor)
             end
-        elseif i > #content then
         else
+            -- gui.log(textutils.serialize({['i'] = i, ['contentColorsI'] = contentColors[i], ['contentI'] = content[i]}))
             gui.monitor.setCursorPos(3,3+i)
             gui.monitor.setTextColor(contentColors[i])
             gui.monitor.write(content[i])

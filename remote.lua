@@ -394,7 +394,7 @@ function remote.clickedButton(event, button, x, y, arg4, arg5)
             if gui.toggleHelpWindow ~= true then
                 if gui.helpWindow == false then
                     -- gui.log(textutils.serialize({['width']=gui.width, ['height']=gui.height}))
-                    gui.helpWindow = window.create(gui.monitor, math.floor(gui.width*0.1)+1, math.floor(gui.height*0.1)+1, gui.width-math.floor(gui.width*0.1)*2, gui.height-math.floor(gui.height*0.1)*2, false)
+                    gui.helpWindow = window.create(gui.monitor, 1, math.floor(gui.height*0.1)+1, gui.width, gui.height-math.floor(gui.height*0.1)*2, false)
                     gui.settings['helpWindowWidth'], gui.settings['helpWindowHeight'] = gui.helpWindow.getSize()
                 end
                 gui.toggleHelpWindow = true
@@ -404,7 +404,7 @@ function remote.clickedButton(event, button, x, y, arg4, arg5)
             end
             gui.writeSettings()
         elseif gui.toggleHelpWindow == true then -- Help Window Terminate
-            if x == gui.width-math.floor(gui.width*0.1) and y == math.floor(gui.height*0.1)+1 then
+            if x == gui.width and y == math.floor(gui.height*0.1)+1 then
                 gui.toggleHelpWindow = false
                 gui.helpWindow.setVisible(false)
                 gui.writeSettings()
