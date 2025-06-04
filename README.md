@@ -20,6 +20,7 @@ A user interface program for the Minecraft mod ComputerCraft used to interface t
 - Remote access to the server via pocket computers or satellite computers
 - Support for multiple remote clients concurrently (suggested limit: TBD)
 - Client management page where you can remove clients and force them to re-establish a connection
+    - Clients must manually remove "er_interface/keys/server.key" in order to be eligible for re-authorization
 - Automated monitoring and management of various reactor settings
 
 ## Installation
@@ -27,17 +28,16 @@ To install onto a ComputerCraft device type this into the console:
 1. wget https://raw.githubusercontent.com/CastilloAnthony/Extreme_Reactor_Interface/refs/heads/main/installer installer
 2. Then run the installer.
 3. When the prompt shows up, type 'y' for server or 'n' for remote.
-4. The installer should now reboot the computer and load up the program.
+4. The installer should now reboot the computer and load up the program at startup.
 
 For first time users, you will have to wait a couple of minutes while cryptography parameters are generated.
 
 ### Todo
 - Scrolling features / Scroll bar
     - Specifically for Rod Stats, Automations, Client Management, and potentially the help window
-- Turbine information pages
-    - Turbine automations
-- Histograms Page
+- Turbine automations
+- Histograms page
     - Switchable histograms
-- Version Checker
+- Version checker
     - Checksums so that only changed files are downloaded
     - Optional auto-updater
