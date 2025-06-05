@@ -246,15 +246,15 @@ function remote.login()
         local event, side, channel, replyChannel, message, distance = os.pullEvent()
         if event == 'modem_message' then
             if channel == 28 then
-                gui.log('Message Recieved: '..textutils.serialize(message))
+                -- gui.log('Message Recieved: '..textutils.serialize(message))
                 if message['target'] ~= nil then
                     if message['target']['id'] == remote.getComputerInfo()['id'] and message['target']['label'] == remote.getComputerInfo()['label'] then
-                        gui.log('Target Cleared')
+                        -- gui.log('Target Cleared')
                         if message['origin'] ~= nil then
                             if message['origin']['id'] == remote.keys['target']['id'] and message['origin']['label'] == remote.keys['target']['label'] then
-                                gui.log('Origin Cleared')
+                                -- gui.log('Origin Cleared')
                                 local decryptedMsg = crypt.xorEncryptDecrypt(remote.keys['shared'], message['packet'])
-                                gui.log(decryptedMsg)
+                                -- gui.log(decryptedMsg)
                                 if textutils.unserialize(decryptedMsg)['data'] == 'Granted' then
                                     gui.log('Successfully logged into '..message['origin']['label']..' with server id '..message['origin']['id'])
                                     logged = true
