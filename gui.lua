@@ -96,6 +96,7 @@ function gui.writeSettings(settings)
             ['mouseWheel'] = 0,
             ['helpWindowWidth'] = 0, 
             ['helpWindowHeight'] = 0,
+            ['scrollAbleLines'] = 0,
         }
     end
     local file = fs.open('./er_interface/settings.cfg', 'w')
@@ -340,25 +341,27 @@ function gui.updateSnapshot(snapshot)
         pageTitles[#pageTitles+1] = 'Turbine Vapor Stats'
         pageTitles[#pageTitles+1] = 'Turbine Coolant Stats'
     end
-    if not gui.snapshot['reactor']['activelyCooled'] then
-        pages[#pages+1] = gui.reactor_pageFuel
-        pages[#pages+1] = gui.reactor_pagePower
-        pageTitles[#pageTitles+1] = 'Reactor Fuel Stats'
-        pageTitles[#pageTitles+1] = 'Reactor Power Stats'
-    else
-        pages[#pages+1] = gui.reactor_pageFuel
-        pages[#pages+1] = gui.reactor_pageVapor
-        pages[#pages+1] = gui.reactor_pageCoolant
-        pages[#pages+1] = gui.reactor_pageRods
-        pageTitles[#pageTitles+1] = 'Reactor Fuel Stats'
-        pageTitles[#pageTitles+1] = 'Reactor Vapor Stats'
-        pageTitles[#pageTitles+1] = 'Reactor Coolant Stats'
-        pageTitles[#pageTitles+1] = 'Rod Statistics Info'
+    if gui.snapshot['reactor']['status'] ~= nil then
+        if not gui.snapshot['reactor']['activelyCooled'] then
+            pages[#pages+1] = gui.reactor_pageFuel
+            pages[#pages+1] = gui.reactor_pagePower
+            pageTitles[#pageTitles+1] = 'Reactor Fuel Stats'
+            pageTitles[#pageTitles+1] = 'Reactor Power Stats'
+        else
+            pages[#pages+1] = gui.reactor_pageFuel
+            pages[#pages+1] = gui.reactor_pageVapor
+            pages[#pages+1] = gui.reactor_pageCoolant
+            pages[#pages+1] = gui.pageGraphs
+            pages[#pages+1] = gui.reactor_pageRods
+            pageTitles[#pageTitles+1] = 'Reactor Fuel Stats'
+            pageTitles[#pageTitles+1] = 'Reactor Vapor Stats'
+            pageTitles[#pageTitles+1] = 'Reactor Coolant Stats'
+            pageTitles[#pageTitles+1] = 'Graphs'
+            pageTitles[#pageTitles+1] = 'Rod Statistics Info'
+        end
     end
-    pages[#pages+1] = gui.pageGraphs
     pages[#pages+1] = gui.pageAutomations
     pages[#pages+1] = gui.pageConnections
-    pageTitles[#pageTitles+1] = 'Graphs'
     pageTitles[#pageTitles+1] = 'Automations'
     if fs.exists('./er_interface/interface.lua') then -- If this file exists then it is a server
         pageTitles[#pageTitles+1] = 'Manage Clients'
@@ -479,6 +482,8 @@ end
 function gui.main()
     gui.monitor.setVisible(false)
     gui.readSettings()
+    gui.settings['currentPageTitle'] = gui.getPageTitle(gui.settings['currentPage'])
+    gui.writeSettings()
     gui.clearScreen()
     -- gui.log('Drawing page: '..gui.settings['currentPage'])
     -- gui.log('Page drawn was: '..tostring(gui.pages[gui.settings['currentPage']]))
@@ -914,9 +919,9 @@ function gui.reactor_pageCoolant() -- Coolant
 end --end page
 
 function gui.reactor_pageVapor() -- Hot Fluid
-    local vaporbar = ''
+    local vaporBar = ''
     for i=1, (gui.snapshot['reactor']['hotFluidInfo']['amount']/gui.snapshot['reactor']['hotFluidInfo']['max'])*(gui.width-4) do
-        vaporbar = vaporbar..' '
+        vaporBar = vaporBar..' '
     end
     local content = {
         [0] = '',
@@ -1015,7 +1020,7 @@ function gui.turbine_pageVapor()
         [0] = '',
         [1] = gui.getPageTitle(gui.settings['currentPage']),
         [2] = '',
-        [3] = ccStrings.ensure_width('Power:', gui.width*gui.widthFactor-1)..tostring(math.floor((gui.snapshot['turbine']['ioInfo']['inputAmount']/gui.snapshot['turbine']['fluidInfo']['max'])*1000)/10)..'%',
+        [3] = ccStrings.ensure_width('Vapor:', gui.width*gui.widthFactor-1)..tostring(math.floor((gui.snapshot['turbine']['ioInfo']['inputAmount']/gui.snapshot['turbine']['fluidInfo']['max'])*1000)/10)..'%',
         [4] = 'bar',
         [5] = '',
         [6] = ccStrings.ensure_width('Stored (mB):', gui.width*gui.widthFactor-1)..gui.formatNum(gui.snapshot['turbine']['ioInfo']['inputAmount']),
@@ -1220,26 +1225,32 @@ function gui.reactor_pageRods() -- Rods Page
         [1] = gui.getPageTitle(gui.settings['currentPage']),
         [2] = '',
         [3] = ccStrings.ensure_width('# Name', gui.width*gui.widthFactor-1)..'Level',
-        [4] = '',
+        -- [4] = '',
     }
     local contentColors = {
         [0] = gui.stdBgColor,
         [1] = colors.yellow,
         [2] = gui.stdBgColor,
         [3] = colors.yellow,
-        [4] = gui.stdBgColor,
+        -- [4] = gui.stdBgColor,
     }
     for k, v in pairs(gui.snapshot['reactor']['rodInfo']['rods']) do
-        if (k+1)*2 >= (gui.height-6-2) then
-            break
-        end
-        content[#content] = ccStrings.ensure_width(tostring(k)..' '..v['name'], gui.width*gui.widthFactor-1)..v['level']
-        content[#content+1] = '      buttons      '
-        contentColors[#contentColors] = colors.white
-        contentColors[#contentColors+1] = colors.white
+        -- if (k+1)*2 >= (gui.height-4) then
+        --     break
+        -- end
+        table.insert(content, ccStrings.ensure_width(tostring(k)..' '..v['name'], gui.width*gui.widthFactor-1)..v['level'])
+        table.insert(content, '      buttons      ')
+        table.insert(contentColors, colors.white)
+        table.insert(contentColors, colors.white)
+        -- content[#content] = ccStrings.ensure_width(tostring(k)..' '..v['name'], gui.width*gui.widthFactor-1)..v['level']
+        -- content[#content+1] = '      buttons      '
+        -- contentColors[#contentColors] = colors.white
+        -- contentColors[#contentColors+1] = colors.white
     end
-    content[#content+1] = ''
-    contentColors[#contentColors+1] = gui.stdBgColor
+    table.insert(content, '')
+    table.insert(contentColors, gui.stdBgColor)
+    -- content[#content+1] = ''
+    -- contentColors[#contentColors+1] = gui.stdBgColor
     gui.draw_title_content(content, contentColors)
     -- for k, v in pairs(content) do
     --     gui.monitor.setCursorPos(2,3+k)
@@ -1557,118 +1568,242 @@ end  --end page
 
 function gui.draw_title_content(content, contentColors)
     --gui.readSettings() -- +gui.settings['mouseWheel']*100
-    for i=0, gui.height-5 do
-    -- for k, v in pairs(content) do
-        gui.monitor.setCursorPos(2,3+i)
-        if content[1] == 'Manage Clients' and i < #content['backgrounds'] then
-            gui.monitor.setBackgroundColor(content['backgrounds'][i])
-        else
-            gui.monitor.setBackgroundColor(colors.black)
-        end
-        for k=0, gui.width-3 do
-            gui.monitor.write(' ')
-        end
-        if i > #content then
-        elseif i == 1 then --Title
-            gui.monitor.setCursorPos(math.ceil((gui.width-(#content[i]-2))/2), 3+i)
-            gui.monitor.setTextColor(contentColors[i])
-            gui.monitor.write(content[i])
-        elseif content[i] == 'bar' then
-            gui.monitor.setCursorPos(3,3+i)
-            gui.monitor.setBackgroundColor(contentColors[i])
-            gui.monitor.write(content['bar'])
-            gui.monitor.setBackgroundColor(gui.stdBgColor)
-        elseif content[i] == 'status' or content[i] == 'status2' then
-            gui.monitor.setBackgroundColor(colors.black)
-            -- gui.monitor.setCursorPos(2,3+k)
-            gui.monitor.setTextColor(contentColors[i])
-            gui.monitor.setCursorPos(3,3+i)
-            gui.monitor.write(ccStrings.ensure_width(content[content[i]..'Text'], gui.width*gui.widthFactor-1))
-            gui.monitor.setCursorPos(2+gui.width*gui.widthFactor,3+i)
-            if content[content[i]] == true then
-                gui.monitor.setBackgroundColor(colors.green)
-                gui.monitor.setTextColor(colors.white)
-                gui.monitor.write(' ON  ')
-                gui.monitor.setBackgroundColor(gui.stdBgColor)
+    if #content < gui.height-5 then
+        gui.readSettings()
+        gui.settings['scrollAbleLines'] = 0
+        gui.writeSettings()
+        for i=0, gui.height-5 do
+        -- for k, v in pairs(content) do
+            gui.monitor.setCursorPos(2,3+i)
+            if content[1] == 'Manage Clients' and i < #content['backgrounds'] then
+                gui.monitor.setBackgroundColor(content['backgrounds'][i])
             else
-                gui.monitor.setBackgroundColor(colors.red)
-                gui.monitor.setTextColor(colors.white)
-                gui.monitor.write(' OFF ')
-                gui.monitor.setBackgroundColor(gui.stdBgColor)
-            end
-        elseif content[i] == '      buttons      ' then
-            local buttons = {
-                [0] = '-1', 
-                [1] = '-5',
-                [2] = '-10',
-                [3] = '+10',
-                [4] = '+5',
-                [5] = '+1',
-            }
-            gui.monitor.setCursorPos(math.ceil((gui.width-(#content[i]-2))/2), 3+i)
-            gui.monitor.setTextColor(contentColors[i])
-            for k, v in pairs(buttons) do
-                gui.monitor.setBackgroundColor(colors.lightGray)
-                gui.monitor.write(v)
                 gui.monitor.setBackgroundColor(colors.black)
+            end
+            for k=0, gui.width-3 do
                 gui.monitor.write(' ')
             end
-        elseif content[i] == 'Power' or content[i] == 'Vapor' then
-            gui.monitor.setBackgroundColor(colors.black)
-            gui.monitor.setCursorPos(3,3+i)
-            gui.monitor.setTextColor(contentColors[i])
-            gui.monitor.write(ccStrings.ensure_width(content[i], gui.width*gui.widthFactor-1))
-            gui.monitor.setCursorPos(2+gui.width*gui.widthFactor,3+i)
-            if gui.snapshot['automations']['powerToggle'] == true then
-                gui.monitor.setBackgroundColor(colors.green)
-                gui.monitor.setTextColor(colors.white)
-                gui.monitor.write(' ON  ')
+            if i > #content then
+            elseif i == 1 then --Title
+                gui.monitor.setCursorPos(math.ceil((gui.width-(#content[i]-2))/2), 3+i)
+                gui.monitor.setTextColor(contentColors[i])
+                gui.monitor.write(content[i])
+            elseif content[i] == 'bar' then
+                gui.monitor.setCursorPos(3,3+i)
+                gui.monitor.setBackgroundColor(contentColors[i])
+                gui.monitor.write(content['bar'])
                 gui.monitor.setBackgroundColor(gui.stdBgColor)
+            elseif content[i] == 'status' or content[i] == 'status2' then
+                gui.monitor.setBackgroundColor(colors.black)
+                -- gui.monitor.setCursorPos(2,3+k)
+                gui.monitor.setTextColor(contentColors[i])
+                gui.monitor.setCursorPos(3,3+i)
+                gui.monitor.write(ccStrings.ensure_width(content[content[i]..'Text'], gui.width*gui.widthFactor-1))
+                gui.monitor.setCursorPos(2+gui.width*gui.widthFactor,3+i)
+                if content[content[i]] == true then
+                    gui.monitor.setBackgroundColor(colors.green)
+                    gui.monitor.setTextColor(colors.white)
+                    gui.monitor.write(' ON  ')
+                    gui.monitor.setBackgroundColor(gui.stdBgColor)
+                else
+                    gui.monitor.setBackgroundColor(colors.red)
+                    gui.monitor.setTextColor(colors.white)
+                    gui.monitor.write(' OFF ')
+                    gui.monitor.setBackgroundColor(gui.stdBgColor)
+                end
+            elseif content[i] == '      buttons      ' then
+                local buttons = {
+                    [0] = '-1', 
+                    [1] = '-5',
+                    [2] = '-10',
+                    [3] = '+10',
+                    [4] = '+5',
+                    [5] = '+1',
+                }
+                gui.monitor.setCursorPos(math.ceil((gui.width-(#content[i]-2))/2), 3+i)
+                gui.monitor.setTextColor(contentColors[i])
+                for k, v in pairs(buttons) do
+                    gui.monitor.setBackgroundColor(colors.lightGray)
+                    gui.monitor.write(v)
+                    gui.monitor.setBackgroundColor(colors.black)
+                    gui.monitor.write(' ')
+                end
+            elseif content[i] == 'Power' or content[i] == 'Vapor' then
+                gui.monitor.setBackgroundColor(colors.black)
+                gui.monitor.setCursorPos(3,3+i)
+                gui.monitor.setTextColor(contentColors[i])
+                gui.monitor.write(ccStrings.ensure_width(content[i], gui.width*gui.widthFactor-1))
+                gui.monitor.setCursorPos(2+gui.width*gui.widthFactor,3+i)
+                if gui.snapshot['automations']['powerToggle'] == true then
+                    gui.monitor.setBackgroundColor(colors.green)
+                    gui.monitor.setTextColor(colors.white)
+                    gui.monitor.write(' ON  ')
+                    gui.monitor.setBackgroundColor(gui.stdBgColor)
+                else
+                    gui.monitor.setBackgroundColor(colors.red)
+                    gui.monitor.setTextColor(colors.white)
+                    gui.monitor.write(' OFF ')
+                    gui.monitor.setBackgroundColor(gui.stdBgColor)
+                end
+            elseif content[i] == 'Temperature' then
+                gui.monitor.setBackgroundColor(colors.black)
+                gui.monitor.setCursorPos(3,3+i)
+                gui.monitor.setTextColor(contentColors[i])
+                gui.monitor.write(ccStrings.ensure_width(content[i], gui.width*gui.widthFactor-1))
+                gui.monitor.setCursorPos(2+gui.width*gui.widthFactor,3+i)
+                if gui.snapshot['automations']['tempToggle'] == true then
+                    gui.monitor.setBackgroundColor(colors.green)
+                    gui.monitor.setTextColor(colors.white)
+                    gui.monitor.write(' ON  ')
+                    gui.monitor.setBackgroundColor(gui.stdBgColor)
+                else
+                    gui.monitor.setBackgroundColor(colors.red)
+                    gui.monitor.setTextColor(colors.white)
+                    gui.monitor.write(' OFF ')
+                    gui.monitor.setBackgroundColor(gui.stdBgColor)
+                end
+            elseif content[i] == 'Control Rods' then
+                gui.monitor.setBackgroundColor(colors.black)
+                gui.monitor.setCursorPos(3,3+i)
+                gui.monitor.setTextColor(contentColors[i])
+                gui.monitor.write(ccStrings.ensure_width(content[i], gui.width*gui.widthFactor-1))
+                gui.monitor.setCursorPos(2+gui.width*gui.widthFactor,3+i)
+                if gui.snapshot['automations']['controlRodsToggle'] == true then
+                    gui.monitor.setBackgroundColor(colors.green)
+                    gui.monitor.setTextColor(colors.white)
+                    gui.monitor.write(' ON  ')
+                    gui.monitor.setBackgroundColor(gui.stdBgColor)
+                else
+                    gui.monitor.setBackgroundColor(colors.red)
+                    gui.monitor.setTextColor(colors.white)
+                    gui.monitor.write(' OFF ')
+                    gui.monitor.setBackgroundColor(gui.stdBgColor)
+                end
             else
-                gui.monitor.setBackgroundColor(colors.red)
-                gui.monitor.setTextColor(colors.white)
-                gui.monitor.write(' OFF ')
-                gui.monitor.setBackgroundColor(gui.stdBgColor)
+                -- gui.log(textutils.serialize({['i'] = i, ['contentColorsI'] = contentColors[i], ['contentI'] = content[i]}))
+                gui.monitor.setCursorPos(3,3+i)
+                gui.monitor.setTextColor(contentColors[i])
+                gui.monitor.write(content[i])
             end
-        elseif content[i] == 'Temperature' then
-            gui.monitor.setBackgroundColor(colors.black)
-            gui.monitor.setCursorPos(3,3+i)
-            gui.monitor.setTextColor(contentColors[i])
-            gui.monitor.write(ccStrings.ensure_width(content[i], gui.width*gui.widthFactor-1))
-            gui.monitor.setCursorPos(2+gui.width*gui.widthFactor,3+i)
-            if gui.snapshot['automations']['tempToggle'] == true then
-                gui.monitor.setBackgroundColor(colors.green)
-                gui.monitor.setTextColor(colors.white)
-                gui.monitor.write(' ON  ')
-                gui.monitor.setBackgroundColor(gui.stdBgColor)
+        end
+    else -- mouse_scroll
+        gui.readSettings()
+        gui.settings['scrollAbleLines'] = #content-(gui.height-5)
+        gui.writeSettings()
+        for i=0, gui.height-5 do
+            -- math.floor(i+(#helpText-(gui.settings['helpWindowHeight']-1))*gui.settings['mouseWheel'])
+        -- for k, v in pairs(content) do
+            gui.monitor.setCursorPos(2,3+i)
+            if content[1] == 'Manage Clients' and math.floor(i+(#content-(gui.height-5))*gui.settings['mouseWheel']) < #content['backgrounds'] then
+                gui.monitor.setBackgroundColor(content['backgrounds'][math.floor(i+(#content-(gui.height-5))*gui.settings['mouseWheel'])])
             else
-                gui.monitor.setBackgroundColor(colors.red)
-                gui.monitor.setTextColor(colors.white)
-                gui.monitor.write(' OFF ')
-                gui.monitor.setBackgroundColor(gui.stdBgColor)
+                gui.monitor.setBackgroundColor(colors.black)
             end
-        elseif content[i] == 'Control Rods' then
-            gui.monitor.setBackgroundColor(colors.black)
-            gui.monitor.setCursorPos(3,3+i)
-            gui.monitor.setTextColor(contentColors[i])
-            gui.monitor.write(ccStrings.ensure_width(content[i], gui.width*gui.widthFactor-1))
-            gui.monitor.setCursorPos(2+gui.width*gui.widthFactor,3+i)
-            if gui.snapshot['automations']['controlRodsToggle'] == true then
-                gui.monitor.setBackgroundColor(colors.green)
-                gui.monitor.setTextColor(colors.white)
-                gui.monitor.write(' ON  ')
+            for k=0, gui.width-3 do
+                gui.monitor.write(' ')
+            end
+            if math.floor(i+(#content-(gui.height-5))*gui.settings['mouseWheel']) > #content then
+            elseif math.floor(i+(#content-(gui.height-5))*gui.settings['mouseWheel']) == 1 then --Title
+                gui.monitor.setCursorPos(math.ceil((gui.width-(#content[math.floor(i+(#content-(gui.height-5))*gui.settings['mouseWheel'])]-2))/2), 3+i)
+                gui.monitor.setTextColor(contentColors[math.floor(i+(#content-(gui.height-5))*gui.settings['mouseWheel'])])
+                gui.monitor.write(content[math.floor(i+(#content-(gui.height-5))*gui.settings['mouseWheel'])])
+            elseif content[math.floor(math.floor(i+(#content-(gui.height-5))*gui.settings['mouseWheel'])+(#content-(gui.height-5))*gui.settings['mouseWheel'])] == 'bar' then
+                gui.monitor.setCursorPos(3,3+i)
+                gui.monitor.setBackgroundColor(contentColors[math.floor(i+(#content-(gui.height-5))*gui.settings['mouseWheel'])])
+                gui.monitor.write(content['bar'])
                 gui.monitor.setBackgroundColor(gui.stdBgColor)
+            elseif content[math.floor(i+(#content-(gui.height-5))*gui.settings['mouseWheel'])] == 'status' or content[math.floor(i+(#content-(gui.height-5))*gui.settings['mouseWheel'])] == 'status2' then
+                gui.monitor.setBackgroundColor(colors.black)
+                -- gui.monitor.setCursorPos(2,3+k)
+                gui.monitor.setTextColor(contentColors[math.floor(i+(#content-(gui.height-5))*gui.settings['mouseWheel'])])
+                gui.monitor.setCursorPos(3,3+i)
+                gui.monitor.write(ccStrings.ensure_width(content[content[math.floor(i+(#content-(gui.height-5))*gui.settings['mouseWheel'])]..'Text'], gui.width*gui.widthFactor-1))
+                gui.monitor.setCursorPos(2+gui.width*gui.widthFactor,3+i)
+                if content[content[math.floor(i+(#content-(gui.height-5))*gui.settings['mouseWheel'])]] == true then
+                    gui.monitor.setBackgroundColor(colors.green)
+                    gui.monitor.setTextColor(colors.white)
+                    gui.monitor.write(' ON  ')
+                    gui.monitor.setBackgroundColor(gui.stdBgColor)
+                else
+                    gui.monitor.setBackgroundColor(colors.red)
+                    gui.monitor.setTextColor(colors.white)
+                    gui.monitor.write(' OFF ')
+                    gui.monitor.setBackgroundColor(gui.stdBgColor)
+                end
+            elseif content[math.floor(i+(#content-(gui.height-5))*gui.settings['mouseWheel'])] == '      buttons      ' then
+                local buttons = {
+                    [0] = '-1', 
+                    [1] = '-5',
+                    [2] = '-10',
+                    [3] = '+10',
+                    [4] = '+5',
+                    [5] = '+1',
+                }
+                gui.monitor.setCursorPos(math.ceil((gui.width-(#content[math.floor(i+(#content-(gui.height-5))*gui.settings['mouseWheel'])]-2))/2), 3+i)
+                gui.monitor.setTextColor(contentColors[math.floor(i+(#content-(gui.height-5))*gui.settings['mouseWheel'])])
+                for k, v in pairs(buttons) do
+                    gui.monitor.setBackgroundColor(colors.lightGray)
+                    gui.monitor.write(v)
+                    gui.monitor.setBackgroundColor(colors.black)
+                    gui.monitor.write(' ')
+                end
+            elseif content[math.floor(i+(#content-(gui.height-5))*gui.settings['mouseWheel'])] == 'Power' or content[math.floor(i+(#content-(gui.height-5))*gui.settings['mouseWheel'])] == 'Vapor' then
+                gui.monitor.setBackgroundColor(colors.black)
+                gui.monitor.setCursorPos(3,3+i)
+                gui.monitor.setTextColor(contentColors[math.floor(i+(#content-(gui.height-5))*gui.settings['mouseWheel'])])
+                gui.monitor.write(ccStrings.ensure_width(content[math.floor(i+(#content-(gui.height-5))*gui.settings['mouseWheel'])], gui.width*gui.widthFactor-1))
+                gui.monitor.setCursorPos(2+gui.width*gui.widthFactor,3+i)
+                if gui.snapshot['automations']['powerToggle'] == true then
+                    gui.monitor.setBackgroundColor(colors.green)
+                    gui.monitor.setTextColor(colors.white)
+                    gui.monitor.write(' ON  ')
+                    gui.monitor.setBackgroundColor(gui.stdBgColor)
+                else
+                    gui.monitor.setBackgroundColor(colors.red)
+                    gui.monitor.setTextColor(colors.white)
+                    gui.monitor.write(' OFF ')
+                    gui.monitor.setBackgroundColor(gui.stdBgColor)
+                end
+            elseif content[math.floor(i+(#content-(gui.height-5))*gui.settings['mouseWheel'])] == 'Temperature' then
+                gui.monitor.setBackgroundColor(colors.black)
+                gui.monitor.setCursorPos(3,3+i)
+                gui.monitor.setTextColor(contentColors[math.floor(i+(#content-(gui.height-5))*gui.settings['mouseWheel'])])
+                gui.monitor.write(ccStrings.ensure_width(content[math.floor(i+(#content-(gui.height-5))*gui.settings['mouseWheel'])], gui.width*gui.widthFactor-1))
+                gui.monitor.setCursorPos(2+gui.width*gui.widthFactor,3+i)
+                if gui.snapshot['automations']['tempToggle'] == true then
+                    gui.monitor.setBackgroundColor(colors.green)
+                    gui.monitor.setTextColor(colors.white)
+                    gui.monitor.write(' ON  ')
+                    gui.monitor.setBackgroundColor(gui.stdBgColor)
+                else
+                    gui.monitor.setBackgroundColor(colors.red)
+                    gui.monitor.setTextColor(colors.white)
+                    gui.monitor.write(' OFF ')
+                    gui.monitor.setBackgroundColor(gui.stdBgColor)
+                end
+            elseif content[math.floor(i+(#content-(gui.height-5))*gui.settings['mouseWheel'])] == 'Control Rods' then
+                gui.monitor.setBackgroundColor(colors.black)
+                gui.monitor.setCursorPos(3,3+i)
+                gui.monitor.setTextColor(contentColors[math.floor(i+(#content-(gui.height-5))*gui.settings['mouseWheel'])])
+                gui.monitor.write(ccStrings.ensure_width(content[math.floor(i+(#content-(gui.height-5))*gui.settings['mouseWheel'])], gui.width*gui.widthFactor-1))
+                gui.monitor.setCursorPos(2+gui.width*gui.widthFactor,3+i)
+                if gui.snapshot['automations']['controlRodsToggle'] == true then
+                    gui.monitor.setBackgroundColor(colors.green)
+                    gui.monitor.setTextColor(colors.white)
+                    gui.monitor.write(' ON  ')
+                    gui.monitor.setBackgroundColor(gui.stdBgColor)
+                else
+                    gui.monitor.setBackgroundColor(colors.red)
+                    gui.monitor.setTextColor(colors.white)
+                    gui.monitor.write(' OFF ')
+                    gui.monitor.setBackgroundColor(gui.stdBgColor)
+                end
             else
-                gui.monitor.setBackgroundColor(colors.red)
-                gui.monitor.setTextColor(colors.white)
-                gui.monitor.write(' OFF ')
-                gui.monitor.setBackgroundColor(gui.stdBgColor)
+                -- gui.log(textutils.serialize({['i'] = i, ['contentColorsI'] = contentColors[i], ['contentI'] = content[i]}))
+                gui.monitor.setCursorPos(3,3+i)
+                gui.monitor.setTextColor(contentColors[math.floor(i+(#content-(gui.height-5))*gui.settings['mouseWheel'])])
+                gui.monitor.write(content[math.floor(i+(#content-(gui.height-5))*gui.settings['mouseWheel'])])
             end
-        else
-            -- gui.log(textutils.serialize({['i'] = i, ['contentColorsI'] = contentColors[i], ['contentI'] = content[i]}))
-            gui.monitor.setCursorPos(3,3+i)
-            gui.monitor.setTextColor(contentColors[i])
-            gui.monitor.write(content[i])
         end
     end
 end --end draw_title_content

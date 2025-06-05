@@ -17,7 +17,10 @@ interface.settings = nil
 interface.initialized = false
 interface.session = {}
 interface.automations = {
-    ['powerToggle'] = true,
+    ['reactorToggle'] = true,
+    ['turbineToggle'] = true,
+    ['inductorToggle'] = true,
+    ['powerToggle'] = true, -- Reactor if no turbine
     ['powerMin'] = 10,
     ['powerMax'] = 90,
     ['tempToggle'] = true,
@@ -168,11 +171,16 @@ function interface.reactorGetControlRodsInfo()
         ['rods'] = {},
     }
     for i=0, info['quantity']-1 do
-        info['rods'][i] = {
+        table.insert(info['rods'], {
             ['name'] = interface.reactor.getControlRodName(i),
             ['level'] = interface.reactor.getControlRodLevel(i),
             ['location'] = interface.reactor.getControlRodLocation(i),
-        }
+        })
+        -- info['rods'][i] = {
+        --     ['name'] = interface.reactor.getControlRodName(i),
+        --     ['level'] = interface.reactor.getControlRodLevel(i),
+        --     ['location'] = interface.reactor.getControlRodLocation(i),
+        -- }
     end
     return info
 end --end getControlRodsInfo
@@ -662,9 +670,9 @@ function interface.checkMessages(event, side, channel, replyChannel, message, di
                                 end
                             elseif decryptedMsg['type'] == 'adjustRod' then
                                 if decryptedMsg['direction'] == 'up' then
-                                    interface.reactor.setControlRodLevel(decryptedMsg['target'], gui.snapshot['reactor']['rodInfo']['rods'][decryptedMsg['target']]['level']+decryptedMsg['data'])
+                                    interface.reactor.setControlRodLevel(decryptedMsg['target']-1, gui.snapshot['reactor']['rodInfo']['rods'][decryptedMsg['target']]['level']+decryptedMsg['data'])
                                 elseif decryptedMsg['direction'] == 'down' then
-                                    interface.reactor.setControlRodLevel(decryptedMsg['target'], gui.snapshot['reactor']['rodInfo']['rods'][decryptedMsg['target']]['level']-decryptedMsg['data'])
+                                    interface.reactor.setControlRodLevel(decryptedMsg['target']-1, gui.snapshot['reactor']['rodInfo']['rods'][decryptedMsg['target']]['level']-decryptedMsg['data'])
                                 end
                                 interface.writeAutomations()
                                 client['lastActivity'] = os.epoch('local')
@@ -765,176 +773,356 @@ function interface.clickedButton(event, button, x, y, arg4, arg5)
                 gui.settings['mouseWheel'] = 0
                 gui.writeSettings()
             end
-        elseif gui.settings['currentPageTitle'] == 'Reactor Summary' then
-            if y == 8 then
-                if x>=1+gui.width*gui.widthFactor and x<=1+gui.width*gui.widthFactor+5 then
-                    if interface.reactor.getActive() then
-                        interface.reactor.setActive(false)
-                    else
-                        interface.reactor.setActive(true)
-                    end
-                end
-            end
-        elseif gui.settings['currentPageTitle'] == 'Turbine Summary' then
-            if y == 8 then
-                if x>=1+gui.width*gui.widthFactor and x<=1+gui.width*gui.widthFactor+5 then
-                    if interface.turbine.getActive() then
-                        interface.turbine.setActive(false)
-                    else
-                        interface.turbine.setActive(true)
-                    end
-                end
-            elseif y == 9 then
-                if x>=1+gui.width*gui.widthFactor and x<=1+gui.width*gui.widthFactor+5 then
-                    if interface.turbine.getInductorEngaged() then
-                        interface.turbine.setInductorEngaged(false)
-                    else
-                        interface.turbine.setInductorEngaged(true)
-                    end
-                end
-            end
-        -- elseif gui.settings['currentPageTitle'] == 'Graphs' then -- Graphs
-        --     if y == 6 then
-        --         if x >=gui.width*gui.widthFactor+1 and x <= gui.width*gui.widthFactor+1+5 then
-        --             if gui.snapshot['reactor']['status'] then
-        --                 for k, v in pairs(gui.snapshot['reactor']['rodInfo']['rods']) do
-        --                     interface.reactor.setControlRodLevel(k, 100)
-        --                 end
-        --                 interface.reactor.setActive(false)
-        --             end
-        --         end
-        --     end
-        elseif gui.settings['currentPageTitle'] == 'Rod Statistics' then -- Control Rods
-            for k, v in pairs(gui.snapshot['reactor']['rodInfo']['rods']) do
-                if y == 8+k*2 then
-                    if x == math.ceil((gui.width-(#'      buttons      '-2))/2) or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+1 then
-                        interface.reactor.setControlRodLevel(k, v['level']-1)
-                    elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+3 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+4 then
-                        if v['level']-5 < 0 then
-                            interface.reactor.setControlRodLevel(k, 0)
-                        else
-                            interface.reactor.setControlRodLevel(k, v['level']-5)
+        elseif y >= 3 then
+            if gui.settings['scrollAbleLines'] == 0 then -- -math.floor((gui.settings['scrollAbleLines']*gui.settings['mouseWheel']))
+                if gui.settings['currentPageTitle'] == 'Reactor Summary' then
+                    if y == 8 then
+                        if x>=1+gui.width*gui.widthFactor and x<=1+gui.width*gui.widthFactor+5 then
+                            if interface.reactor.getActive() then
+                                interface.reactor.setActive(false)
+                            else
+                                interface.reactor.setActive(true)
+                            end
                         end
-                    elseif x >= math.ceil((gui.width-(#'      buttons      '-2))/2)+6 and x <= math.ceil((gui.width-(#'      buttons      '-2))/2)+8 then
-                        if v['level']-10 < 0 then
-                            interface.reactor.setControlRodLevel(k, 0)
-                        else
-                            interface.reactor.setControlRodLevel(k, v['level']-10)
+                    end
+                elseif gui.settings['currentPageTitle'] == 'Turbine Summary' then
+                    if y == 8 then
+                        if x>=1+gui.width*gui.widthFactor and x<=1+gui.width*gui.widthFactor+5 then
+                            if interface.turbine.getActive() then
+                                interface.turbine.setActive(false)
+                            else
+                                interface.turbine.setActive(true)
+                            end
                         end
-                    elseif x >= math.ceil((gui.width-(#'      buttons      '-2))/2)+10 and x <= math.ceil((gui.width-(#'      buttons      '-2))/2)+12 then
-                        if v['level']+10 > 100 then
-                            interface.reactor.setControlRodLevel(k, 100)
-                        else
-                            interface.reactor.setControlRodLevel(k, v['level']+10)
+                    elseif y == 9 then
+                        if x>=1+gui.width*gui.widthFactor and x<=1+gui.width*gui.widthFactor+5 then
+                            if interface.turbine.getInductorEngaged() then
+                                interface.turbine.setInductorEngaged(false)
+                            else
+                                interface.turbine.setInductorEngaged(true)
+                            end
                         end
-                    elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+14 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+15 then
-                        if v['level']+5 > 100 then
-                            interface.reactor.setControlRodLevel(k, 100)
-                        else
-                            interface.reactor.setControlRodLevel(k, v['level']+5)
-                        end
-                    elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+17 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+18 then
-                        interface.reactor.setControlRodLevel(k, v['level']+1)
                     end
-                    break
-                end
-            end
-        elseif gui.settings['currentPageTitle'] == 'Automations' then -- Automations
-            if y == 6 then -- Power
-                if x>=1+gui.width*gui.widthFactor and x<=1+gui.width*gui.widthFactor+5 then
-                    if interface.automations['powerToggle'] then
-                        interface.automations['powerToggle'] = false
-                    else
-                        interface.automations['powerToggle'] = true
-                    end
-                end
-            elseif y == 8 then -- Power Max
-                if x == math.ceil((gui.width-(#'      buttons      '-2))/2) or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+1 then
-                    interface.automations['powerMax'] = interface.automations['powerMax'] -1
-                elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+3 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+4 then
-                    interface.automations['powerMax'] = interface.automations['powerMax'] -5
-                elseif x >= math.ceil((gui.width-(#'      buttons      '-2))/2)+6 and x <= math.ceil((gui.width-(#'      buttons      '-2))/2)+8 then
-                    interface.automations['powerMax'] = interface.automations['powerMax'] -10
-                elseif x >= math.ceil((gui.width-(#'      buttons      '-2))/2)+10 and x <= math.ceil((gui.width-(#'      buttons      '-2))/2)+12 then
-                    interface.automations['powerMax'] = interface.automations['powerMax'] +10
-                elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+14 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+15 then
-                    interface.automations['powerMax'] = interface.automations['powerMax'] +5
-                elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+17 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+18 then
-                    interface.automations['powerMax'] = interface.automations['powerMax'] +1
-                end
-                if interface.automations['powerMax'] < 0 then
-                    interface.automations['powerMax'] = 0
-                elseif interface.automations['powerMax'] > 100 then
-                    interface.automations['powerMax'] = 100
-                end
-            elseif y == 10 then -- Power Min
-                if x == math.ceil((gui.width-(#'      buttons      '-2))/2) or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+1 then
-                    interface.automations['powerMin'] = interface.automations['powerMin'] -1
-                elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+3 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+4 then
-                    interface.automations['powerMin'] = interface.automations['powerMin'] -5
-                elseif x >= math.ceil((gui.width-(#'      buttons      '-2))/2)+6 and x <= math.ceil((gui.width-(#'      buttons      '-2))/2)+8 then
-                    interface.automations['powerMin'] = interface.automations['powerMin'] -10
-                elseif x >= math.ceil((gui.width-(#'      buttons      '-2))/2)+10 and x <= math.ceil((gui.width-(#'      buttons      '-2))/2)+12 then
-                    interface.automations['powerMin'] = interface.automations['powerMin'] +10
-                elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+14 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+15 then
-                    interface.automations['powerMin'] = interface.automations['powerMin'] +5
-                elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+17 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+18 then
-                    interface.automations['powerMin'] = interface.automations['powerMin'] +1
-                end
-                if interface.automations['powerMin'] < 0 then
-                    interface.automations['powerMin'] = 0
-                elseif interface.automations['powerMin'] > 100 then
-                    interface.automations['powerMin'] = 100
-                end
-            elseif y == 12 then -- Temperature
-                if x>=1+gui.width*gui.widthFactor and x<=1+gui.width*gui.widthFactor+5 then
-                    if interface.automations['tempToggle'] then
-                        interface.automations['tempToggle'] = false
-                    else
-                        interface.automations['tempToggle'] = true
-                    end
-                end
-            elseif y == 14 then -- Temperature Max
-                if x == math.ceil((gui.width-(#'      buttons      '-2))/2) or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+1 then
-                    interface.automations['tempMax'] = interface.automations['tempMax'] -1
-                elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+3 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+4 then
-                    interface.automations['tempMax'] = interface.automations['tempMax'] -5
-                elseif x >= math.ceil((gui.width-(#'      buttons      '-2))/2)+6 and x <= math.ceil((gui.width-(#'      buttons      '-2))/2)+8 then
-                    interface.automations['tempMax'] = interface.automations['tempMax'] -10
-                elseif x >= math.ceil((gui.width-(#'      buttons      '-2))/2)+10 and x <= math.ceil((gui.width-(#'      buttons      '-2))/2)+12 then
-                    interface.automations['tempMax'] = interface.automations['tempMax'] +10
-                elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+14 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+15 then
-                    interface.automations['tempMax'] = interface.automations['tempMax'] +5
-                elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+17 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+18 then
-                    interface.automations['tempMax'] = interface.automations['tempMax'] +1
-                end
-                if interface.automations['tempMax'] < 0 then
-                    interface.automations['tempMax'] = 0
-                end
-            elseif y == 16 then -- Control Rods
-                if x>=1+gui.width*gui.widthFactor and x<=1+gui.width*gui.widthFactor+5 then
-                    if interface.automations['controlRodsToggle'] then
-                        interface.automations['controlRodsToggle'] = false
-                    else
-                        interface.automations['controlRodsToggle'] = true
-                    end
-                end
-            end
-            interface.writeAutomations()
-        elseif gui.settings['currentPageTitle'] == 'Manage Clients' then -- Manage Clients
-            if x > 2 and x < gui.width-2 then
-                if y > 6 and y < gui.height-3 then
-                    local count = 1
-                    local clients = interface.readClients()
-                    for k, v in pairs(clients) do
-                        -- gui.log(textutils.serialize({['y'] = y, ['yMinusSix'] = y-6, ['count'] = count, ['k'] = k, ['client'] = v}))
-                        if y-6 == count then
-                            interface.removeClient(v)
-                            -- clients[i['id']] = nil
-                            -- interface.writeClients(clients)
+                -- elseif gui.settings['currentPageTitle'] == 'Graphs' then -- Graphs
+                --     if y == 6 then
+                --         if x >=gui.width*gui.widthFactor+1 and x <= gui.width*gui.widthFactor+1+5 then
+                --             if gui.snapshot['reactor']['status'] then
+                --                 for k, v in pairs(gui.snapshot['reactor']['rodInfo']['rods']) do
+                --                     interface.reactor.setControlRodLevel(k, 100)
+                --                 end
+                --                 interface.reactor.setActive(false)
+                --             end
+                --         end
+                --     end
+                elseif gui.settings['currentPageTitle'] == 'Rod Statistics Info' then -- Control Rods
+                    for k, v in pairs(gui.snapshot['reactor']['rodInfo']['rods']) do
+                        gui.log(k)
+                        if y == 6+k*2 then
+                            if x == math.ceil((gui.width-(#'      buttons      '-2))/2) or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+1 then
+                                interface.reactor.setControlRodLevel(k-1, v['level']-1)
+                            elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+3 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+4 then
+                                if v['level']-5 < 0 then
+                                    interface.reactor.setControlRodLevel(k-1, 0)
+                                else
+                                    interface.reactor.setControlRodLevel(k-1, v['level']-5)
+                                end
+                            elseif x >= math.ceil((gui.width-(#'      buttons      '-2))/2)+6 and x <= math.ceil((gui.width-(#'      buttons      '-2))/2)+8 then
+                                if v['level']-10 < 0 then
+                                    interface.reactor.setControlRodLevel(k-1, 0)
+                                else
+                                    interface.reactor.setControlRodLevel(k-1, v['level']-10)
+                                end
+                            elseif x >= math.ceil((gui.width-(#'      buttons      '-2))/2)+10 and x <= math.ceil((gui.width-(#'      buttons      '-2))/2)+12 then
+                                if v['level']+10 > 100 then
+                                    interface.reactor.setControlRodLevel(k-1, 100)
+                                else
+                                    interface.reactor.setControlRodLevel(k-1, v['level']+10)
+                                end
+                            elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+14 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+15 then
+                                if v['level']+5 > 100 then
+                                    interface.reactor.setControlRodLevel(k-1, 100)
+                                else
+                                    interface.reactor.setControlRodLevel(k-1, v['level']+5)
+                                end
+                            elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+17 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+18 then
+                                interface.reactor.setControlRodLevel(k-1, v['level']+1)
+                            end
                             break
                         end
-                        count = count + 1
+                    end
+                elseif gui.settings['currentPageTitle'] == 'Automations' then -- Automations
+                    if y == 6 then -- Power
+                        if x>=1+gui.width*gui.widthFactor and x<=1+gui.width*gui.widthFactor+5 then
+                            if interface.automations['powerToggle'] then
+                                interface.automations['powerToggle'] = false
+                            else
+                                interface.automations['powerToggle'] = true
+                            end
+                        end
+                    elseif y == 8 then -- Power Max
+                        if x == math.ceil((gui.width-(#'      buttons      '-2))/2) or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+1 then
+                            interface.automations['powerMax'] = interface.automations['powerMax'] -1
+                        elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+3 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+4 then
+                            interface.automations['powerMax'] = interface.automations['powerMax'] -5
+                        elseif x >= math.ceil((gui.width-(#'      buttons      '-2))/2)+6 and x <= math.ceil((gui.width-(#'      buttons      '-2))/2)+8 then
+                            interface.automations['powerMax'] = interface.automations['powerMax'] -10
+                        elseif x >= math.ceil((gui.width-(#'      buttons      '-2))/2)+10 and x <= math.ceil((gui.width-(#'      buttons      '-2))/2)+12 then
+                            interface.automations['powerMax'] = interface.automations['powerMax'] +10
+                        elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+14 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+15 then
+                            interface.automations['powerMax'] = interface.automations['powerMax'] +5
+                        elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+17 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+18 then
+                            interface.automations['powerMax'] = interface.automations['powerMax'] +1
+                        end
+                        if interface.automations['powerMax'] < 0 then
+                            interface.automations['powerMax'] = 0
+                        elseif interface.automations['powerMax'] > 100 then
+                            interface.automations['powerMax'] = 100
+                        end
+                    elseif y == 10 then -- Power Min
+                        if x == math.ceil((gui.width-(#'      buttons      '-2))/2) or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+1 then
+                            interface.automations['powerMin'] = interface.automations['powerMin'] -1
+                        elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+3 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+4 then
+                            interface.automations['powerMin'] = interface.automations['powerMin'] -5
+                        elseif x >= math.ceil((gui.width-(#'      buttons      '-2))/2)+6 and x <= math.ceil((gui.width-(#'      buttons      '-2))/2)+8 then
+                            interface.automations['powerMin'] = interface.automations['powerMin'] -10
+                        elseif x >= math.ceil((gui.width-(#'      buttons      '-2))/2)+10 and x <= math.ceil((gui.width-(#'      buttons      '-2))/2)+12 then
+                            interface.automations['powerMin'] = interface.automations['powerMin'] +10
+                        elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+14 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+15 then
+                            interface.automations['powerMin'] = interface.automations['powerMin'] +5
+                        elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+17 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+18 then
+                            interface.automations['powerMin'] = interface.automations['powerMin'] +1
+                        end
+                        if interface.automations['powerMin'] < 0 then
+                            interface.automations['powerMin'] = 0
+                        elseif interface.automations['powerMin'] > 100 then
+                            interface.automations['powerMin'] = 100
+                        end
+                    elseif y == 12 then -- Temperature
+                        if x>=1+gui.width*gui.widthFactor and x<=1+gui.width*gui.widthFactor+5 then
+                            if interface.automations['tempToggle'] then
+                                interface.automations['tempToggle'] = false
+                            else
+                                interface.automations['tempToggle'] = true
+                            end
+                        end
+                    elseif y == 14 then -- Temperature Max
+                        if x == math.ceil((gui.width-(#'      buttons      '-2))/2) or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+1 then
+                            interface.automations['tempMax'] = interface.automations['tempMax'] -1
+                        elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+3 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+4 then
+                            interface.automations['tempMax'] = interface.automations['tempMax'] -5
+                        elseif x >= math.ceil((gui.width-(#'      buttons      '-2))/2)+6 and x <= math.ceil((gui.width-(#'      buttons      '-2))/2)+8 then
+                            interface.automations['tempMax'] = interface.automations['tempMax'] -10
+                        elseif x >= math.ceil((gui.width-(#'      buttons      '-2))/2)+10 and x <= math.ceil((gui.width-(#'      buttons      '-2))/2)+12 then
+                            interface.automations['tempMax'] = interface.automations['tempMax'] +10
+                        elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+14 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+15 then
+                            interface.automations['tempMax'] = interface.automations['tempMax'] +5
+                        elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+17 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+18 then
+                            interface.automations['tempMax'] = interface.automations['tempMax'] +1
+                        end
+                        if interface.automations['tempMax'] < 0 then
+                            interface.automations['tempMax'] = 0
+                        end
+                    elseif y == 16 then -- Control Rods
+                        if x>=1+gui.width*gui.widthFactor and x<=1+gui.width*gui.widthFactor+5 then
+                            if interface.automations['controlRodsToggle'] then
+                                interface.automations['controlRodsToggle'] = false
+                            else
+                                interface.automations['controlRodsToggle'] = true
+                            end
+                        end
+                    end
+                    interface.writeAutomations()
+                elseif gui.settings['currentPageTitle'] == 'Manage Clients' then -- Manage Clients
+                    if x > 2 and x < gui.width-2 then
+                        if y > 6 and y < gui.height-3 then
+                            local count = 1
+                            local clients = interface.readClients()
+                            for k, v in pairs(clients) do
+                                -- gui.log(textutils.serialize({['y'] = y, ['yMinusSix'] = y-6, ['count'] = count, ['k'] = k, ['client'] = v}))
+                                if y-6 == count then
+                                    interface.removeClient(v)
+                                    -- clients[i['id']] = nil
+                                    -- interface.writeClients(clients)
+                                    break
+                                end
+                                count = count + 1
+                            end
+                        end
+                    end
+                end
+            else
+                if gui.settings['currentPageTitle'] == 'Reactor Summary' then
+                    if y == 8-math.floor((gui.settings['scrollAbleLines']*gui.settings['mouseWheel'])) then
+                        if x>=1+gui.width*gui.widthFactor and x<=1+gui.width*gui.widthFactor+5 then
+                            if interface.reactor.getActive() then
+                                interface.reactor.setActive(false)
+                            else
+                                interface.reactor.setActive(true)
+                            end
+                        end
+                    end
+                elseif gui.settings['currentPageTitle'] == 'Turbine Summary' then
+                    if y == 8-math.floor((gui.settings['scrollAbleLines']*gui.settings['mouseWheel'])) then
+                        if x>=1+gui.width*gui.widthFactor and x<=1+gui.width*gui.widthFactor+5 then
+                            if interface.turbine.getActive() then
+                                interface.turbine.setActive(false)
+                            else
+                                interface.turbine.setActive(true)
+                            end
+                        end
+                    elseif y == 9-math.floor((gui.settings['scrollAbleLines']*gui.settings['mouseWheel'])) then
+                        if x>=1+gui.width*gui.widthFactor and x<=1+gui.width*gui.widthFactor+5 then
+                            if interface.turbine.getInductorEngaged() then
+                                interface.turbine.setInductorEngaged(false)
+                            else
+                                interface.turbine.setInductorEngaged(true)
+                            end
+                        end
+                    end
+            -- elseif gui.settings['currentPageTitle'] == 'Graphs' then -- Graphs
+            --     if y == 6 then
+            --         if x >=gui.width*gui.widthFactor+1 and x <= gui.width*gui.widthFactor+1+5 then
+            --             if gui.snapshot['reactor']['status'] then
+            --                 for k, v in pairs(gui.snapshot['reactor']['rodInfo']['rods']) do
+            --                     interface.reactor.setControlRodLevel(k, 100)
+            --                 end
+            --                 interface.reactor.setActive(false)
+            --             end
+            --         end
+            --     end
+                elseif gui.settings['currentPageTitle'] == 'Rod Statistics Info' then -- Control Rods
+                    for k, v in pairs(gui.snapshot['reactor']['rodInfo']['rods']) do
+                        if y == 6+k*2-math.floor((gui.settings['scrollAbleLines']*gui.settings['mouseWheel'])) then
+                            if x == math.ceil((gui.width-(#'      buttons      '-2))/2) or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+1 then
+                                interface.reactor.setControlRodLevel(k-1, v['level']-1)
+                            elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+3 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+4 then
+                                if v['level']-5 < 0 then
+                                    interface.reactor.setControlRodLevel(k-1, 0)
+                                else
+                                    interface.reactor.setControlRodLevel(k-1, v['level']-5)
+                                end
+                            elseif x >= math.ceil((gui.width-(#'      buttons      '-2))/2)+6 and x <= math.ceil((gui.width-(#'      buttons      '-2))/2)+8 then
+                                if v['level']-10 < 0 then
+                                    interface.reactor.setControlRodLevel(k-1, 0)
+                                else
+                                    interface.reactor.setControlRodLevel(k-1, v['level']-10)
+                                end
+                            elseif x >= math.ceil((gui.width-(#'      buttons      '-2))/2)+10 and x <= math.ceil((gui.width-(#'      buttons      '-2))/2)+12 then
+                                if v['level']+10 > 100 then
+                                    interface.reactor.setControlRodLevel(k-1, 100)
+                                else
+                                    interface.reactor.setControlRodLevel(k-1, v['level']+10)
+                                end
+                            elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+14 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+15 then
+                                if v['level']+5 > 100 then
+                                    interface.reactor.setControlRodLevel(k-1, 100)
+                                else
+                                    interface.reactor.setControlRodLevel(k-1, v['level']+5)
+                                end
+                            elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+17 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+18 then
+                                interface.reactor.setControlRodLevel(k-1, v['level']+1)
+                            end
+                            break
+                        end
+                    end
+                elseif gui.settings['currentPageTitle'] == 'Automations' then -- Automations
+                    if y == 6-math.floor((gui.settings['scrollAbleLines']*gui.settings['mouseWheel'])) then -- Power
+                        if x>=1+gui.width*gui.widthFactor and x<=1+gui.width*gui.widthFactor+5 then
+                            if interface.automations['powerToggle'] then
+                                interface.automations['powerToggle'] = false
+                            else
+                                interface.automations['powerToggle'] = true
+                            end
+                        end
+                    elseif y == 8-math.floor((gui.settings['scrollAbleLines']*gui.settings['mouseWheel'])) then -- Power Max
+                        if x == math.ceil((gui.width-(#'      buttons      '-2))/2) or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+1 then
+                            interface.automations['powerMax'] = interface.automations['powerMax'] -1
+                        elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+3 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+4 then
+                            interface.automations['powerMax'] = interface.automations['powerMax'] -5
+                        elseif x >= math.ceil((gui.width-(#'      buttons      '-2))/2)+6 and x <= math.ceil((gui.width-(#'      buttons      '-2))/2)+8 then
+                            interface.automations['powerMax'] = interface.automations['powerMax'] -10
+                        elseif x >= math.ceil((gui.width-(#'      buttons      '-2))/2)+10 and x <= math.ceil((gui.width-(#'      buttons      '-2))/2)+12 then
+                            interface.automations['powerMax'] = interface.automations['powerMax'] +10
+                        elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+14 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+15 then
+                            interface.automations['powerMax'] = interface.automations['powerMax'] +5
+                        elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+17 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+18 then
+                            interface.automations['powerMax'] = interface.automations['powerMax'] +1
+                        end
+                        if interface.automations['powerMax'] < 0 then
+                            interface.automations['powerMax'] = 0
+                        elseif interface.automations['powerMax'] > 100 then
+                            interface.automations['powerMax'] = 100
+                        end
+                    elseif y == 10-math.floor((gui.settings['scrollAbleLines']*gui.settings['mouseWheel'])) then -- Power Min
+                        if x == math.ceil((gui.width-(#'      buttons      '-2))/2) or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+1 then
+                            interface.automations['powerMin'] = interface.automations['powerMin'] -1
+                        elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+3 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+4 then
+                            interface.automations['powerMin'] = interface.automations['powerMin'] -5
+                        elseif x >= math.ceil((gui.width-(#'      buttons      '-2))/2)+6 and x <= math.ceil((gui.width-(#'      buttons      '-2))/2)+8 then
+                            interface.automations['powerMin'] = interface.automations['powerMin'] -10
+                        elseif x >= math.ceil((gui.width-(#'      buttons      '-2))/2)+10 and x <= math.ceil((gui.width-(#'      buttons      '-2))/2)+12 then
+                            interface.automations['powerMin'] = interface.automations['powerMin'] +10
+                        elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+14 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+15 then
+                            interface.automations['powerMin'] = interface.automations['powerMin'] +5
+                        elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+17 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+18 then
+                            interface.automations['powerMin'] = interface.automations['powerMin'] +1
+                        end
+                        if interface.automations['powerMin'] < 0 then
+                            interface.automations['powerMin'] = 0
+                        elseif interface.automations['powerMin'] > 100 then
+                            interface.automations['powerMin'] = 100
+                        end
+                    elseif y == 12-math.floor((gui.settings['scrollAbleLines']*gui.settings['mouseWheel'])) then -- Temperature
+                        if x>=1+gui.width*gui.widthFactor and x<=1+gui.width*gui.widthFactor+5 then
+                            if interface.automations['tempToggle'] then
+                                interface.automations['tempToggle'] = false
+                            else
+                                interface.automations['tempToggle'] = true
+                            end
+                        end
+                    elseif y == 14-math.floor((gui.settings['scrollAbleLines']*gui.settings['mouseWheel'])) then -- Temperature Max
+                        if x == math.ceil((gui.width-(#'      buttons      '-2))/2) or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+1 then
+                            interface.automations['tempMax'] = interface.automations['tempMax'] -1
+                        elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+3 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+4 then
+                            interface.automations['tempMax'] = interface.automations['tempMax'] -5
+                        elseif x >= math.ceil((gui.width-(#'      buttons      '-2))/2)+6 and x <= math.ceil((gui.width-(#'      buttons      '-2))/2)+8 then
+                            interface.automations['tempMax'] = interface.automations['tempMax'] -10
+                        elseif x >= math.ceil((gui.width-(#'      buttons      '-2))/2)+10 and x <= math.ceil((gui.width-(#'      buttons      '-2))/2)+12 then
+                            interface.automations['tempMax'] = interface.automations['tempMax'] +10
+                        elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+14 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+15 then
+                            interface.automations['tempMax'] = interface.automations['tempMax'] +5
+                        elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+17 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+18 then
+                            interface.automations['tempMax'] = interface.automations['tempMax'] +1
+                        end
+                        if interface.automations['tempMax'] < 0 then
+                            interface.automations['tempMax'] = 0
+                        end
+                    elseif y == 16-math.floor((gui.settings['scrollAbleLines']*gui.settings['mouseWheel'])) then -- Control Rods
+                        if x>=1+gui.width*gui.widthFactor and x<=1+gui.width*gui.widthFactor+5 then
+                            if interface.automations['controlRodsToggle'] then
+                                interface.automations['controlRodsToggle'] = false
+                            else
+                                interface.automations['controlRodsToggle'] = true
+                            end
+                        end
+                    end
+                    interface.writeAutomations()
+                elseif gui.settings['currentPageTitle'] == 'Manage Clients' then -- Manage Clients
+                    if x > 2 and x < gui.width-2 then
+                        if y > 6-math.floor((gui.settings['scrollAbleLines']*gui.settings['mouseWheel'])) and y < gui.height-3-math.floor((gui.settings['scrollAbleLines']*gui.settings['mouseWheel'])) then
+                            local count = 1
+                            local clients = interface.readClients()
+                            for k, v in pairs(clients) do
+                                -- gui.log(textutils.serialize({['y'] = y, ['yMinusSix'] = y-6, ['count'] = count, ['k'] = k, ['client'] = v}))
+                                if y-6 == count then
+                                    interface.removeClient(v)
+                                    -- clients[i['id']] = nil
+                                    -- interface.writeClients(clients)
+                                    break
+                                end
+                                count = count + 1
+                            end
+                        end
                     end
                 end
             end
@@ -1035,40 +1223,45 @@ function interface.manageAutomations() -- Run in Parallel
     while true do
         -- gui.log('Parallel - Automations')
         os.sleep(interface.fps)
-        if interface.automations['powerToggle'] then
-            if interface.reactor.getActive() then -- Is active
-                if not interface.reactor.isActivelyCooled() then
-                    if (gui.snapshot['reactor']['energyInfo']['stored']/gui.snapshot['reactor']['energyInfo']['capacity'])*100 >= interface.automations['powerMax'] then
-                        interface.reactor.setActive(false)
-                    end
-                else
-                    if (gui.snapshot['reactor']['hotFluidInfo']['amount']/gui.snapshot['reactor']['hotFluidInfo']['max'])*100 >= interface.automations['powerMax'] then
-                        interface.reactor.setActive(false)
+        if interface.snapshot['reactor']['status'] ~= nil then
+            if interface.automations['reactorToggle'] then
+                if interface.automations['powerToggle'] then
+                    if interface.reactor.getActive() then -- Is active
+                        if not interface.reactor.isActivelyCooled() then
+                            if (gui.snapshot['reactor']['energyInfo']['stored']/gui.snapshot['reactor']['energyInfo']['capacity'])*100 >= interface.automations['powerMax'] then
+                                interface.reactor.setActive(false)
+                            end
+                        else
+                            if (gui.snapshot['reactor']['hotFluidInfo']['amount']/gui.snapshot['reactor']['hotFluidInfo']['max'])*100 >= interface.automations['powerMax'] then
+                                interface.reactor.setActive(false)
+                            end
+                        end
+                    else -- Is not active
+                        if not interface.reactor.isActivelyCooled() then
+                            if (gui.snapshot['reactor']['energyInfo']['stored']/gui.snapshot['reactor']['energyInfo']['capacity'])*100 <= interface.automations['powerMin'] then
+                                interface.reactor.setActive(true)
+                            end
+                        else
+                            if (gui.snapshot['reactor']['hotFluidInfo']['amount']/gui.snapshot['reactor']['hotFluidInfo']['max'])*100 <= interface.automations['powerMin'] then
+                                interface.reactor.setActive(true)
+                            end
+                        end
                     end
                 end
-            else -- Is not active
-                if not interface.reactor.isActivelyCooled() then
-                    if (gui.snapshot['reactor']['energyInfo']['stored']/gui.snapshot['reactor']['energyInfo']['capacity'])*100 <= interface.automations['powerMin'] then
-                        interface.reactor.setActive(true)
-                    end
-                else
-                    if (gui.snapshot['reactor']['hotFluidInfo']['amount']/gui.snapshot['reactor']['hotFluidInfo']['max'])*100 <= interface.automations['powerMin'] then
-                        interface.reactor.setActive(true)
+                if interface.automations['tempoggle'] then
+                    if interface.reactor.getActive() then -- Is active
+                        if gui.snapshot['reactor']['casingTemperature'] >= interface.automations['tempMax'] then
+                            interface.reactor.setActive(false)
+                        end
                     end
                 end
-            end
-        end
-        if interface.automations['tempoggle'] then
-            if interface.reactor.getActive() then -- Is active
-                if gui.snapshot['reactor']['casingTemperature'] >= interface.automations['tempMax'] then
-                    interface.reactor.setActive(false)
-                end
-            end
-        end
-        if interface.automations['controlRodsToggle'] then -- Use Control Rods to float around slightly positive power output
-            if interface.reactor.getActive() then -- Is active
-                for k, v in pairs(gui.snapshot['reactor']['rodInfo']['rods']) do
-                    interface.reactor.setControlRodLevel(k, math.floor((gui.snapshot['reactor']['energyInfo']['stored'])/(gui.snapshot['reactor']['energyInfo']['capacity']*(interface.automations['powerMax']/100))*100))
+                if interface.automations['controlRodsToggle'] then -- Use Control Rods to float around slightly positive power output
+                    if interface.reactor.getActive() then -- Is active
+                        interface.reactor.setAllControlRodLevels(math.floor((gui.snapshot['reactor']['energyInfo']['stored'])/(gui.snapshot['reactor']['energyInfo']['capacity']*(interface.automations['powerMax']/100))*100))
+                        -- for k, v in pairs(gui.snapshot['reactor']['rodInfo']['rods']) do
+                        --     interface.reactor.setControlRodLevel(k, math.floor((gui.snapshot['reactor']['energyInfo']['stored'])/(gui.snapshot['reactor']['energyInfo']['capacity']*(interface.automations['powerMax']/100))*100))
+                        -- end
+                    end
                 end
             end
         end
