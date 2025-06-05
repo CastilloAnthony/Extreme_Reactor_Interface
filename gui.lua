@@ -411,6 +411,7 @@ function gui.formatNum(number)
 end --end formatNum
 
 function gui.help_page()
+    gui.readSettings()
     local folderDir = './er_interface/docs/help/'
     gui.helpWindow.setVisible(false)
     -- if gui.helpWindow == false then
@@ -442,6 +443,7 @@ function gui.help_page()
         helpText = ccStrings.wrap(file.readAll(), gui.settings['helpWindowWidth'])
         file.close()
     end
+    -- gui.log(textutils.serialize(helpText))
     gui.helpWindow.setBackgroundColor(colors.blue)
     gui.helpWindow.setTextColor(colors.white)
     for i=2, gui.settings['helpWindowHeight'] do
@@ -450,10 +452,26 @@ function gui.help_page()
             gui.helpWindow.write(' ')
         end
     end
-    for i=2, #helpText+1 do
-        gui.helpWindow.setCursorPos(1, i)
-        gui.helpWindow.write(helpText[i-1])
-        -- local x, y = gui.helpWindow.getCursorPos()
+    for i=1, gui.settings['helpWindowHeight'] do
+        if #helpText > gui.settings['helpWindowHeight'] then
+            if math.floor(i+(#helpText-(gui.settings['helpWindowHeight']-1))*gui.settings['mouseWheel']-1) > #helpText then
+                break
+            elseif i > #helpText then
+                break
+            else
+                -- gui.log(math.floor(i+(#helpText*gui.settings['mouseWheel'])))
+                gui.helpWindow.setCursorPos(1, i+1)
+                gui.helpWindow.write(helpText[math.floor(i+(#helpText-(gui.settings['helpWindowHeight']-1))*gui.settings['mouseWheel'])])
+                -- local x, y = gui.helpWindow.getCursorPos()z
+            end
+        else
+            if i > #helpText then
+                break
+            else
+                gui.helpWindow.setCursorPos(1, i+1)
+                gui.helpWindow.write(helpText[i])
+            end
+        end
     end
     gui.helpWindow.setVisible(true)
 end

@@ -673,15 +673,18 @@ function remote.clickedButton(event, button, x, y, arg4, arg5)
 end --end clickedButton
 
 function remote.mouseWheel(event, direction, x, y, arg4, arg5)
-    if direction == -1 then -- Up
+    gui.readSettings()
+    if direction == 1 then -- Up
         if gui.settings['mouseWheel'] < 1 then
-            gui.settings['mouseWheel'] = gui.settings['mouseWheel'] + 0.01
+            gui.settings['mouseWheel'] = gui.settings['mouseWheel'] + 0.05
         end
-    elseif direction == 1 then -- Down
+    elseif direction == -1 then -- Down
         if gui.settings['mouseWheel'] > 0 then
-            gui.settings['mouseWheel'] = gui.settings['mouseWheel'] - 0.01
+            gui.settings['mouseWheel'] = gui.settings['mouseWheel'] - 0.05
         end
     end
+    -- gui.log(textutils.serialize({['event'] = event, ['direction'] = direciton, ['x'] = x, ['y'] = y, ['arg4'] = arg4, ['arg5'] = arg5, ['mouseWheel'] = gui.settings['mouseWheel']}))
+    gui.writeSettings()
 end --end mouseWheel
 
 function remote.snapshotHandler() -- Run in Parallel
@@ -711,7 +714,7 @@ function remote.eventHandler() -- Run in Parallel
             remote.checkMessages(event, arg1, arg2, arg3, arg4, arg5)
         elseif event == 'mouse_up' or event == 'monitor_touch' then
             remote.clickedButton(event, arg1, arg2, arg3, arg4, arg5)
-        elseif event == 'mouse_wheel' then
+        elseif event == 'mouse_scroll' then
             remote.mouseWheel(event, arg1, arg2, arg3, arg4, arg5)
         end
     end
