@@ -166,7 +166,7 @@ function gui.nextPage(forward) -- true/false forwards/backwards
     gui.writeSettings()
 end --end nextPage
 
-function gui.clickedButton(button, x, y, craftables)
+function gui.clickedButton(button, x, y, craftables) -- Deprecated
     gui.readSettings()
     if button == 1 or peripheral.isPresent(tostring(button)) then
         if y == 1 and x == gui.width then -- Terminate Program
@@ -453,11 +453,11 @@ function gui.help_page()
         end
     end
     for i=1, gui.settings['helpWindowHeight'] do
-        if #helpText > gui.settings['helpWindowHeight'] then
-            if math.floor(i+(#helpText-(gui.settings['helpWindowHeight']-1))*gui.settings['mouseWheel']-1) > #helpText then
+        if #helpText > gui.settings['helpWindowHeight']-1 then
+            if math.floor(i+(#helpText-(gui.settings['helpWindowHeight']-1))*gui.settings['mouseWheel']) > #helpText then
                 break
-            elseif i > #helpText then
-                break
+            -- elseif i > #helpText then
+            --     break
             else
                 -- gui.log(math.floor(i+(#helpText*gui.settings['mouseWheel'])))
                 gui.helpWindow.setCursorPos(1, i+1)

@@ -402,11 +402,13 @@ function remote.clickedButton(event, button, x, y, arg4, arg5)
                 gui.toggleHelpWindow = false
                 gui.helpWindow.setVisible(false)
             end
+            gui.settings['mouseWheel'] = 0
             gui.writeSettings()
         elseif gui.toggleHelpWindow == true then -- Help Window Terminate
             if x == gui.width and y == math.floor(gui.height*0.1)+1 then
                 gui.toggleHelpWindow = false
                 gui.helpWindow.setVisible(false)
+                gui.settings['mouseWheel'] = 0
                 gui.writeSettings()
             end
         elseif gui.settings['currentPageTitle'] == 'Reactor Summary' then

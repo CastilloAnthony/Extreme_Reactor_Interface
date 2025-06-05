@@ -751,6 +751,7 @@ function interface.clickedButton(event, button, x, y, arg4, arg5)
                 gui.toggleHelpWindow = false
                 gui.helpWindow.setVisible(false)
             end
+            gui.settings['mouseWheel'] = 0
             gui.writeSettings()
         elseif gui.toggleHelpWindow == true then -- Help Window Terminate
             -- local helpX, helpY = gui.helpWindow.getPosition()
@@ -761,6 +762,7 @@ function interface.clickedButton(event, button, x, y, arg4, arg5)
                 gui.toggleHelpWindow = false
                 gui.helpWindow.setVisible(false)
                 -- gui.helpWindow = false
+                gui.settings['mouseWheel'] = 0
                 gui.writeSettings()
             end
         elseif gui.settings['currentPageTitle'] == 'Reactor Summary' then
