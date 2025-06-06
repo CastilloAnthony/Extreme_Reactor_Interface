@@ -3,6 +3,7 @@ A user interface program for the Minecraft mod ComputerCraft used to interface t
 
 ## Features
 - Supports a single reactor and a single turbine simultaneously
+    - Automated monitoring and management of various reactor & turbine settings
 - Clickable buttons including buttons that:
     -Terminate the program
     -Open a help window
@@ -21,7 +22,6 @@ A user interface program for the Minecraft mod ComputerCraft used to interface t
 - Support for multiple remote clients concurrently (suggested limit: TBD)
 - Client management page where you can remove clients and force them to re-establish a connection
     - Clients must manually remove "er_interface/keys/server.key" in order to be eligible for re-authorization
-- Automated monitoring and management of various reactor settings
 
 ## Installation
 To install onto a ComputerCraft device type this into the console: 
@@ -35,7 +35,6 @@ For first time users, you will have to wait a couple of minutes while cryptograp
 ### Todo
 - Scrolling features / Scroll bar
     - Specifically for Rod Stats, Automations, Client Management, and potentially the help window
-- Turbine automations
 - Histograms page
     - Switchable histograms
 - Version checker

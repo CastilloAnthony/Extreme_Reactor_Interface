@@ -21,12 +21,19 @@ interface.automations = {
     ['turbineToggle'] = true,
     ['inductorToggle'] = true,
     ['powerToggle'] = true, -- Reactor if no turbine
+    ['vaporToggle'] = true,
+    ['tempToggle'] = true,
+    ['controlRodsToggle'] = true,
+    ['turbineSpeedToggle'] = true,
+    ['turbineEfficiencyToggle'] = true,
     ['powerMin'] = 10,
     ['powerMax'] = 90,
-    ['tempToggle'] = true,
+    ['vaporMin'] = 10,
+    ['vaporMax'] = 90,
     ['tempMin'] = 10,
     ['tempMax'] = 2000,
-    ['controlRodsToggle'] = true,
+    ['turbineSpeedTarget'] = 1800,
+    ['lastTimeTurbineSpeed'] = 0,
 }
 
 function interface.write(text)
@@ -175,6 +182,7 @@ function interface.reactorGetControlRodsInfo()
             ['name'] = interface.reactor.getControlRodName(i),
             ['level'] = interface.reactor.getControlRodLevel(i),
             ['location'] = interface.reactor.getControlRodLocation(i),
+            ['id'] = i,
         })
         -- info['rods'][i] = {
         --     ['name'] = interface.reactor.getControlRodName(i),
@@ -1190,13 +1198,24 @@ end --end verifyLogin
 
 function interface.writeAutomations()
     if not fs.exists('./er_interface/settings_automations.cfg') then
-        local automations = {
-            ['powerToggle'] = true,
+        automations = {
+            ['reactorToggle'] = true,
+            ['turbineToggle'] = true,
+            ['inductorToggle'] = true,
+            ['powerToggle'] = true, -- Reactor if no turbine
+            ['vaporToggle'] = true,
+            ['tempToggle'] = true,
+            ['controlRodsToggle'] = true,
+            ['turbineSpeedToggle'] = true,
+            ['turbineEfficiencyToggle'] = true,
             ['powerMin'] = 10,
             ['powerMax'] = 90,
-            ['tempToggle'] = true,
+            ['vaporMin'] = 10,
+            ['vaporMax'] = 90,
+            ['tempMin'] = 10,
             ['tempMax'] = 2000,
-            ['controlRodsToggle'] = true,
+            ['turbineSpeedTarget'] = 1800,
+            ['lastTimeTurbineSpeed'] = 0,
         }
         local file = fs.open('./er_interface/settings_automations.cfg', 'w')
         file.write(textutils.serialize(automations))
@@ -1211,7 +1230,7 @@ end --end writeAutomations
 function interface.readAutomations()
     if not fs.exists('./er_interface/settings_automations.cfg') then
         interface.writeAutomations()
-        interface.readAutomations()
+        -- interface.readAutomations()
     else
         local file = fs.open('./er_interface/settings_automations.cfg', 'r')
         interface.automations = textutils.unserialize(file.readAll())
@@ -1223,46 +1242,125 @@ function interface.manageAutomations() -- Run in Parallel
     while true do
         -- gui.log('Parallel - Automations')
         os.sleep(interface.fps)
+        interface.readAutomations()
         if interface.snapshot['reactor']['status'] ~= nil then
             if interface.automations['reactorToggle'] then
-                if interface.automations['powerToggle'] then
-                    if interface.reactor.getActive() then -- Is active
-                        if not interface.reactor.isActivelyCooled() then
-                            if (gui.snapshot['reactor']['energyInfo']['stored']/gui.snapshot['reactor']['energyInfo']['capacity'])*100 >= interface.automations['powerMax'] then
-                                interface.reactor.setActive(false)
-                            end
-                        else
-                            if (gui.snapshot['reactor']['hotFluidInfo']['amount']/gui.snapshot['reactor']['hotFluidInfo']['max'])*100 >= interface.automations['powerMax'] then
-                                interface.reactor.setActive(false)
-                            end
-                        end
-                    else -- Is not active
-                        if not interface.reactor.isActivelyCooled() then
-                            if (gui.snapshot['reactor']['energyInfo']['stored']/gui.snapshot['reactor']['energyInfo']['capacity'])*100 <= interface.automations['powerMin'] then
-                                interface.reactor.setActive(true)
-                            end
-                        else
-                            if (gui.snapshot['reactor']['hotFluidInfo']['amount']/gui.snapshot['reactor']['hotFluidInfo']['max'])*100 <= interface.automations['powerMin'] then
-                                interface.reactor.setActive(true)
-                            end
-                        end
-                    end
-                end
-                if interface.automations['tempoggle'] then
-                    if interface.reactor.getActive() then -- Is active
-                        if gui.snapshot['reactor']['casingTemperature'] >= interface.automations['tempMax'] then
+                if interface.reactor.getActive() then -- Is active
+                    if not interface.reactor.isActivelyCooled() then
+                        if (gui.snapshot['reactor']['energyInfo']['stored']/gui.snapshot['reactor']['energyInfo']['capacity'])*100 >= interface.automations['powerMax'] then
                             interface.reactor.setActive(false)
                         end
+                        if interface.automations['controlRodsToggle'] then
+                            if interface.automations['tempToggle'] then
+                                if interface.snapshot['reactor']['fuelInfo']['temperature'] > 1000 then
+                                    local lowest, level = 0, 100
+                                    for k, v in pairs(interface.snapshot['reactor']['rodInfo']['rods']) do
+                                        if v['level'] < level then
+                                            lowest = v['id']
+                                            level = v['level']
+                                        end
+                                    end
+                                    gui.log(textutils.serialize({['lowest'] = lowest, ['level'] = level}))
+                                    interface.reactor.setControlRodLevel(lowest, level+1)
+                                elseif interface.snapshot['reactor']['fuelInfo']['temperature'] < 1000 then
+                                    local highest, level = 0, 0
+                                    for k, v in pairs(interface.snapshot['reactor']['rodInfo']['rods']) do
+                                        if v['level'] > level then
+                                            highest = v['id']
+                                            level = v['level']
+                                        end
+                                    end
+                                    gui.log(textutils.serialize({['lowest'] = highest, ['level'] = level}))
+                                    interface.reactor.setControlRodLevel(highest, level-1)
+                                end
+                            else
+                                interface.reactor.setAllControlRodLevels(math.floor((gui.snapshot['reactor']['energyInfo']['stored'])/(gui.snapshot['reactor']['energyInfo']['capacity']*(interface.automations['powerMax']/100))*100))
+                            end
+                        end
+                    else
+                        if (gui.snapshot['reactor']['hotFluidInfo']['amount']/gui.snapshot['reactor']['hotFluidInfo']['max'])*100 >= interface.automations['vaporMax'] then
+                            interface.reactor.setActive(false)
+                        end
+                        if interface.automations['controlRodsToggle'] then
+                            if interface.automations['tempToggle'] then
+                                if interface.snapshot['reactor']['fuelInfo']['temperature'] > 1000 then
+                                    local lowest, level = 0, 100
+                                    for k, v in pairs(interface.snapshot['reactor']['rodInfo']['rods']) do
+                                        if v['level'] < level then
+                                            lowest = v['id']
+                                            level = v['level']
+                                        end
+                                    end
+                                    gui.log(textutils.serialize({['lowest'] = lowest, ['level'] = level}))
+                                    interface.reactor.setControlRodLevel(lowest, level+1)
+                                elseif interface.snapshot['reactor']['fuelInfo']['temperature'] < 1000 then
+                                    local highest, level = 0, 0
+                                    for k, v in pairs(interface.snapshot['reactor']['rodInfo']['rods']) do
+                                        if v['level'] > level then
+                                            highest = v['id']
+                                            level = v['level']
+                                        end
+                                    end
+                                    gui.log(textutils.serialize({['highest'] = highest, ['level'] = level}))
+                                    interface.reactor.setControlRodLevel(highest, level-1)
+                                end
+                            else
+                                interface.reactor.setAllControlRodLevels(math.floor((gui.snapshot['reactor']['hotFluidInfo']['amount'])/(gui.snapshot['reactor']['hotFluidInfo']['max']*(interface.automations['vaporMax']/100))*100))
+                            end
+                        end
+                    end
+                else -- If Reactor is not turned on
+                    if not interface.reactor.isActivelyCooled() then
+                        if (gui.snapshot['reactor']['energyInfo']['stored']/gui.snapshot['reactor']['energyInfo']['capacity'])*100 <= interface.automations['powerMin'] then
+                            interface.reactor.setActive(true)
+                        end
+                    else
+                        if (gui.snapshot['reactor']['hotFluidInfo']['amount']/gui.snapshot['reactor']['hotFluidInfo']['max'])*100 <= interface.automations['vaporMin'] then
+                            interface.reactor.setActive(true)
+                        end
                     end
                 end
-                if interface.automations['controlRodsToggle'] then -- Use Control Rods to float around slightly positive power output
-                    if interface.reactor.getActive() then -- Is active
-                        interface.reactor.setAllControlRodLevels(math.floor((gui.snapshot['reactor']['energyInfo']['stored'])/(gui.snapshot['reactor']['energyInfo']['capacity']*(interface.automations['powerMax']/100))*100))
-                        -- for k, v in pairs(gui.snapshot['reactor']['rodInfo']['rods']) do
-                        --     interface.reactor.setControlRodLevel(k, math.floor((gui.snapshot['reactor']['energyInfo']['stored'])/(gui.snapshot['reactor']['energyInfo']['capacity']*(interface.automations['powerMax']/100))*100))
-                        -- end
+            end
+        end
+        if interface.snapshot['turbine']['status'] ~= nil then
+            if interface.automations['turbineToggle'] then
+                if interface.snapshot['turbine']['status'] then
+                    if gui.snapshot['turbine']['rotorInfo']['rotorSpeed'] > interface.automations['turbineSpeedTarget']+100 then
+                        interface.turbine.setActive(false)
+                    end
+                else
+                    if gui.snapshot['turbine']['rotorInfo']['rotorSpeed'] < interface.automations['turbineSpeedTarget']-100 then
+                        interface.turbine.setActive(true)
                     end
                 end
+            end
+            if interface.automations['inductorToggle'] then
+                if interface.snapshot['turbine']['inductorStatus'] then
+                    if (gui.snapshot['turbine']['energyInfo']['stored']/gui.snapshot['turbine']['energyInfo']['capacity'])*100 >= interface.automations['powerMax'] then
+                        interface.turbine.setInductorEngaged(false)
+                    end
+                else
+                    if (gui.snapshot['turbine']['energyInfo']['stored']/gui.snapshot['turbine']['energyInfo']['capacity'])*100 <= interface.automations['powerMin'] then
+                        interface.turbine.setInductorEngaged(true)
+                    end
+                end
+            end
+            if (os.epoch('local') - interface.automations['lastTimeTurbineSpeed'])/1000 > 1 then
+                if interface.automations['turbineSpeedToggle'] then
+                    if interface.snapshot['turbine']['rotorInfo']['rotorSpeed'] < interface.automations['turbineSpeedTarget'] then
+                        interface.turbine.setFluidFlowRateMax(gui.snapshot['turbine']['fluidInfo']['flowRate']+1)
+                    elseif gui.snapshot['turbine']['rotorInfo']['rotorSpeed'] > interface.automations['turbineSpeedTarget'] then
+                        interface.turbine.setFluidFlowRateMax(gui.snapshot['turbine']['fluidInfo']['flowRate']-1)
+                    end
+                else
+                    if gui.snapshot['turbine']['rotorInfo']['bladeEfficiency'] < 100 then
+                        interface.turbine.setFluidFlowRateMax(gui.snapshot['turbine']['fluidInfo']['flowRate']-1)
+                    else
+                        interface.turbine.setFluidFlowRateMax(gui.snapshot['turbine']['fluidInfo']['flowRate']+1)
+                    end
+                end
+                interface.automations['lastTimeTurbineSpeed'] = os.epoch('local')
+                interface.writeAutomations()
             end
         end
     end
