@@ -1288,67 +1288,143 @@ function gui.pageAutomations() -- Automations
         [4] = '+5',
         [5] = '+1',
     }
-    local content = nil
-    if not gui.snapshot['reactor']['activelyCooled'] then
-        content = {
-            [0] = '',
-            [1] = gui.getPageTitle(gui.settings['currentPage']),
-            [2] = '',
-            [3] = 'Power',
-            [4] = ccStrings.ensure_width('Max Power %', gui.width*gui.widthFactor-1)..gui.snapshot['automations']['powerMax'],
-            [5] = '      buttons      ',
-            [6] = ccStrings.ensure_width('Min Power %', gui.width*gui.widthFactor-1)..gui.snapshot['automations']['powerMin'],
-            [7] = '      buttons      ',
-            [8] = '',
-            [9] = 'Temperature',
-            [10] = ccStrings.ensure_width('Max Temperature', gui.width*gui.widthFactor-1)..gui.snapshot['automations']['tempMax'],
-            [11] = '      buttons      ',
-            [12] = '',
-            [13] = 'Control Rods',
-            [14] = '',
-            -- ['PowerVapor'] = gui.snapshot['automations']['powerToggle'],
-            -- ['Temperature'] = gui.snapshot['automations']['tempToggle'],
-            -- ['Control Rods'] = gui.snapshot['automations']['controlRodsToggle'],
-        }
-    else
-        content = {
-            [0] = '',
-            [1] = gui.getPageTitle(gui.settings['currentPage']),
-            [2] = '',
-            [3] = 'Vapor',
-            [4] = ccStrings.ensure_width('Max Vapor %', gui.width*gui.widthFactor-1)..gui.snapshot['automations']['powerMax'],
-            [5] = '      buttons      ',
-            [6] = ccStrings.ensure_width('Min Vapor %', gui.width*gui.widthFactor-1)..gui.snapshot['automations']['powerMin'],
-            [7] = '      buttons      ',
-            [8] = '',
-            [9] = 'Temperature',
-            [10] = ccStrings.ensure_width('Max Temperature', gui.width*gui.widthFactor-1)..gui.snapshot['automations']['tempMax'],
-            [11] = '      buttons      ',
-            [12] = '',
-            [13] = 'Control Rods',
-            [14] = '',
-            -- ['PowerVapor'] = gui.snapshot['automations']['powerToggle'],
-            -- ['Temperature'] = gui.snapshot['automations']['tempToggle'],
-            -- ['Control Rods'] = gui.snapshot['automations']['controlRodsToggle'],
-        }
-    end
+    local content = {
+        [0] = '',
+        [1] = gui.getPageTitle(gui.settings['currentPage']),
+        [2] = '',
+    }
     local contentColors = {
         [0] = gui.stdBgColor,
         [1] = colors.yellow,
         [2] = gui.stdBgColor,
-        [3] = colors.yellow,
-        [4] = colors.white,
-        [5] = colors.white,
-        [6] = colors.white,
-        [7] = colors.white,
-        [8] = colors.white,
-        [9] = colors.yellow,
-        [10] = colors.white,
-        [11] = colors.white,
-        [12] = colors.white,
-        [13] = colors.yellow,
-        [14] = gui.stdBgColor,
     }
+    if gui.snapshot['turbine']['status'] ~= nil then
+        table.insert(content, '----- Turbine -----')
+        table.insert(content, 'turbineToggle')
+        table.insert(content, 'inductorToggle')
+        table.insert(content, 'turbineSpeedToggle')
+        table.insert(content, 'turbineSpeedTarget')
+        table.insert(content, '      buttons      ')
+        table.insert(content, 'powerToggle')
+        table.insert(content, 'powerMax')
+        table.insert(content, '      buttons      ')
+        table.insert(content, 'powerMin')
+        table.insert(content, '      buttons      ')
+        table.insert(contentColors, colors.yellow)
+        table.insert(contentColors, colors.yellow)
+        table.insert(contentColors, colors.yellow)
+        table.insert(contentColors, colors.yellow)
+        table.insert(contentColors, colors.white)
+        table.insert(contentColors, colors.white)
+        table.insert(contentColors, colors.yellow)
+        table.insert(contentColors, colors.white)
+        table.insert(contentColors, colors.white)
+        table.insert(contentColors, colors.white)
+        table.insert(contentColors, colors.white)
+    end
+    if gui.snapshot['reactor']['status'] ~= nil then
+        if gui.snapshot['reactor']['activelyCooled'] then
+            table.insert(content, '----- Reactor -----')
+            table.insert(content, 'reactorToggle')
+            table.insert(content, 'controlRodsToggle')
+            table.insert(content, 'tempToggle')
+            table.insert(content, 'vaporToggle')
+            table.insert(content, 'vaporMax')
+            table.insert(content, '      buttons      ')
+            table.insert(content, 'vaporMin')
+            table.insert(content, '      buttons      ')
+            table.insert(contentColors, colors.yellow)
+            table.insert(contentColors, colors.yellow)
+            table.insert(contentColors, colors.yellow)
+            table.insert(contentColors, colors.yellow)
+            table.insert(contentColors, colors.yellow)
+            table.insert(contentColors, colors.white)
+            table.insert(contentColors, colors.white)
+            table.insert(contentColors, colors.white)
+            table.insert(contentColors, colors.white)
+        else
+            table.insert(content, '----- Reactor -----')
+            table.insert(content, 'reactorToggle')
+            table.insert(content, 'controlRodsToggle')
+            table.insert(content, 'tempToggle')
+            table.insert(content, 'powerToggle')
+            table.insert(content, 'powerMax')
+            table.insert(content, '      buttons      ')
+            table.insert(content, 'powerMin')
+            table.insert(content, '      buttons      ')
+            table.insert(contentColors, colors.yellow)
+            table.insert(contentColors, colors.yellow)
+            table.insert(contentColors, colors.yellow)
+            table.insert(contentColors, colors.yellow)
+            table.insert(contentColors, colors.yellow)
+            table.insert(contentColors, colors.white)
+            table.insert(contentColors, colors.white)
+            table.insert(contentColors, colors.white)
+            table.insert(contentColors, colors.white)
+        end
+    end
+    table.insert(content, '')
+    table.insert(contentColors, gui.stdBgColor)
+    -- if not gui.snapshot['reactor']['activelyCooled'] then
+    --     content = {
+    --         [0] = '',
+    --         [1] = gui.getPageTitle(gui.settings['currentPage']),
+    --         [2] = '',
+    --         [3] = 'Power',
+    --         [4] = ccStrings.ensure_width('Max Power %', gui.width*gui.widthFactor-1)..gui.snapshot['automations']['powerMax'],
+    --         [5] = '      buttons      ',
+    --         [6] = ccStrings.ensure_width('Min Power %', gui.width*gui.widthFactor-1)..gui.snapshot['automations']['powerMin'],
+    --         [7] = '      buttons      ',
+    --         [8] = '',
+    --         [9] = 'Temperature',
+    --         [10] = ccStrings.ensure_width('Max Temperature', gui.width*gui.widthFactor-1)..gui.snapshot['automations']['tempMax'],
+    --         [11] = '      buttons      ',
+    --         [12] = '',
+    --         [13] = 'Control Rods',
+    --         [14] = '',
+    --         -- ['PowerVapor'] = gui.snapshot['automations']['powerToggle'],
+    --         -- ['Temperature'] = gui.snapshot['automations']['tempToggle'],
+    --         -- ['Control Rods'] = gui.snapshot['automations']['controlRodsToggle'],
+    --     }
+    -- else
+    --     content = {
+    --         [0] = '',
+    --         [1] = gui.getPageTitle(gui.settings['currentPage']),
+    --         [2] = '',
+    --         [3] = 'Vapor',
+    --         [4] = ccStrings.ensure_width('Max Vapor %', gui.width*gui.widthFactor-1)..gui.snapshot['automations']['powerMax'],
+    --         [5] = '      buttons      ',
+    --         [6] = ccStrings.ensure_width('Min Vapor %', gui.width*gui.widthFactor-1)..gui.snapshot['automations']['powerMin'],
+    --         [7] = '      buttons      ',
+    --         [8] = '',
+    --         [9] = 'Temperature',
+    --         [10] = ccStrings.ensure_width('Max Temperature', gui.width*gui.widthFactor-1)..gui.snapshot['automations']['tempMax'],
+    --         [11] = '      buttons      ',
+    --         [12] = '',
+    --         [13] = 'Control Rods',
+    --         [14] = '',
+    --         -- ['PowerVapor'] = gui.snapshot['automations']['powerToggle'],
+    --         -- ['Temperature'] = gui.snapshot['automations']['tempToggle'],
+    --         -- ['Control Rods'] = gui.snapshot['automations']['controlRodsToggle'],
+    --     }
+    -- end
+    -- local contentColors = {
+    --     [0] = gui.stdBgColor,
+    --     [1] = colors.yellow,
+    --     [2] = gui.stdBgColor,
+    --     [3] = colors.yellow,
+    --     [4] = colors.white,
+    --     [5] = colors.white,
+    --     [6] = colors.white,
+    --     [7] = colors.white,
+    --     [8] = colors.white,
+    --     [9] = colors.yellow,
+    --     [10] = colors.white,
+    --     [11] = colors.white,
+    --     [12] = colors.white,
+    --     [13] = colors.yellow,
+    --     [14] = gui.stdBgColor,
+    -- }
     gui.draw_title_content(content, contentColors)
     -- for k, v in pairs(content) do
     --     gui.monitor.setCursorPos(2,3+k)
@@ -1566,6 +1642,63 @@ end  --end page
 --     return info
 -- end
 
+function gui.checkIfTableContains(table, string)
+    for k, v in pairs(table) do
+        if string == v then
+            return true
+        end
+    end
+    return false
+end
+
+function gui.translateString(string)
+    if gui.checkIfTableContains({
+        'turbineToggle', 
+        'inductorToggle', 
+        'turbineSpeedToggle', 
+        'powerToggle', 
+        'reactorToggle', 
+        'tempToggle', 
+        'controlRodsToggle', 
+        'vaporToggle',
+        'turbineSpeedTarget',
+        'powerMax',
+        'powerMin',
+        'vaporMax',
+        'vaporMin',
+    }, string) then
+        if string == 'turbineToggle' then
+            return 'Turbine Status'
+        elseif string == 'inductorToggle' then
+            return 'Inductor'
+        elseif string == 'turbineSpeedToggle' then
+            return 'Turbine Speed'
+        elseif string == 'powerToggle' then
+            return 'Power'
+        elseif string == 'reactorToggle' then
+            return 'Reactor Status'
+        elseif string == 'tempToggle' then
+            return 'Temperature'
+        elseif string == 'controlRodsToggle' then
+            return 'Control Rods'
+        elseif string == 'vaporToggle' then
+            return 'Vapor'
+        elseif string == 'turbineSpeedTarget' then
+            return 'Target Speed'
+        elseif string == 'powerMax' then
+            return 'Max Power %'
+        elseif string == 'powerMin' then
+            return 'Min Power %'
+        elseif string == 'vaporMax' then
+            return 'Max Vapor %'
+        elseif string == 'vaporMin' then
+            return 'Min Vapor %'
+        end
+    else
+        return false
+    end
+end
+
 function gui.draw_title_content(content, contentColors)
     --gui.readSettings() -- +gui.settings['mouseWheel']*100
     if #content < gui.height-5 then
@@ -1628,13 +1761,13 @@ function gui.draw_title_content(content, contentColors)
                     gui.monitor.setBackgroundColor(colors.black)
                     gui.monitor.write(' ')
                 end
-            elseif content[i] == 'Power' or content[i] == 'Vapor' then
+            elseif gui.checkIfTableContains({'turbineToggle', 'inductorToggle', 'turbineSpeedToggle', 'powerToggle', 'reactorToggle', 'tempToggle', 'controlRodsToggle', 'vaporToggle',}, content[i]) then -- content[i] == 'turbineToggle' or content[i] == 'inductorToggle' or content[i] == 'powerToggle' or content[i] == 'reactorToggle' or content[i] == 'vaporToggle' or content[i] == 'tempToggle' or content[i] == 'controlRodsToggle' or content[i] == 'turbineSpeedToggle' then
                 gui.monitor.setBackgroundColor(colors.black)
                 gui.monitor.setCursorPos(3,3+i)
                 gui.monitor.setTextColor(contentColors[i])
-                gui.monitor.write(ccStrings.ensure_width(content[i], gui.width*gui.widthFactor-1))
+                gui.monitor.write(ccStrings.ensure_width(gui.translateString(content[i]), gui.width*gui.widthFactor-1))
                 gui.monitor.setCursorPos(2+gui.width*gui.widthFactor,3+i)
-                if gui.snapshot['automations']['powerToggle'] == true then
+                if gui.snapshot['automations'][content[i]] == true then
                     gui.monitor.setBackgroundColor(colors.green)
                     gui.monitor.setTextColor(colors.white)
                     gui.monitor.write(' ON  ')
@@ -1645,40 +1778,47 @@ function gui.draw_title_content(content, contentColors)
                     gui.monitor.write(' OFF ')
                     gui.monitor.setBackgroundColor(gui.stdBgColor)
                 end
-            elseif content[i] == 'Temperature' then
+            elseif gui.checkIfTableContains({'powerMax', 'powerMin', 'vaporMax', 'vaporMin'}, content[i]) then
                 gui.monitor.setBackgroundColor(colors.black)
                 gui.monitor.setCursorPos(3,3+i)
                 gui.monitor.setTextColor(contentColors[i])
-                gui.monitor.write(ccStrings.ensure_width(content[i], gui.width*gui.widthFactor-1))
+                gui.monitor.write(ccStrings.ensure_width(gui.translateString(content[i]), gui.width*gui.widthFactor-1))
                 gui.monitor.setCursorPos(2+gui.width*gui.widthFactor,3+i)
-                if gui.snapshot['automations']['tempToggle'] == true then
-                    gui.monitor.setBackgroundColor(colors.green)
-                    gui.monitor.setTextColor(colors.white)
-                    gui.monitor.write(' ON  ')
-                    gui.monitor.setBackgroundColor(gui.stdBgColor)
-                else
-                    gui.monitor.setBackgroundColor(colors.red)
-                    gui.monitor.setTextColor(colors.white)
-                    gui.monitor.write(' OFF ')
-                    gui.monitor.setBackgroundColor(gui.stdBgColor)
-                end
-            elseif content[i] == 'Control Rods' then
-                gui.monitor.setBackgroundColor(colors.black)
-                gui.monitor.setCursorPos(3,3+i)
-                gui.monitor.setTextColor(contentColors[i])
-                gui.monitor.write(ccStrings.ensure_width(content[i], gui.width*gui.widthFactor-1))
-                gui.monitor.setCursorPos(2+gui.width*gui.widthFactor,3+i)
-                if gui.snapshot['automations']['controlRodsToggle'] == true then
-                    gui.monitor.setBackgroundColor(colors.green)
-                    gui.monitor.setTextColor(colors.white)
-                    gui.monitor.write(' ON  ')
-                    gui.monitor.setBackgroundColor(gui.stdBgColor)
-                else
-                    gui.monitor.setBackgroundColor(colors.red)
-                    gui.monitor.setTextColor(colors.white)
-                    gui.monitor.write(' OFF ')
-                    gui.monitor.setBackgroundColor(gui.stdBgColor)
-                end
+                gui.monitor.write(gui.snapshot['automations'][content[i]])
+            -- elseif content[i] == 'Temperature' then
+            --     gui.monitor.setBackgroundColor(colors.black)
+            --     gui.monitor.setCursorPos(3,3+i)
+            --     gui.monitor.setTextColor(contentColors[i])
+            --     gui.monitor.write(ccStrings.ensure_width(content[i], gui.width*gui.widthFactor-1))
+            --     gui.monitor.setCursorPos(2+gui.width*gui.widthFactor,3+i)
+            --     if gui.snapshot['automations']['tempToggle'] == true then
+            --         gui.monitor.setBackgroundColor(colors.green)
+            --         gui.monitor.setTextColor(colors.white)
+            --         gui.monitor.write(' ON  ')
+            --         gui.monitor.setBackgroundColor(gui.stdBgColor)
+            --     else
+            --         gui.monitor.setBackgroundColor(colors.red)
+            --         gui.monitor.setTextColor(colors.white)
+            --         gui.monitor.write(' OFF ')
+            --         gui.monitor.setBackgroundColor(gui.stdBgColor)
+            --     end
+            -- elseif content[i] == 'Control Rods' then
+            --     gui.monitor.setBackgroundColor(colors.black)
+            --     gui.monitor.setCursorPos(3,3+i)
+            --     gui.monitor.setTextColor(contentColors[i])
+            --     gui.monitor.write(ccStrings.ensure_width(content[i], gui.width*gui.widthFactor-1))
+            --     gui.monitor.setCursorPos(2+gui.width*gui.widthFactor,3+i)
+            --     if gui.snapshot['automations']['controlRodsToggle'] == true then
+            --         gui.monitor.setBackgroundColor(colors.green)
+            --         gui.monitor.setTextColor(colors.white)
+            --         gui.monitor.write(' ON  ')
+            --         gui.monitor.setBackgroundColor(gui.stdBgColor)
+            --     else
+            --         gui.monitor.setBackgroundColor(colors.red)
+            --         gui.monitor.setTextColor(colors.white)
+            --         gui.monitor.write(' OFF ')
+            --         gui.monitor.setBackgroundColor(gui.stdBgColor)
+            --     end
             else
                 -- gui.log(textutils.serialize({['i'] = i, ['contentColorsI'] = contentColors[i], ['contentI'] = content[i]}))
                 gui.monitor.setCursorPos(3,3+i)
@@ -1747,13 +1887,14 @@ function gui.draw_title_content(content, contentColors)
                     gui.monitor.setBackgroundColor(colors.black)
                     gui.monitor.write(' ')
                 end
-            elseif content[math.floor(i+(#content-(gui.height-5))*gui.settings['mouseWheel'])] == 'Power' or content[math.floor(i+(#content-(gui.height-5))*gui.settings['mouseWheel'])] == 'Vapor' then
+            elseif gui.checkIfTableContains({'turbineToggle', 'inductorToggle', 'turbineSpeedToggle', 'powerToggle', 'reactorToggle', 'tempToggle', 'controlRodsToggle', 'vaporToggle',}, content[math.floor(i+(#content-(gui.height-5))*gui.settings['mouseWheel'])]) then
+            -- elseif content[math.floor(i+(#content-(gui.height-5))*gui.settings['mouseWheel'])] == 'Power' or content[math.floor(i+(#content-(gui.height-5))*gui.settings['mouseWheel'])] == 'Vapor' then
                 gui.monitor.setBackgroundColor(colors.black)
                 gui.monitor.setCursorPos(3,3+i)
                 gui.monitor.setTextColor(contentColors[math.floor(i+(#content-(gui.height-5))*gui.settings['mouseWheel'])])
-                gui.monitor.write(ccStrings.ensure_width(content[math.floor(i+(#content-(gui.height-5))*gui.settings['mouseWheel'])], gui.width*gui.widthFactor-1))
+                gui.monitor.write(ccStrings.ensure_width(gui.translateString(content[math.floor(i+(#content-(gui.height-5))*gui.settings['mouseWheel'])]), gui.width*gui.widthFactor-1))
                 gui.monitor.setCursorPos(2+gui.width*gui.widthFactor,3+i)
-                if gui.snapshot['automations']['powerToggle'] == true then
+                if gui.snapshot['automations'][content[math.floor(i+(#content-(gui.height-5))*gui.settings['mouseWheel'])]] == true then
                     gui.monitor.setBackgroundColor(colors.green)
                     gui.monitor.setTextColor(colors.white)
                     gui.monitor.write(' ON  ')
@@ -1764,40 +1905,47 @@ function gui.draw_title_content(content, contentColors)
                     gui.monitor.write(' OFF ')
                     gui.monitor.setBackgroundColor(gui.stdBgColor)
                 end
-            elseif content[math.floor(i+(#content-(gui.height-5))*gui.settings['mouseWheel'])] == 'Temperature' then
+            elseif gui.checkIfTableContains({'powerMax', 'powerMin', 'vaporMax', 'vaporMin', 'turbineSpeedTarget'}, content[math.floor(i+(#content-(gui.height-5))*gui.settings['mouseWheel'])]) then
                 gui.monitor.setBackgroundColor(colors.black)
                 gui.monitor.setCursorPos(3,3+i)
                 gui.monitor.setTextColor(contentColors[math.floor(i+(#content-(gui.height-5))*gui.settings['mouseWheel'])])
-                gui.monitor.write(ccStrings.ensure_width(content[math.floor(i+(#content-(gui.height-5))*gui.settings['mouseWheel'])], gui.width*gui.widthFactor-1))
+                gui.monitor.write(ccStrings.ensure_width(gui.translateString(content[math.floor(i+(#content-(gui.height-5))*gui.settings['mouseWheel'])]), gui.width*gui.widthFactor-1))
                 gui.monitor.setCursorPos(2+gui.width*gui.widthFactor,3+i)
-                if gui.snapshot['automations']['tempToggle'] == true then
-                    gui.monitor.setBackgroundColor(colors.green)
-                    gui.monitor.setTextColor(colors.white)
-                    gui.monitor.write(' ON  ')
-                    gui.monitor.setBackgroundColor(gui.stdBgColor)
-                else
-                    gui.monitor.setBackgroundColor(colors.red)
-                    gui.monitor.setTextColor(colors.white)
-                    gui.monitor.write(' OFF ')
-                    gui.monitor.setBackgroundColor(gui.stdBgColor)
-                end
-            elseif content[math.floor(i+(#content-(gui.height-5))*gui.settings['mouseWheel'])] == 'Control Rods' then
-                gui.monitor.setBackgroundColor(colors.black)
-                gui.monitor.setCursorPos(3,3+i)
-                gui.monitor.setTextColor(contentColors[math.floor(i+(#content-(gui.height-5))*gui.settings['mouseWheel'])])
-                gui.monitor.write(ccStrings.ensure_width(content[math.floor(i+(#content-(gui.height-5))*gui.settings['mouseWheel'])], gui.width*gui.widthFactor-1))
-                gui.monitor.setCursorPos(2+gui.width*gui.widthFactor,3+i)
-                if gui.snapshot['automations']['controlRodsToggle'] == true then
-                    gui.monitor.setBackgroundColor(colors.green)
-                    gui.monitor.setTextColor(colors.white)
-                    gui.monitor.write(' ON  ')
-                    gui.monitor.setBackgroundColor(gui.stdBgColor)
-                else
-                    gui.monitor.setBackgroundColor(colors.red)
-                    gui.monitor.setTextColor(colors.white)
-                    gui.monitor.write(' OFF ')
-                    gui.monitor.setBackgroundColor(gui.stdBgColor)
-                end
+                gui.monitor.write(gui.snapshot['automations'][content[math.floor(i+(#content-(gui.height-5))*gui.settings['mouseWheel'])]])
+            -- elseif content[math.floor(i+(#content-(gui.height-5))*gui.settings['mouseWheel'])] == 'Temperature' then
+            --     gui.monitor.setBackgroundColor(colors.black)
+            --     gui.monitor.setCursorPos(3,3+i)
+            --     gui.monitor.setTextColor(contentColors[math.floor(i+(#content-(gui.height-5))*gui.settings['mouseWheel'])])
+            --     gui.monitor.write(ccStrings.ensure_width(content[math.floor(i+(#content-(gui.height-5))*gui.settings['mouseWheel'])], gui.width*gui.widthFactor-1))
+            --     gui.monitor.setCursorPos(2+gui.width*gui.widthFactor,3+i)
+            --     if gui.snapshot['automations']['tempToggle'] == true then
+            --         gui.monitor.setBackgroundColor(colors.green)
+            --         gui.monitor.setTextColor(colors.white)
+            --         gui.monitor.write(' ON  ')
+            --         gui.monitor.setBackgroundColor(gui.stdBgColor)
+            --     else
+            --         gui.monitor.setBackgroundColor(colors.red)
+            --         gui.monitor.setTextColor(colors.white)
+            --         gui.monitor.write(' OFF ')
+            --         gui.monitor.setBackgroundColor(gui.stdBgColor)
+            --     end
+            -- elseif content[math.floor(i+(#content-(gui.height-5))*gui.settings['mouseWheel'])] == 'Control Rods' then
+            --     gui.monitor.setBackgroundColor(colors.black)
+            --     gui.monitor.setCursorPos(3,3+i)
+            --     gui.monitor.setTextColor(contentColors[math.floor(i+(#content-(gui.height-5))*gui.settings['mouseWheel'])])
+            --     gui.monitor.write(ccStrings.ensure_width(content[math.floor(i+(#content-(gui.height-5))*gui.settings['mouseWheel'])], gui.width*gui.widthFactor-1))
+            --     gui.monitor.setCursorPos(2+gui.width*gui.widthFactor,3+i)
+            --     if gui.snapshot['automations']['controlRodsToggle'] == true then
+            --         gui.monitor.setBackgroundColor(colors.green)
+            --         gui.monitor.setTextColor(colors.white)
+            --         gui.monitor.write(' ON  ')
+            --         gui.monitor.setBackgroundColor(gui.stdBgColor)
+            --     else
+            --         gui.monitor.setBackgroundColor(colors.red)
+            --         gui.monitor.setTextColor(colors.white)
+            --         gui.monitor.write(' OFF ')
+            --         gui.monitor.setBackgroundColor(gui.stdBgColor)
+            --     end
             else
                 -- gui.log(textutils.serialize({['i'] = i, ['contentColorsI'] = contentColors[i], ['contentI'] = content[i]}))
                 gui.monitor.setCursorPos(3,3+i)

@@ -33,8 +33,6 @@ To install onto a ComputerCraft device type this into the console:
 For first time users, you will have to wait a couple of minutes while cryptography parameters are generated.
 
 ### Todo
-- Scrolling features / Scroll bar
-    - Specifically for Rod Stats, Automations, Client Management, and potentially the help window
 - Histograms page
     - Switchable histograms
 - Version checker

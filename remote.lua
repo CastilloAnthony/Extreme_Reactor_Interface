@@ -412,525 +412,152 @@ function remote.clickedButton(event, button, x, y, arg4, arg5)
                 gui.writeSettings()
             end
         elseif y >= 3 then
-            if gui.settings['scrollAbleLines'] == 0 then
-                if gui.settings['currentPageTitle'] == 'Reactor Summary' then
-                    if y == 8 then
-                        if x>=1+gui.width*gui.widthFactor and x<=1+gui.width*gui.widthFactor+5 then
-                            remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'command', ['data'] = 'toggleReactor'}))})
-                        end
-                    end
-                elseif gui.settings['currentPageTitle'] == 'Turbine Summary' then
-                    if y == 8 then
-                        if x>=1+gui.width*gui.widthFactor and x<=1+gui.width*gui.widthFactor+5 then
-                            remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'command', ['data'] = 'toggleTurbine'}))})
-                        end
-                    elseif y == 9 then
-                        if x>=1+gui.width*gui.widthFactor and x<=1+gui.width*gui.widthFactor+5 then
-                            remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'command', ['data'] = 'toggleInductor'}))})
-                        end
-                    end
-                -- elseif gui.settings['currentPageTitle'] == 'Graphs' then -- Graphs
-                --     if y == 6 then
-                --         if x >=gui.width*gui.widthFactor+1 and x <= gui.width*gui.widthFactor+1+5 then
-                --             if gui.snapshot['reactor']['status'] then
-                --                 remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'command', ['data'] = 'scram'}))})
-                --             end
-                --         end
-                --     end
-                elseif gui.settings['currentPageTitle'] == 'Rod Statistics Info' then -- Control Rods
-                    for k, v in pairs(gui.snapshot['reactor']['rodInfo']['rods']) do
-                        if y == 6+k*2 then
-                            if x == math.ceil((gui.width-(#'      buttons      '-2))/2) or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+1 then
-                                if v['level'] > 0 then
-                                    remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'adjustRod', ['data'] = 1, ['direction'] = 'down', ['target'] = k}))})
-                                end
-                            elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+3 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+4 then
-                                if v['level']-5 < 0 then
-                                    for i=1, 5 do
-                                        if v['level']-1 == 0 then
-                                            remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'adjustRod', ['data'] = i, ['direction'] = 'down', ['target'] = k}))})
-                                            break
-                                        end
-                                    end
-                                else
-                                    remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'adjustRod', ['data'] = 5, ['direction'] = 'down', ['target'] = k}))})
-                                end
-                            elseif x >= math.ceil((gui.width-(#'      buttons      '-2))/2)+6 and x <= math.ceil((gui.width-(#'      buttons      '-2))/2)+8 then
-                                if v['level']-10 < 0 then
-                                    for i=1, 10 do
-                                        if v['level']-i == 0 then
-                                            remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'adjustRod', ['data'] = i, ['direction'] = 'down', ['target'] = k}))})
-                                            break
-                                        end
-                                    end
-                                else
-                                    remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'adjustRod', ['data'] = 10, ['direction'] = 'down', ['target'] = k}))})
-                                end
-                            elseif x >= math.ceil((gui.width-(#'      buttons      '-2))/2)+10 and x <= math.ceil((gui.width-(#'      buttons      '-2))/2)+12 then
-                                if v['level']+10 > 100 then
-                                    for i=1, 10 do
-                                        if v['level']+i == 100 then
-                                            remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'adjustRod', ['data'] = i, ['direction'] = 'up', ['target'] = k}))})
-                                            break
-                                        end
-                                    end
-                                else
-                                    remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'adjustRod', ['data'] = 10, ['direction'] = 'up', ['target'] = k}))})
-                                end
-                            elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+14 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+15 then
-                                if v['level']+5 > 100 then
-                                    for i=1, 5 do
-                                        if v['level']+i == 100 then
-                                            remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'adjustRod', ['data'] = i, ['direction'] = 'up', ['target'] = k}))})
-                                            break
-                                        end
-                                    end
-                                else
-                                    remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'adjustRod', ['data'] = 5, ['direction'] = 'up', ['target'] = k}))})
-                                end
-                            elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+17 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+18 then
-                                if v['level'] < 100 then
-                                    remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'adjustRod', ['data'] = 1, ['direction'] = 'up', ['target'] = k}))})
-                                end
-                            end
-                            break
-                        end
-                    end
-                elseif gui.settings['currentPageTitle'] == 'Automations' then -- Automations
-                    if y == 6 then -- Power
-                        if x>=1+gui.width*gui.widthFactor and x<=1+gui.width*gui.widthFactor+5 then
-                            remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'command', ['data'] = 'powerToggle'}))})
-                        end
-                    elseif y == 8 then -- Power Max
-                        if x == math.ceil((gui.width-(#'      buttons      '-2))/2) or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+1 then
-                            if gui.snapshot['automations']['powerMax'] > gui.snapshot['automations']['powerMin'] then
-                                remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'powerMax', ['data'] = 1, ['direction'] = 'down'}))})
-                            end
-                        elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+3 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+4 then
-                            if gui.snapshot['automations']['powerMax']-5 < gui.snapshot['automations']['powerMin'] then
-                                for i=1, 5 do
-                                    if gui.snapshot['automations']['powerMax']-1 == gui.snapshot['automations']['powerMin'] then
-                                        remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'powerMax', ['data'] = i, ['direction'] = 'down'}))})
-                                        break
-                                    end
-                                end
-                            else
-                                remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'powerMax', ['data'] = 5, ['direction'] = 'down'}))})
-                            end
-                        elseif x >= math.ceil((gui.width-(#'      buttons      '-2))/2)+6 and x <= math.ceil((gui.width-(#'      buttons      '-2))/2)+8 then
-                            if gui.snapshot['automations']['powerMax']-10 < gui.snapshot['automations']['powerMin'] then
-                                for i=1, 10 do
-                                    if gui.snapshot['automations']['powerMax']-i == gui.snapshot['automations']['powerMin'] then
-                                        remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'powerMax', ['data'] = i, ['direction'] = 'down'}))})
-                                        break
-                                    end
-                                end
-                            else
-                                remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'powerMax', ['data'] = 10, ['direction'] = 'down'}))})
-                            end
-                        elseif x >= math.ceil((gui.width-(#'      buttons      '-2))/2)+10 and x <= math.ceil((gui.width-(#'      buttons      '-2))/2)+12 then
-                            if gui.snapshot['automations']['powerMax']+10 > 100 then
-                                for i=1, 10 do
-                                    if gui.snapshot['automations']['powerMax']+i == 100 then
-                                        remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'powerMax', ['data'] = i, ['direction'] = 'up'}))})
-                                        break
-                                    end
-                                end
-                            else
-                                remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'powerMax', ['data'] = 10, ['direction'] = 'up'}))})
-                            end
-                        elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+14 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+15 then
-                            if gui.snapshot['automations']['powerMax']+5 > 100 then
-                                for i=1, 5 do
-                                    if gui.snapshot['automations']['powerMax']+i == 100 then
-                                        remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'powerMax', ['data'] = i, ['direction'] = 'up'}))})
-                                        break
-                                    end
-                                end
-                            else
-                                remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'powerMax', ['data'] = 5, ['direction'] = 'up'}))})
-                            end
-                        elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+17 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+18 then
-                            if gui.snapshot['automations']['powerMax'] < 100 then
-                                remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'powerMax', ['data'] = 1, ['direction'] = 'up'}))})
-                            end
-                        end
-                    elseif y == 10 then -- Power Min
-                        if x == math.ceil((gui.width-(#'      buttons      '-2))/2) or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+1 then
-                            if gui.snapshot['automations']['powerMin'] > 0 then
-                                remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'powerMin', ['data'] = 1, ['direction'] = 'down'}))})
-                            end
-                        elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+3 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+4 then
-                            if gui.snapshot['automations']['powerMin']-5 < 0 then
-                                for i=1, 5 do
-                                    if gui.snapshot['automations']['powerMin']-1 == 0 then
-                                        remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'powerMin', ['data'] = i, ['direction'] = 'down'}))})
-                                        break
-                                    end
-                                end
-                            else
-                                remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'powerMin', ['data'] = 5, ['direction'] = 'down'}))})
-                            end
-                        elseif x >= math.ceil((gui.width-(#'      buttons      '-2))/2)+6 and x <= math.ceil((gui.width-(#'      buttons      '-2))/2)+8 then
-                            if gui.snapshot['automations']['powerMin']-10 < 0 then
-                                for i=1, 10 do
-                                    if gui.snapshot['automations']['powerMin']-i == 0 then
-                                        remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'powerMin', ['data'] = i, ['direction'] = 'down'}))})
-                                        break
-                                    end
-                                end
-                            else
-                                remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'powerMin', ['data'] = 10, ['direction'] = 'down'}))})
-                            end
-                        elseif x >= math.ceil((gui.width-(#'      buttons      '-2))/2)+10 and x <= math.ceil((gui.width-(#'      buttons      '-2))/2)+12 then
-                            if gui.snapshot['automations']['powerMin']+10 > gui.snapshot['automations']['powerMax'] then
-                                for i=1, 10 do
-                                    if gui.snapshot['automations']['powerMin']+i == gui.snapshot['automations']['powerMax'] then
-                                        remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'powerMin', ['data'] = i, ['direction'] = 'up'}))})
-                                        break
-                                    end
-                                end
-                            else
-                                remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'powerMin', ['data'] = 10, ['direction'] = 'up'}))})
-                            end
-                        elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+14 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+15 then
-                            if gui.snapshot['automations']['powerMin']+5 > gui.snapshot['automations']['powerMax'] then
-                                for i=1, 5 do
-                                    if gui.snapshot['automations']['powerMin']+i == gui.snapshot['automations']['powerMax'] then
-                                        remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'powerMin', ['data'] = i, ['direction'] = 'up'}))})
-                                        break
-                                    end
-                                end
-                            else
-                                remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'powerMin', ['data'] = 5, ['direction'] = 'up'}))})
-                            end
-                        elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+17 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+18 then
-                            if gui.snapshot['automations']['powerMin'] < gui.snapshot['automations']['powerMax'] then
-                                remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'powerMin', ['data'] = 1, ['direction'] = 'up'}))})
-                            end
-                        end
-                    elseif y == 12 then -- Temperature
-                        if x>=1+gui.width*gui.widthFactor and x<=1+gui.width*gui.widthFactor+5 then
-                            remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'command', ['data'] = 'tempToggle'}))})
-                        end
-                    elseif y == 14 then -- Temperature Max
-                        if x == math.ceil((gui.width-(#'      buttons      '-2))/2) or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+1 then
-                            if gui.snapshot['automations']['tempMax'] > 0 then
-                                remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'tempMax', ['data'] = 1, ['direction'] = 'down'}))})
-                            end
-                        elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+3 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+4 then
-                            if gui.snapshot['automations']['tempMax']-5 < 0 then
-                                for i=1, 5 do
-                                    if gui.snapshot['automations']['tempMax']-1 == 0 then
-                                        remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'tempMax', ['data'] = i, ['direction'] = 'down'}))})
-                                        break
-                                    end
-                                end
-                            else
-                                remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'tempMax', ['data'] = 5, ['direction'] = 'down'}))})
-                            end
-                        elseif x >= math.ceil((gui.width-(#'      buttons      '-2))/2)+6 and x <= math.ceil((gui.width-(#'      buttons      '-2))/2)+8 then
-                            if gui.snapshot['automations']['tempMax']-10 < 0 then
-                                for i=1, 10 do
-                                    if gui.snapshot['automations']['tempMax']-i == 0 then
-                                        remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'tempMax', ['data'] = i, ['direction'] = 'down'}))})
-                                        break
-                                    end
-                                end
-                            else
-                                remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'tempMax', ['data'] = 10, ['direction'] = 'down'}))})
-                            end
-                        elseif x >= math.ceil((gui.width-(#'      buttons      '-2))/2)+10 and x <= math.ceil((gui.width-(#'      buttons      '-2))/2)+12 then
-                            if gui.snapshot['automations']['tempMax']+10 > 1000 then
-                                for i=1, 10 do
-                                    if gui.snapshot['automations']['tempMax']+i == 10000 then
-                                        remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'tempMax', ['data'] = i, ['direction'] = 'up'}))})
-                                        break
-                                    end
-                                end
-                            else
-                                remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'tempMax', ['data'] = 10, ['direction'] = 'up'}))})
-                            end
-                        elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+14 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+15 then
-                            if gui.snapshot['automations']['tempMax']+5 > 1000 then
-                                for i=1, 5 do
-                                    if gui.snapshot['automations']['tempMax']+i == 10000 then
-                                        remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'tempMax', ['data'] = i, ['direction'] = 'up'}))})
-                                        break
-                                    end
-                                end
-                            else
-                                remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'tempMax', ['data'] = 5, ['direction'] = 'up'}))})
-                            end
-                        elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+17 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+18 then
-                            if gui.snapshot['automations']['tempMax'] < 10000 then
-                                remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'tempMax', ['data'] = 1, ['direction'] = 'up'}))})
-                            end
-                        end
-                    elseif y == 16 then -- Control Rods
-                        if x>=1+gui.width*gui.widthFactor and x<=1+gui.width*gui.widthFactor+5 then
-                            remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'command', ['data'] = 'controlRodsToggle'}))})
-                        end
+            if gui.settings['currentPageTitle'] == 'Reactor Summary' then
+                if y == 8-math.floor((gui.settings['scrollAbleLines']*gui.settings['mouseWheel'])) then
+                    if x>=1+gui.width*gui.widthFactor and x<=1+gui.width*gui.widthFactor+5 then
+                        remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'command', ['data'] = 'toggleReactor'}))})
                     end
                 end
-            else
-                if gui.settings['currentPageTitle'] == 'Reactor Summary' then
-                    if y == 8-math.floor((gui.settings['scrollAbleLines']*gui.settings['mouseWheel'])) then
-                        if x>=1+gui.width*gui.widthFactor and x<=1+gui.width*gui.widthFactor+5 then
-                            remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'command', ['data'] = 'toggleReactor'}))})
-                        end
+            elseif gui.settings['currentPageTitle'] == 'Turbine Summary' then
+                if y == 8-math.floor((gui.settings['scrollAbleLines']*gui.settings['mouseWheel'])) then
+                    if x>=1+gui.width*gui.widthFactor and x<=1+gui.width*gui.widthFactor+5 then
+                        remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'command', ['data'] = 'toggleTurbine'}))})
                     end
-                elseif gui.settings['currentPageTitle'] == 'Turbine Summary' then
-                    if y == 8-math.floor((gui.settings['scrollAbleLines']*gui.settings['mouseWheel'])) then
-                        if x>=1+gui.width*gui.widthFactor and x<=1+gui.width*gui.widthFactor+5 then
-                            remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'command', ['data'] = 'toggleTurbine'}))})
-                        end
-                    elseif y == 9-math.floor((gui.settings['scrollAbleLines']*gui.settings['mouseWheel'])) then
-                        if x>=1+gui.width*gui.widthFactor and x<=1+gui.width*gui.widthFactor+5 then
-                            remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'command', ['data'] = 'toggleInductor'}))})
-                        end
+                elseif y == 9-math.floor((gui.settings['scrollAbleLines']*gui.settings['mouseWheel'])) then
+                    if x>=1+gui.width*gui.widthFactor and x<=1+gui.width*gui.widthFactor+5 then
+                        remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'command', ['data'] = 'toggleInductor'}))})
                     end
-                -- elseif gui.settings['currentPageTitle'] == 'Graphs' then -- Graphs
-                --     if y == 6 then
-                --         if x >=gui.width*gui.widthFactor+1 and x <= gui.width*gui.widthFactor+1+5 then
-                --             if gui.snapshot['reactor']['status'] then
-                --                 remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'command', ['data'] = 'scram'}))})
-                --             end
-                --         end
-                --     end
-                elseif gui.settings['currentPageTitle'] == 'Rod Statistics Info' then -- Control Rods
-                    for k, v in pairs(gui.snapshot['reactor']['rodInfo']['rods']) do
-                        if y == 6+k*2-math.floor((gui.settings['scrollAbleLines']*gui.settings['mouseWheel'])) then
-                            if x == math.ceil((gui.width-(#'      buttons      '-2))/2) or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+1 then
-                                if v['level'] > 0 then
-                                    remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'adjustRod', ['data'] = 1, ['direction'] = 'down', ['target'] = k}))})
-                                end
-                            elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+3 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+4 then
-                                if v['level']-5 < 0 then
-                                    for i=1, 5 do
-                                        if v['level']-1 == 0 then
-                                            remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'adjustRod', ['data'] = i, ['direction'] = 'down', ['target'] = k}))})
-                                            break
-                                        end
-                                    end
-                                else
-                                    remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'adjustRod', ['data'] = 5, ['direction'] = 'down', ['target'] = k}))})
-                                end
-                            elseif x >= math.ceil((gui.width-(#'      buttons      '-2))/2)+6 and x <= math.ceil((gui.width-(#'      buttons      '-2))/2)+8 then
-                                if v['level']-10 < 0 then
-                                    for i=1, 10 do
-                                        if v['level']-i == 0 then
-                                            remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'adjustRod', ['data'] = i, ['direction'] = 'down', ['target'] = k}))})
-                                            break
-                                        end
-                                    end
-                                else
-                                    remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'adjustRod', ['data'] = 10, ['direction'] = 'down', ['target'] = k}))})
-                                end
-                            elseif x >= math.ceil((gui.width-(#'      buttons      '-2))/2)+10 and x <= math.ceil((gui.width-(#'      buttons      '-2))/2)+12 then
-                                if v['level']+10 > 100 then
-                                    for i=1, 10 do
-                                        if v['level']+i == 100 then
-                                            remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'adjustRod', ['data'] = i, ['direction'] = 'up', ['target'] = k}))})
-                                            break
-                                        end
-                                    end
-                                else
-                                    remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'adjustRod', ['data'] = 10, ['direction'] = 'up', ['target'] = k}))})
-                                end
-                            elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+14 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+15 then
-                                if v['level']+5 > 100 then
-                                    for i=1, 5 do
-                                        if v['level']+i == 100 then
-                                            remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'adjustRod', ['data'] = i, ['direction'] = 'up', ['target'] = k}))})
-                                            break
-                                        end
-                                    end
-                                else
-                                    remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'adjustRod', ['data'] = 5, ['direction'] = 'up', ['target'] = k}))})
-                                end
-                            elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+17 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+18 then
-                                if v['level'] < 100 then
-                                    remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'adjustRod', ['data'] = 1, ['direction'] = 'up', ['target'] = k}))})
-                                end
-                            end
-                            break
-                        end
-                    end
-                elseif gui.settings['currentPageTitle'] == 'Automations' then -- Automations
-                    if y == 6-math.floor((gui.settings['scrollAbleLines']*gui.settings['mouseWheel'])) then -- Power
-                        if x>=1+gui.width*gui.widthFactor and x<=1+gui.width*gui.widthFactor+5 then
-                            remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'command', ['data'] = 'powerToggle'}))})
-                        end
-                    elseif y == 8-math.floor((gui.settings['scrollAbleLines']*gui.settings['mouseWheel'])) then -- Power Max
+                end
+            -- elseif gui.settings['currentPageTitle'] == 'Graphs' then -- Graphs
+            --     if y == 6 then
+            --         if x >=gui.width*gui.widthFactor+1 and x <= gui.width*gui.widthFactor+1+5 then
+            --             if gui.snapshot['reactor']['status'] then
+            --                 remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'command', ['data'] = 'scram'}))})
+            --             end
+            --         end
+            --     end
+            elseif gui.settings['currentPageTitle'] == 'Rod Statistics Info' then -- Control Rods
+                for k, v in pairs(gui.snapshot['reactor']['rodInfo']['rods']) do
+                    if y == 6+k*2-math.floor((gui.settings['scrollAbleLines']*gui.settings['mouseWheel'])) then
                         if x == math.ceil((gui.width-(#'      buttons      '-2))/2) or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+1 then
-                            if gui.snapshot['automations']['powerMax'] > gui.snapshot['automations']['powerMin'] then
-                                remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'powerMax', ['data'] = 1, ['direction'] = 'down'}))})
+                            if v['level'] > 0 then
+                                remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'adjustRod', ['data'] = 1, ['direction'] = 'down', ['target'] = k}))})
                             end
                         elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+3 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+4 then
-                            if gui.snapshot['automations']['powerMax']-5 < gui.snapshot['automations']['powerMin'] then
+                            if v['level']-5 < 0 then
                                 for i=1, 5 do
-                                    if gui.snapshot['automations']['powerMax']-1 == gui.snapshot['automations']['powerMin'] then
-                                        remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'powerMax', ['data'] = i, ['direction'] = 'down'}))})
+                                    if v['level']-1 == 0 then
+                                        remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'adjustRod', ['data'] = i, ['direction'] = 'down', ['target'] = k}))})
                                         break
                                     end
                                 end
                             else
-                                remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'powerMax', ['data'] = 5, ['direction'] = 'down'}))})
+                                remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'adjustRod', ['data'] = 5, ['direction'] = 'down', ['target'] = k}))})
                             end
                         elseif x >= math.ceil((gui.width-(#'      buttons      '-2))/2)+6 and x <= math.ceil((gui.width-(#'      buttons      '-2))/2)+8 then
-                            if gui.snapshot['automations']['powerMax']-10 < gui.snapshot['automations']['powerMin'] then
+                            if v['level']-10 < 0 then
                                 for i=1, 10 do
-                                    if gui.snapshot['automations']['powerMax']-i == gui.snapshot['automations']['powerMin'] then
-                                        remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'powerMax', ['data'] = i, ['direction'] = 'down'}))})
+                                    if v['level']-i == 0 then
+                                        remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'adjustRod', ['data'] = i, ['direction'] = 'down', ['target'] = k}))})
                                         break
                                     end
                                 end
                             else
-                                remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'powerMax', ['data'] = 10, ['direction'] = 'down'}))})
+                                remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'adjustRod', ['data'] = 10, ['direction'] = 'down', ['target'] = k}))})
                             end
                         elseif x >= math.ceil((gui.width-(#'      buttons      '-2))/2)+10 and x <= math.ceil((gui.width-(#'      buttons      '-2))/2)+12 then
-                            if gui.snapshot['automations']['powerMax']+10 > 100 then
+                            if v['level']+10 > 100 then
                                 for i=1, 10 do
-                                    if gui.snapshot['automations']['powerMax']+i == 100 then
-                                        remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'powerMax', ['data'] = i, ['direction'] = 'up'}))})
+                                    if v['level']+i == 100 then
+                                        remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'adjustRod', ['data'] = i, ['direction'] = 'up', ['target'] = k}))})
                                         break
                                     end
                                 end
                             else
-                                remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'powerMax', ['data'] = 10, ['direction'] = 'up'}))})
+                                remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'adjustRod', ['data'] = 10, ['direction'] = 'up', ['target'] = k}))})
                             end
                         elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+14 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+15 then
-                            if gui.snapshot['automations']['powerMax']+5 > 100 then
+                            if v['level']+5 > 100 then
                                 for i=1, 5 do
-                                    if gui.snapshot['automations']['powerMax']+i == 100 then
-                                        remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'powerMax', ['data'] = i, ['direction'] = 'up'}))})
+                                    if v['level']+i == 100 then
+                                        remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'adjustRod', ['data'] = i, ['direction'] = 'up', ['target'] = k}))})
                                         break
                                     end
                                 end
                             else
-                                remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'powerMax', ['data'] = 5, ['direction'] = 'up'}))})
+                                remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'adjustRod', ['data'] = 5, ['direction'] = 'up', ['target'] = k}))})
                             end
                         elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+17 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+18 then
-                            if gui.snapshot['automations']['powerMax'] < 100 then
-                                remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'powerMax', ['data'] = 1, ['direction'] = 'up'}))})
+                            if v['level'] < 100 then
+                                remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'adjustRod', ['data'] = 1, ['direction'] = 'up', ['target'] = k}))})
                             end
                         end
-                    elseif y == 10-math.floor((gui.settings['scrollAbleLines']*gui.settings['mouseWheel'])) then -- Power Min
+                        break
+                    end
+                end
+            elseif gui.settings['currentPageTitle'] == 'Automations' then -- Automations
+                if y > 2 and y < gui.height-2 then
+                    local positionTable = {
+                        [1] = '',
+                        [2] = 'title',
+                        [3] = '',
+                    }
+                    if gui.snapshot['turbine']['status'] ~= nil then
+                        table.insert(positionTable, '----- Turbine -----')
+                        table.insert(positionTable, 'turbineToggle')
+                        table.insert(positionTable, 'inductorToggle')
+                        table.insert(positionTable, 'turbineSpeedToggle')
+                        table.insert(positionTable, 'turbineSpeedTarget')
+                        table.insert(positionTable, '      buttons      ')
+                        table.insert(positionTable, 'powerToggle')
+                        table.insert(positionTable, 'powerMax')
+                        table.insert(positionTable, '      buttons      ')
+                        table.insert(positionTable, 'powerMin')
+                        table.insert(positionTable, '      buttons      ')
+                    end
+                    if gui.snapshot['reactor']['status'] ~= nil then
+                        if gui.snapshot['reactor']['activelyCooled'] then
+                            table.insert(positionTable, '----- Reactor -----')
+                            table.insert(positionTable, 'reactorToggle')
+                            table.insert(positionTable, 'controlRodsToggle')
+                            table.insert(positionTable, 'tempToggle')
+                            table.insert(positionTable, 'vaporToggle')
+                            table.insert(positionTable, 'vaporMax')
+                            table.insert(positionTable, '      buttons      ')
+                            table.insert(positionTable, 'vaporMin')
+                            table.insert(positionTable, '      buttons      ')
+                        else
+                            table.insert(positionTable, '----- Reactor -----')
+                            table.insert(positionTable, 'reactorToggle')
+                            table.insert(positionTable, 'controlRodsToggle')
+                            table.insert(positionTable, 'tempToggle')
+                            table.insert(positionTable, 'powerToggle')
+                            table.insert(positionTable, 'powerMax')
+                            table.insert(positionTable, '      buttons      ')
+                            table.insert(positionTable, 'powerMin')
+                            table.insert(positionTable, '      buttons      ')
+                        end
+                    end
+                    table.insert(positionTable, '')
+                    if positionTable[(y-2)+math.floor((gui.settings['scrollAbleLines']*gui.settings['mouseWheel']))] == '      buttons      ' then
                         if x == math.ceil((gui.width-(#'      buttons      '-2))/2) or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+1 then
-                            if gui.snapshot['automations']['powerMin'] > 0 then
-                                remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'powerMin', ['data'] = 1, ['direction'] = 'down'}))})
-                            end
+                            remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = positionTable[((y-2)+math.floor((gui.settings['scrollAbleLines']*gui.settings['mouseWheel'])))-1], ['data'] = 1, ['direction'] = 'down'}))})
                         elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+3 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+4 then
-                            if gui.snapshot['automations']['powerMin']-5 < 0 then
-                                for i=1, 5 do
-                                    if gui.snapshot['automations']['powerMin']-1 == 0 then
-                                        remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'powerMin', ['data'] = i, ['direction'] = 'down'}))})
-                                        break
-                                    end
-                                end
-                            else
-                                remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'powerMin', ['data'] = 5, ['direction'] = 'down'}))})
-                            end
+                            remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = positionTable[((y-2)+math.floor((gui.settings['scrollAbleLines']*gui.settings['mouseWheel'])))-1], ['data'] = 5, ['direction'] = 'down'}))})
                         elseif x >= math.ceil((gui.width-(#'      buttons      '-2))/2)+6 and x <= math.ceil((gui.width-(#'      buttons      '-2))/2)+8 then
-                            if gui.snapshot['automations']['powerMin']-10 < 0 then
-                                for i=1, 10 do
-                                    if gui.snapshot['automations']['powerMin']-i == 0 then
-                                        remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'powerMin', ['data'] = i, ['direction'] = 'down'}))})
-                                        break
-                                    end
-                                end
-                            else
-                                remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'powerMin', ['data'] = 10, ['direction'] = 'down'}))})
-                            end
+                            remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = positionTable[((y-2)+math.floor((gui.settings['scrollAbleLines']*gui.settings['mouseWheel'])))-1], ['data'] = 10, ['direction'] = 'down'}))})
                         elseif x >= math.ceil((gui.width-(#'      buttons      '-2))/2)+10 and x <= math.ceil((gui.width-(#'      buttons      '-2))/2)+12 then
-                            if gui.snapshot['automations']['powerMin']+10 > gui.snapshot['automations']['powerMax'] then
-                                for i=1, 10 do
-                                    if gui.snapshot['automations']['powerMin']+i == gui.snapshot['automations']['powerMax'] then
-                                        remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'powerMin', ['data'] = i, ['direction'] = 'up'}))})
-                                        break
-                                    end
-                                end
-                            else
-                                remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'powerMin', ['data'] = 10, ['direction'] = 'up'}))})
-                            end
+                            remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = positionTable[((y-2)+math.floor((gui.settings['scrollAbleLines']*gui.settings['mouseWheel'])))-1], ['data'] = 10, ['direction'] = 'up'}))})
                         elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+14 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+15 then
-                            if gui.snapshot['automations']['powerMin']+5 > gui.snapshot['automations']['powerMax'] then
-                                for i=1, 5 do
-                                    if gui.snapshot['automations']['powerMin']+i == gui.snapshot['automations']['powerMax'] then
-                                        remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'powerMin', ['data'] = i, ['direction'] = 'up'}))})
-                                        break
-                                    end
-                                end
-                            else
-                                remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'powerMin', ['data'] = 5, ['direction'] = 'up'}))})
-                            end
+                            remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = positionTable[((y-2)+math.floor((gui.settings['scrollAbleLines']*gui.settings['mouseWheel'])))-1], ['data'] = 5, ['direction'] = 'up'}))})
                         elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+17 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+18 then
-                            if gui.snapshot['automations']['powerMin'] < gui.snapshot['automations']['powerMax'] then
-                                remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'powerMin', ['data'] = 1, ['direction'] = 'up'}))})
-                            end
+                            remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = positionTable[((y-2)+math.floor((gui.settings['scrollAbleLines']*gui.settings['mouseWheel'])))-1], ['data'] = 1, ['direction'] = 'up'}))})
                         end
-                    elseif y == 12-math.floor((gui.settings['scrollAbleLines']*gui.settings['mouseWheel'])) then -- Temperature
+                        -- gui.log(textutils.serialize({['type'] = positionTable[((y-2)+math.floor((gui.settings['scrollAbleLines']*gui.settings['mouseWheel'])))-1], ['data'] = 1, ['direction'] = 'up'}))
+                    elseif gui.checkIfTableContains({'turbineToggle', 'inductorToggle', 'turbineSpeedToggle', 'powerToggle', 'reactorToggle', 'controlRodsToggle', 'tempToggle', 'vaporToggle', 'powerToggle'}, positionTable[(y-2)+math.floor((gui.settings['scrollAbleLines']*gui.settings['mouseWheel']))]) then
                         if x>=1+gui.width*gui.widthFactor and x<=1+gui.width*gui.widthFactor+5 then
-                            remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'command', ['data'] = 'tempToggle'}))})
-                        end
-                    elseif y == 14-math.floor((gui.settings['scrollAbleLines']*gui.settings['mouseWheel'])) then -- Temperature Max
-                        if x == math.ceil((gui.width-(#'      buttons      '-2))/2) or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+1 then
-                            if gui.snapshot['automations']['tempMax'] > 0 then
-                                remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'tempMax', ['data'] = 1, ['direction'] = 'down'}))})
-                            end
-                        elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+3 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+4 then
-                            if gui.snapshot['automations']['tempMax']-5 < 0 then
-                                for i=1, 5 do
-                                    if gui.snapshot['automations']['tempMax']-1 == 0 then
-                                        remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'tempMax', ['data'] = i, ['direction'] = 'down'}))})
-                                        break
-                                    end
-                                end
-                            else
-                                remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'tempMax', ['data'] = 5, ['direction'] = 'down'}))})
-                            end
-                        elseif x >= math.ceil((gui.width-(#'      buttons      '-2))/2)+6 and x <= math.ceil((gui.width-(#'      buttons      '-2))/2)+8 then
-                            if gui.snapshot['automations']['tempMax']-10 < 0 then
-                                for i=1, 10 do
-                                    if gui.snapshot['automations']['tempMax']-i == 0 then
-                                        remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'tempMax', ['data'] = i, ['direction'] = 'down'}))})
-                                        break
-                                    end
-                                end
-                            else
-                                remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'tempMax', ['data'] = 10, ['direction'] = 'down'}))})
-                            end
-                        elseif x >= math.ceil((gui.width-(#'      buttons      '-2))/2)+10 and x <= math.ceil((gui.width-(#'      buttons      '-2))/2)+12 then
-                            if gui.snapshot['automations']['tempMax']+10 > 1000 then
-                                for i=1, 10 do
-                                    if gui.snapshot['automations']['tempMax']+i == 10000 then
-                                        remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'tempMax', ['data'] = i, ['direction'] = 'up'}))})
-                                        break
-                                    end
-                                end
-                            else
-                                remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'tempMax', ['data'] = 10, ['direction'] = 'up'}))})
-                            end
-                        elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+14 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+15 then
-                            if gui.snapshot['automations']['tempMax']+5 > 1000 then
-                                for i=1, 5 do
-                                    if gui.snapshot['automations']['tempMax']+i == 10000 then
-                                        remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'tempMax', ['data'] = i, ['direction'] = 'up'}))})
-                                        break
-                                    end
-                                end
-                            else
-                                remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'tempMax', ['data'] = 5, ['direction'] = 'up'}))})
-                            end
-                        elseif x == math.ceil((gui.width-(#'      buttons      '-2))/2)+17 or x == math.ceil((gui.width-(#'      buttons      '-2))/2)+18 then
-                            if gui.snapshot['automations']['tempMax'] < 10000 then
-                                remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'tempMax', ['data'] = 1, ['direction'] = 'up'}))})
-                            end
-                        end
-                    elseif y == 16-math.floor((gui.settings['scrollAbleLines']*gui.settings['mouseWheel'])) then -- Control Rods
-                        if x>=1+gui.width*gui.widthFactor and x<=1+gui.width*gui.widthFactor+5 then
-                            remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'command', ['data'] = 'controlRodsToggle'}))})
+                            remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'command', ['data'] = positionTable[(y-2)+math.floor((gui.settings['scrollAbleLines']*gui.settings['mouseWheel']))]}))})
+                            -- gui.log(textutils.serialize({['type'] = 'command', ['data'] = positionTable[(y-2)+math.floor((gui.settings['scrollAbleLines']*gui.settings['mouseWheel']))]}))
                         end
                     end
                 end
