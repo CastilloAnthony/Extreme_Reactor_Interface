@@ -39,10 +39,10 @@ else
   else
     shell.run('rm ./er_interface/interface.lua')
     shell.run('wget https://raw.githubusercontent.com/CastilloAnthony/Extreme_Reactor_Interface/refs/heads/main/interface.lua ./er_interface/interface.lua')
+    shell.rm('rm ./er_interface/settings_automations.cfg')
   end
 end
 shell.rm('rm ./er_interface/settings.cfg')
-shell.rm('rm ./er_interface/settings_automations.cfg')
 shell.run('rm /startup')
 shell.run('wget https://raw.githubusercontent.com/CastilloAnthony/Extreme_Reactor_Interface/refs/heads/main/startup /startup')
 shell.run('reboot')

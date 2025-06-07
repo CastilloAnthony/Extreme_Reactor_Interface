@@ -1107,11 +1107,11 @@ function interface.manageAutomations() -- Run in Parallel
         if interface.snapshot['turbine']['status'] ~= nil then
             if interface.automations['turbineToggle'] then
                 if interface.snapshot['turbine']['status'] then
-                    if gui.snapshot['turbine']['rotorInfo']['rotorSpeed'] > interface.automations['turbineSpeedTarget']+100 then
+                    if gui.snapshot['turbine']['rotorInfo']['rotorSpeed'] > interface.automations['turbineSpeedTarget']+interface.automations['turbineSpeedTarget']*0.1 then
                         interface.turbine.setActive(false)
                     end
                 else
-                    if gui.snapshot['turbine']['rotorInfo']['rotorSpeed'] < interface.automations['turbineSpeedTarget']-100 then
+                    if gui.snapshot['turbine']['rotorInfo']['rotorSpeed'] < interface.automations['turbineSpeedTarget']-interface.automations['turbineSpeedTarget']*0.1 then
                         interface.turbine.setActive(true)
                     end
                 end
@@ -1129,16 +1129,16 @@ function interface.manageAutomations() -- Run in Parallel
             end
             if (os.epoch('local') - interface.automations['lastTimeTurbineSpeed'])/1000 > 1 then
                 if interface.automations['turbineSpeedToggle'] then
-                    if interface.snapshot['turbine']['rotorInfo']['rotorSpeed'] < interface.automations['turbineSpeedTarget'] then
-                        interface.turbine.setFluidFlowRateMax(gui.snapshot['turbine']['fluidInfo']['flowRate']+1)
-                    elseif gui.snapshot['turbine']['rotorInfo']['rotorSpeed'] > interface.automations['turbineSpeedTarget'] then
-                        interface.turbine.setFluidFlowRateMax(gui.snapshot['turbine']['fluidInfo']['flowRate']-1)
+                    if interface.snapshot['turbine']['rotorInfo']['rotorSpeed'] < interface.automations['turbineSpeedTarget']-5 then
+                        interface.turbine.setFluidFlowRateMax(gui.snapshot['turbine']['fluidInfo']['flowRate']+1+math.floor((interface.automations['turbineSpeedTarget']-gui.snapshot['turbine']['rotorInfo']['rotorSpeed'])/100))
+                    elseif gui.snapshot['turbine']['rotorInfo']['rotorSpeed'] > interface.automations['turbineSpeedTarget']+5 then
+                        interface.turbine.setFluidFlowRateMax(gui.snapshot['turbine']['fluidInfo']['flowRate']-1-math.floor((gui.snapshot['turbine']['rotorInfo']['rotorSpeed']-interface.automations['turbineSpeedTarget'])/100))
                     end
                 else
                     if gui.snapshot['turbine']['rotorInfo']['bladeEfficiency'] < 100 then
-                        interface.turbine.setFluidFlowRateMax(gui.snapshot['turbine']['fluidInfo']['flowRate']-1)
+                        interface.turbine.setFluidFlowRateMax(gui.snapshot['turbine']['fluidInfo']['flowRate']-math.floor(1*(100/gui.snapshot['turbine']['rotorInfo']['bladeEfficiency'])))
                     else
-                        interface.turbine.setFluidFlowRateMax(gui.snapshot['turbine']['fluidInfo']['flowRate']+1)
+                        interface.turbine.setFluidFlowRateMax(gui.snapshot['turbine']['fluidInfo']['flowRate']+math.floor(1*(100/gui.snapshot['turbine']['rotorInfo']['bladeEfficiency'])))
                     end
                 end
                 interface.automations['lastTimeTurbineSpeed'] = os.epoch('local')

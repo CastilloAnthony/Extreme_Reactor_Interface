@@ -34,7 +34,7 @@ For first time users, you will have to wait a couple of minutes while cryptograp
 
 ### Todo
 - Histograms page
-    - Switchable histograms
+    - Switchable histograms, multiple time selections
 - Version checker
     - Checksums so that only changed files are downloaded
     - Optional auto-updater
