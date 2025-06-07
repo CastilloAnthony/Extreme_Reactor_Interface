@@ -605,116 +605,54 @@ function interface.checkMessages(event, side, channel, replyChannel, message, di
                                 interface.modem.transmit(28, 0, {['origin'] = interface.getComputerInfo(), ['target'] = message['origin'], ['packet'] = crypt.xorEncryptDecrypt(client['sharedKey'], textutils.serialize({['type'] = 'snapshotKey', ['data'] = interface.readSnapshotKey()}))})
                                 client['lastActivity'] = os.epoch('local')
                                 interface.updateClient(client)
-                                -- interface.writeClients(clients)
                                 os.sleep(interface.fps)
                             elseif decryptedMsg['type'] == 'command' then
-                                if decryptedMsg['data'] == 'toggleReactor' then
-                                    if interface.reactor.getActive() then
+                                if gui.checkIfTableContains({
+                                    'turbineToggle', 
+                                    'inductorToggle', 
+                                    'turbineSpeedToggle',
+                                    'powerToggle', 
+                                    'reactorToggle',
+                                    'controlRodsToggle', 
+                                    'tempToggle', 
+                                    'vaporToggle',
+                                }, decryptedMsg['data']) then
+                                    if gui.snapshot['automations'][decryptedMsg['data']] then
+                                        interface.automations[decryptedMsg['data']] = false
+                                    else
+                                        interface.automations[decryptedMsg['data']] = true
+                                    end
+                                    interface.writeAutomations()
+                                elseif gui.checkIfTableContains({
+                                    'toggleTurbine',
+                                    'toggleInductor',
+                                    'toggleReactor', 
+                                }, decryptedMsg['data']) then
+                                    if decryptedMsg['data'] == 'toggleTurbine' then
+                                        if interface.turbine.getActive() then
+                                            interface.turbine.setActive(false)
+                                        else
+                                            interface.turbine.setActive(true)
+                                        end
+                                        client['lastActivity'] = os.epoch('local')
+                                        interface.updateClient(client)
+                                    elseif decryptedMsg['data'] == 'toggleInductor' then
+                                        if interface.turbine.getInductorEngaged() then
+                                            interface.turbine.setInductorEngaged(false)
+                                        else
+                                            interface.turbine.setInductorEngaged(true)
+                                        end
+                                        client['lastActivity'] = os.epoch('local')
+                                        interface.updateClient(client)
+                                    elseif decryptedMsg['data'] == 'toggleReactor' then
+                                        if interface.reactor.getActive() then
                                         interface.reactor.setActive(false)
-                                    else
-                                        interface.reactor.setActive(true)
+                                        else
+                                            interface.reactor.setActive(true)
+                                        end
+                                        client['lastActivity'] = os.epoch('local')
+                                        interface.updateClient(client)
                                     end
-                                    client['lastActivity'] = os.epoch('local')
-                                    interface.updateClient(client)
-                                    -- interface.writeClients(clients)
-                                elseif decryptedMsg['data'] == 'toggleTurbine' then
-                                    if interface.turbine.getActive() then
-                                        interface.turbine.setActive(false)
-                                    else
-                                        interface.turbine.setActive(true)
-                                    end
-                                    client['lastActivity'] = os.epoch('local')
-                                    interface.updateClient(client)
-                                    -- interface.writeClients(clients)
-                                elseif decryptedMsg['data'] == 'toggleInductor' then
-                                    if interface.turbine.getInductorEngaged() then
-                                        interface.turbine.setInductorEngaged(false)
-                                    else
-                                        interface.turbine.setInductorEngaged(true)
-                                    end
-                                    client['lastActivity'] = os.epoch('local')
-                                    interface.updateClient(client)
-                                    -- interface.writeClients(clients)
-                                elseif decryptedMsg['data'] == 'powerToggle' then
-                                    if gui.snapshot['automations']['powerToggle'] then
-                                        interface.automations['powerToggle'] = false
-                                    else
-                                        interface.automations['powerToggle'] = true
-                                    end
-                                    interface.writeAutomations()
-                                    client['lastActivity'] = os.epoch('local')
-                                    interface.updateClient(client)
-                                    -- interface.writeClients(clients)
-                                elseif decryptedMsg['data'] == 'tempToggle' then
-                                    if gui.snapshot['automations']['tempToggle'] then
-                                        interface.automations['tempToggle'] = false
-                                    else
-                                        interface.automations['tempToggle'] = true
-                                    end
-                                    interface.writeAutomations()
-                                    client['lastActivity'] = os.epoch('local')
-                                    interface.updateClient(client)
-                                    -- interface.writeClients(clients)
-                                elseif decryptedMsg['data'] == 'controlRodsToggle' then
-                                    if gui.snapshot['automations']['controlRodsToggle'] then
-                                        interface.automations['controlRodsToggle'] = false
-                                    else
-                                        interface.automations['controlRodsToggle'] = true
-                                    end
-                                    interface.writeAutomations()
-                                    client['lastActivity'] = os.epoch('local')
-                                    interface.updateClient(client)
-                                    -- interface.writeClients(clients)
-                                elseif decryptedMsg['data'] == 'reactorToggle' then
-                                    if gui.snapshot['automations']['reactorToggle'] then
-                                        interface.automations['reactorToggle'] = false
-                                    else
-                                        interface.automations['reactorToggle'] = true
-                                    end
-                                    interface.writeAutomations()
-                                    client['lastActivity'] = os.epoch('local')
-                                    interface.updateClient(client)
-                                    -- interface.writeClients(clients)
-                                elseif decryptedMsg['data'] == 'turbineToggle' then
-                                    if gui.snapshot['automations']['turbineToggle'] then
-                                        interface.automations['turbineToggle'] = false
-                                    else
-                                        interface.automations['turbineToggle'] = true
-                                    end
-                                    interface.writeAutomations()
-                                    client['lastActivity'] = os.epoch('local')
-                                    interface.updateClient(client)
-                                    -- interface.writeClients(clients)
-                                elseif decryptedMsg['data'] == 'inductorToggle' then
-                                    if gui.snapshot['automations']['inductorToggle'] then
-                                        interface.automations['inductorToggle'] = false
-                                    else
-                                        interface.automations['inductorToggle'] = true
-                                    end
-                                    interface.writeAutomations()
-                                    client['lastActivity'] = os.epoch('local')
-                                    interface.updateClient(client)
-                                    -- interface.writeClients(clients)
-                                elseif decryptedMsg['data'] == 'vaporToggle' then
-                                    if gui.snapshot['automations']['vaporToggle'] then
-                                        interface.automations['vaporToggle'] = false
-                                    else
-                                        interface.automations['vaporToggle'] = true
-                                    end
-                                    interface.writeAutomations()
-                                    client['lastActivity'] = os.epoch('local')
-                                    interface.updateClient(client)
-                                    -- interface.writeClients(clients)
-                                elseif decryptedMsg['data'] == 'turbineSpeedToggle' then
-                                    if gui.snapshot['automations']['turbineSpeedToggle'] then
-                                        interface.automations['turbineSpeedToggle'] = false
-                                    else
-                                        interface.automations['turbineSpeedToggle'] = true
-                                    end
-                                    interface.writeAutomations()
-                                    client['lastActivity'] = os.epoch('local')
-                                    interface.updateClient(client)
-                                    -- interface.writeClients(clients)
                                 elseif decryptedMsg['data'] == 'scram' then
                                     if gui.snapshot['reactor']['status'] then
                                         for k, v in pairs(gui.snapshot['reactor']['rodInfo']['rods']) do
@@ -724,8 +662,7 @@ function interface.checkMessages(event, side, channel, replyChannel, message, di
                                     end
                                     client['lastActivity'] = os.epoch('local')
                                     interface.updateClient(client)
-                                    -- interface.writeClients(clients)
-                                end
+                                end     
                             elseif decryptedMsg['type'] == 'adjustRod' then
                                 if decryptedMsg['direction'] == 'up' then
                                     interface.reactor.setControlRodLevel(decryptedMsg['target']-1, gui.snapshot['reactor']['rodInfo']['rods'][decryptedMsg['target']]['level']+decryptedMsg['data'])
@@ -735,63 +672,25 @@ function interface.checkMessages(event, side, channel, replyChannel, message, di
                                 interface.writeAutomations()
                                 client['lastActivity'] = os.epoch('local')
                                 interface.updateClient(client)
-                                -- interface.writeClients(clients)
-                            elseif decryptedMsg['type'] == 'powerMax' then
+                            elseif gui.checkIfTableContains({
+                                'powerMax',
+                                'powerMin',
+                                'vaporMax',
+                                'vaporMin',
+                            }, decryptedMsg['type']) then
                                 if decryptedMsg['direction'] == 'up' then
-                                    if not (interface.automations['powerMax']+decryptedMsg['data'] > 100) then
-                                        interface.automations['powerMax'] = interface.automations['powerMax']+decryptedMsg['data']
+                                    if not (interface.automations[decryptedMsg['type']]+decryptedMsg['data'] > 100) then
+                                        interface.automations[decryptedMsg['type']] = interface.automations[decryptedMsg['type']]+decryptedMsg['data']
                                     end
                                 elseif decryptedMsg['direction'] == 'down' then
-                                    if not (interface.automations['powerMax']+decryptedMsg['data'] < interface.automations['powerMin']) then
-                                        interface.automations['powerMax'] = interface.automations['powerMax']-decryptedMsg['data']
+                                    gui.log(string.sub(decryptedMsg['type'], 0, 5)..'Min')
+                                    if not (interface.automations[decryptedMsg['type']]+decryptedMsg['data'] < interface.automations[string.sub(decryptedMsg['type'], 0, 5)..'Min']) then
+                                        interface.automations[decryptedMsg['type']] = interface.automations[decryptedMsg['type']]-decryptedMsg['data']
                                     end
                                 end
                                 interface.writeAutomations()
                                 client['lastActivity'] = os.epoch('local')
                                 interface.updateClient(client)
-                                -- interface.writeClients(clients)
-                            elseif decryptedMsg['type'] == 'powerMin' then
-                                if decryptedMsg['direction'] == 'up' then
-                                    if not (interface.automations['powerMin']+decryptedMsg['data'] > interface.automations['powerMax']) then
-                                        interface.automations['powerMin'] = interface.automations['powerMin']+decryptedMsg['data']
-                                    end
-                                elseif decryptedMsg['direction'] == 'down' then
-                                    if not (interface.automations['powerMin']+decryptedMsg['data'] < 0) then
-                                        interface.automations['powerMin'] = interface.automations['powerMin']-decryptedMsg['data']
-                                    end
-                                end
-                                interface.writeAutomations()
-                                client['lastActivity'] = os.epoch('local')
-                                interface.updateClient(client)
-                                -- interface.writeClients(clients)
-                            elseif decryptedMsg['type'] == 'vaporMax' then
-                                if decryptedMsg['direction'] == 'up' then
-                                    if not (interface.automations['vaporMax']+decryptedMsg['data'] > 100) then
-                                        interface.automations['vaporMax'] = interface.automations['vaporMax']+decryptedMsg['data']
-                                    end
-                                elseif decryptedMsg['direction'] == 'down' then
-                                    if not (interface.automations['vaporMax']+decryptedMsg['data'] < interface.automations['powerMin']) then
-                                        interface.automations['vaporMax'] = interface.automations['vaporMax']-decryptedMsg['data']
-                                    end
-                                end
-                                interface.writeAutomations()
-                                client['lastActivity'] = os.epoch('local')
-                                interface.updateClient(client)
-                                -- interface.writeClients(clients)
-                            elseif decryptedMsg['type'] == 'vaporMin' then
-                                if decryptedMsg['direction'] == 'up' then
-                                    if not (interface.automations['vaporMin']+decryptedMsg['data'] > interface.automations['powerMax']) then
-                                        interface.automations['vaporMin'] = interface.automations['vaporMin']+decryptedMsg['data']
-                                    end
-                                elseif decryptedMsg['direction'] == 'down' then
-                                    if not (interface.automations['vaporMin']+decryptedMsg['data'] < 0) then
-                                        interface.automations['vaporMin'] = interface.automations['vaporMin']-decryptedMsg['data']
-                                    end
-                                end
-                                interface.writeAutomations()
-                                client['lastActivity'] = os.epoch('local')
-                                interface.updateClient(client)
-                                -- interface.writeClients(clients)
                             elseif decryptedMsg['type'] == 'turbineSpeedTarget' then
                                 if decryptedMsg['direction'] == 'up' then
                                     interface.automations['turbineSpeedTarget'] = interface.automations['turbineSpeedTarget']+decryptedMsg['data']
@@ -803,21 +702,6 @@ function interface.checkMessages(event, side, channel, replyChannel, message, di
                                 interface.writeAutomations()
                                 client['lastActivity'] = os.epoch('local')
                                 interface.updateClient(client)
-                                -- interface.writeClients(clients)
-                            elseif decryptedMsg['type'] == 'tempMax' then
-                                if decryptedMsg['direction'] == 'up' then
-                                    if not (interface.automations['tempMax']-decryptedMsg['data'] > 10000) then
-                                        interface.automations['tempMax'] = interface.automations['tempMax']+decryptedMsg['data']
-                                    end
-                                elseif decryptedMsg['direction'] == 'down' then
-                                    if not (interface.automations['tempMax']-decryptedMsg['data'] < 0) then
-                                        interface.automations['tempMax'] = interface.automations['tempMax']-decryptedMsg['data']
-                                    end
-                                end
-                                interface.writeAutomations()
-                                client['lastActivity'] = os.epoch('local')
-                                interface.updateClient(client)
-                                -- interface.writeClients(clients)
                             end
                         end
                     end
