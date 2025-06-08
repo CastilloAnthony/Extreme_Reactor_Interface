@@ -778,6 +778,100 @@ function interface.clickedButton(event, button, x, y, arg4, arg5)
                         end
                     end
                 end
+            elseif gui.settings['currentPageTitle'] == 'Histograms' then
+                if y == 4 then
+                    if x == 2 then
+                        if gui.snapshot['turbine']['status'] ~= nil and gui.snapshot['reactor']['status'] ~= nil then
+                            if gui.settings['histogramTarget'] == 'turbinePower' then
+                                gui.settings['histogramTarget'] = 'reactorCoolant'
+                            elseif gui.settings['histogramTarget'] == 'turbineVapor' then
+                                gui.settings['histogramTarget'] = 'turbinePower'
+                            elseif gui.settings['histogramTarget'] == 'turbineCoolant' then
+                                gui.settings['histogramTarget'] = 'turbineVapor'
+                            elseif gui.settings['histogramTarget'] == 'reactorFuel' then
+                                gui.settings['histogramTarget'] = 'turbineCoolant'
+                            elseif gui.settings['histogramTarget'] == 'reactorVapor' then
+                                gui.settings['histogramTarget'] = 'reactorFuel'
+                            elseif gui.settings['histogramTarget'] == 'reactorCoolant' then
+                                gui.settings['histogramTarget'] = 'reactorVapor'
+                            end
+                        elseif gui.settings['turbine']['status'] ~= nil then
+                            if gui.settings['histogramTarget'] == 'turbinePower' then
+                                gui.settings['histogramTarget'] = 'turbineCoolant'
+                            elseif gui.settings['histogramTarget'] == 'turbineVapor' then
+                                gui.settings['histogramTarget'] = 'turbinePower'
+                            elseif gui.settings['histogramTarget'] == 'turbineCoolant' then
+                                gui.settings['histogramTarget'] = 'turbineVapor'
+                            end
+                        elseif gui.snapshot['reactor']['status'] ~= nil then
+                            if not gui.snapshot['reactor']['activelyCooled'] then
+                                if gui.settings['histogramTarget'] == 'reactorFuel' then
+                                    gui.settings['histogramTarget'] = 'reactorPower'
+                                elseif gui.settings['histogramTarget'] == 'reactorPower' then
+                                    gui.settings['histogramTarget'] = 'reactorFuel'
+                                end
+                            else
+                                if gui.settings['histogramTarget'] == 'reactorFuel' then
+                                    gui.settings['histogramTarget'] = 'reactorCoolant'
+                                elseif gui.settings['histogramTarget'] == 'reactorVapor' then
+                                    gui.settings['histogramTarget'] = 'reactorFuel'
+                                elseif gui.settings['histogramTarget'] == 'reactorCoolant' then
+                                    gui.settings['histogramTarget'] = 'reactorVapor'
+                                end
+                            end
+                        end
+                    elseif x == gui.width-1 then
+                        if gui.snapshot['turbine']['status'] ~= nil and gui.snapshot['reactor']['status'] ~= nil then
+                            if gui.settings['histogramTarget'] == 'turbinePower' then
+                                gui.settings['histogramTarget'] = 'turbineVapor'
+                            elseif gui.settings['histogramTarget'] == 'turbineVapor' then
+                                gui.settings['histogramTarget'] = 'turbineCoolant'
+                            elseif gui.settings['histogramTarget'] == 'turbineCoolant' then
+                                gui.settings['histogramTarget'] = 'reactorFuel'
+                            elseif gui.settings['histogramTarget'] == 'reactorFuel' then
+                                gui.settings['histogramTarget'] = 'reactorVapor'
+                            elseif gui.settings['histogramTarget'] == 'reactorVapor' then
+                                gui.settings['histogramTarget'] = 'reactorCoolant'
+                            elseif gui.settings['histogramTarget'] == 'reactorCoolant' then
+                                gui.settings['histogramTarget'] = 'turbinePower'
+                            end
+                        elseif gui.snapshot['turbine']['status'] ~= nil then
+                            if gui.settings['histogramTarget'] == 'turbinePower' then
+                                gui.settings['histogramTarget'] = 'turbineVapor'
+                            elseif gui.settings['histogramTarget'] == 'turbineVapor' then
+                                gui.settings['histogramTarget'] = 'turbineCoolant'
+                            elseif gui.settings['histogramTarget'] == 'turbineCoolant' then
+                                gui.settings['histogramTarget'] = 'turbinePower'
+                            end
+                        elseif gui.snapshot['reactor']['status'] ~= nil then
+                            if not gui.snapshot['reactor']['activelyCooled'] then
+                                if gui.settings['histogramTarget'] == 'reactorFuel' then
+                                    gui.settings['histogramTarget'] = 'reactorPower'
+                                elseif gui.settings['histogramTarget'] == 'reactorPower' then
+                                    gui.settings['histogramTarget'] = 'reactorFuel'
+                                end
+                            else
+                                if gui.settings['histogramTarget'] == 'reactorFuel' then
+                                    gui.settings['histogramTarget'] = 'reactorVapor'
+                                elseif gui.settings['histogramTarget'] == 'reactorVapor' then
+                                    gui.settings['histogramTarget'] = 'reactorCoolant'
+                                elseif gui.settings['histogramTarget'] == 'reactorCoolant' then
+                                    gui.settings['histogramTarget'] = 'reactorFuel'
+                                end
+                            end
+                        end
+                    end
+                    gui.writeSettings()
+                elseif y == gui.height-3 then
+                    if x >= gui.width*gui.widthFactor-1 or x <= gui.width*gui.widthFactor+2 then
+                        if gui.settings['histogramMinutes'] < gui.settings['maxHistogramMinutes'] then
+                            gui.settings['histogramMinutes'] = gui.settings['histogramMinutes'] +1
+                        else
+                            gui.settings['histogramMinutes'] = 1
+                        end
+                        gui.writeSettings()
+                    end
+                end
             -- elseif gui.settings['currentPageTitle'] == 'Graphs' then -- Graphs
             --     if y == 6 then
             --         if x >=gui.width*gui.widthFactor+1 and x <= gui.width*gui.widthFactor+1+5 then

@@ -97,7 +97,9 @@ function gui.writeSettings(settings)
             ['helpWindowWidth'] = 0, 
             ['helpWindowHeight'] = 0,
             ['scrollAbleLines'] = 0,
-            ['maxHistogramMinutes'] = 1,
+            ['maxHistogramMinutes'] = 5,
+            ['histogramMinutes'] = 1,
+            ['histogramTarget'] = 'turbinePower'
         }
     end
     local file = fs.open('./er_interface/settings.cfg', 'w')
@@ -363,18 +365,18 @@ function gui.updateSnapshot(snapshot)
             pages[#pages+1] = gui.reactor_pageVapor
             pages[#pages+1] = gui.reactor_pageCoolant
             pages[#pages+1] = gui.pageGraphs
-            pages[#pages+1] = gui.pageHistograms
             pages[#pages+1] = gui.reactor_pageRods
             pageTitles[#pageTitles+1] = 'Reactor Fuel Stats'
             pageTitles[#pageTitles+1] = 'Reactor Vapor Stats'
             pageTitles[#pageTitles+1] = 'Reactor Coolant Stats'
             pageTitles[#pageTitles+1] = 'Graphs'
-            pageTitles[#pageTitles+1] = 'Histograms'
             pageTitles[#pageTitles+1] = 'Rod Statistics Info'
         end
     end
+    pages[#pages+1] = gui.pageHistograms
     pages[#pages+1] = gui.pageAutomations
     pages[#pages+1] = gui.pageConnections
+    pageTitles[#pageTitles+1] = 'Histograms'
     pageTitles[#pageTitles+1] = 'Automations'
     if fs.exists('./er_interface/interface.lua') then -- If this file exists then it is a server
         pageTitles[#pageTitles+1] = 'Manage Clients'
@@ -1105,6 +1107,7 @@ end --end turbine_pageCoolant
 
 function gui.pageHistograms() -- Histograms
     --Draw black Background
+    gui.readSettings()
     gui.monitor.setBackgroundColor(colors.black)
     gui.monitor.setTextColor(colors.black)
     for y=1, gui.height-4 do
@@ -1115,64 +1118,103 @@ function gui.pageHistograms() -- Histograms
     end
 
     -- Initialize values
-    local histogramMaxHeight = gui.height-9
-    local histogramMaxWidth = gui.width*gui.widthFactor-3
-    local title = 'Power - '..gui.settings['maxHistogramMinutes']..'min Histogram' -- Will vary depending on duration and type (power, vapor, coolant, speed, etc.)
-    local min, max = '  0%', '100%' --Set higher for speed
-    local minTime, maxTime = '0', gui.settings['maxHistogramMinutes']..'mins'
-    local histogramData = {}
-    local timeStart = os.epoch('local')
-    local target = ''
+    local target1, target2, target3, maxTarget1, maxTarget2 = 'turbine', 'energyInfo', 'stored', 'energyInfo', 'capacity'
+    local title = 'Histograms'
+    local min, max = '  0%', '100%' --Set higher for speed, maybe
+    local minTime, maxTime = '0', gui.settings['histogramMinutes']..'mins'
+    local histogramColor = colors.black
+    if gui.settings['histogramTarget'] == 'turbinePower' then
+        target1, target2, target3, maxTarget1, maxTarget2 = 'turbine', 'energyInfo', 'stored', 'energyInfo', 'capacity'
+        title = ccStrings.ensure_width('Turbine Power - Histogram', gui.width-6)
+        histogramColor = gui.colors['power']
+    elseif gui.settings['histogramTarget'] == 'turbineVapor' then
+        target1, target2, target3, maxTarget1, maxTarget2 = 'turbine', 'ioInfo', 'inputAmount', 'fluidInfo', 'max'
+        title = ccStrings.ensure_width('Turbine Vapor - Histogram', gui.width-6)
+        histogramColor = gui.colors['vapor']
+    elseif gui.settings['histogramTarget'] == 'turbineCoolant' then
+        target1, target2, target3, maxTarget1, maxTarget2 = 'turbine', 'ioInfo', 'outputAmount', 'fluidInfo', 'max'
+        title = ccStrings.ensure_width('Turbine Coolant - Histogram', gui.width-6)
+        histogramColor = gui.colors['coolant']
+    -- elseif gui.settings['histogramTarget'] == 'turbineRotorSpeed' then
+    --     target1, target2, target3 = 'turbine', 'rotorInfo', 'rotorSpeed'
+    --     min, max = '  0%', gui.settings['turbine']['rotorInfo']['rotorSpeed']
+    elseif gui.settings['histogramTarget'] == 'reactorFuel' then
+        target1, target2, target3, maxTarget1, maxTarget2 = 'reactor', 'fuelInfo', 'amount', 'fuelInfo', 'max'
+        title = ccStrings.ensure_width('Reactor Fuel - Histogram', gui.width-6)
+        histogramColor = gui.colors['fuel']
+    elseif gui.settings['histogramTarget'] == 'reactorPower' then
+        target1, target2, target3, maxTarget1, maxTarget2 = 'reactor', 'energyInfo', 'stored', 'energyInfo', 'capacity'
+        title = ccStrings.ensure_width('Reactor Power - Histogram', gui.width-6)
+        histogramColor = gui.colors['power']
+    elseif gui.settings['histogramTarget'] == 'reactorVapor' then
+        target1, target2, target3, maxTarget1, maxTarget2 = 'reactor', 'hotFluidInfo', 'amount', 'hotFluidInfo', 'max'
+        title = ccStrings.ensure_width('Reactor Vapor - Histogram', gui.width-6)
+        histogramColor = gui.colors['vapor']
+    elseif gui.settings['histogramTarget'] == 'reactorCoolant' then
+        target1, target2, target3, maxTarget1, maxTarget2 = 'reactor', 'coolantInfo', 'amount', 'coolantInfo', 'max'
+        title = ccStrings.ensure_width('Reactor Coolant - Histogram', gui.width-6)
+        histogramColor = gui.colors['coolant']
+    end
 
-    -- Generate graph data
-    for k,v in pairs(gui.snapshotHistory) do
-        for i=1, histogramMaxWidth do
-            if (timeStart-v['report']['timestamp'])/1000 < ((gui.settings['maxHistogramMinutes']*60)/histogramMaxWidth)*i and (timeStart-v['report']['timestamp'])/1000 > ((gui.settings['maxHistogramMinutes']*60)/histogramMaxWidth)*(i-1) then
-                if histogramData[i] ~= nil then
-                    if histogramData[i]['value'] == 0 then
-                        histogramData[i] = {['value'] = v['turbine']['energyInfo']['stored'], ['count'] = 1}
+    if title ~= 'Histograms' then
+        local histogramMaxHeight = gui.height-9
+        local histogramMaxWidth = gui.width*gui.widthFactor-3
+        local histogramData = {}
+        local timeStart = os.epoch('local')
+
+        -- Generate graph data
+        for k,v in pairs(gui.snapshotHistory) do
+            for i=1, histogramMaxWidth do
+                if (timeStart-v['report']['timestamp'])/1000 < ((gui.settings['histogramMinutes']*60)/histogramMaxWidth)*i and (timeStart-v['report']['timestamp'])/1000 > ((gui.settings['histogramMinutes']*60)/histogramMaxWidth)*(i-1) then
+                    if histogramData[i] ~= nil then
+                        if histogramData[i]['value'] == 0 then
+                            histogramData[i] = {['value'] = v[target1][target2][target3], ['count'] = 1}
+                        else
+                            histogramData[i] = {['value'] = histogramData[i]['value']+v[target1][target2][target3], ['count'] = histogramData[i]['count']+1}
+                        end
                     else
-                        histogramData[i] = {['value'] = histogramData[i]['value']+v['turbine']['energyInfo']['stored'], ['count'] = histogramData[i]['count']+1}
+                        histogramData[i] = {['value'] = v[target1][target2][target3], ['count'] = 1}
                     end
-                else
-                    histogramData[i] = {['value'] = v['turbine']['energyInfo']['stored'], ['count'] = 1}
                 end
             end
         end
-    end
 
-    -- Draw Graphs
-    gui.monitor.setBackgroundColor(colors.red)
-    gui.monitor.setTextColor(colors.red)
-    for x=1, histogramMaxWidth do
-        if histogramData[x] ~= nil then
-            if 0.001 <= (histogramData[x]['value']/histogramData[x]['count'])/gui.snapshot['turbine']['energyInfo']['capacity'] then
-                for y=1, histogramMaxHeight do
-                    if y/(histogramMaxHeight) > 1-(histogramData[x]['value']/histogramData[x]['count'])/gui.snapshot['turbine']['energyInfo']['capacity'] then
-                        gui.monitor.setCursorPos(2+x, 5+y)
-                        gui.monitor.write(' ')
+        -- Draw Graphs
+        gui.monitor.setBackgroundColor(histogramColor)
+        gui.monitor.setTextColor(histogramColor)
+        for x=1, histogramMaxWidth do
+            if histogramData[x] ~= nil then
+                if 0.001 <= (histogramData[x]['value']/histogramData[x]['count'])/gui.snapshot[target1][maxTarget1][maxTarget2] then
+                    for y=1, histogramMaxHeight do
+                        if y/(histogramMaxHeight) > 1-(histogramData[x]['value']/histogramData[x]['count'])/gui.snapshot[target1][maxTarget1][maxTarget2] then
+                            gui.monitor.setCursorPos(2+x, 5+y)
+                            gui.monitor.write(' ')
+                        end
                     end
                 end
             end
         end
     end
-
-    -- Draw header, y-axis, and additional buttons
-    gui.monitor.setBackgroundColor(colors.black)
-    gui.monitor.setTextColor(colors.yellow)
-    gui.monitor.setCursorPos(math.ceil((gui.width-(#title-2))/2), 4)
-    gui.monitor.write(title)
-    gui.monitor.setBackgroundColor(colors.cyan)
-    gui.monitor.setTextColor(colors.white)
-    gui.monitor.setCursorPos(gui.width*gui.widthFactor, 6)
-    gui.monitor.write(max)
-    gui.monitor.setCursorPos(gui.width*gui.widthFactor, gui.height-4)
-    gui.monitor.write(min)
-    -- gui.monitor.setBackgroundColor(colors.lightGray)
-    gui.monitor.setCursorPos(gui.width*gui.widthFactor-1, gui.height-3)
-    gui.monitor.write(maxTime)
-    gui.monitor.setCursorPos(3, gui.height-3)
-    gui.monitor.write(minTime)
+        -- Draw header, y-axis, and additional buttons
+        gui.monitor.setBackgroundColor(colors.black)
+        gui.monitor.setTextColor(colors.yellow)
+        gui.monitor.setCursorPos(math.ceil((gui.width-(#title-2))/2), 4)
+        gui.monitor.write(title)
+        gui.monitor.setCursorPos(2, 4)
+        gui.monitor.setBackgroundColor(colors.lightGray)
+        gui.monitor.setTextColor(colors.white)
+        gui.monitor.write('<')
+        gui.monitor.setCursorPos(gui.width-1, 4)
+        gui.monitor.write('>')
+        gui.monitor.setCursorPos(gui.width*gui.widthFactor-1, gui.height-3)
+        gui.monitor.write(maxTime)
+        gui.monitor.setBackgroundColor(colors.cyan)
+        gui.monitor.setCursorPos(3, gui.height-3)
+        gui.monitor.write(minTime)
+        gui.monitor.setCursorPos(gui.width*gui.widthFactor, 6)
+        gui.monitor.write(max)
+        gui.monitor.setCursorPos(gui.width*gui.widthFactor, gui.height-4)
+        gui.monitor.write(min)    
 end --end pageHistograms
 
 function gui.pageGraphs() -- Graphs
