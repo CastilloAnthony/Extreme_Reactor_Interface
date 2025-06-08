@@ -33,8 +33,21 @@ To install onto a ComputerCraft device type this into the console:
 For first time users, you will have to wait a couple of minutes while cryptography parameters are generated.
 
 ### Todo
+- Add non-default help text to all pages
+    - Turbine Summary
+    - Reactor Summary
+    - Turbine Power Stats
+    - Turbine Vapor Stats
+    - Turbine Coolant Stats 
+    - Reactor Fuel Stats
+    - Reactor Vapor Stats
+    - Reactor Coolant Stats
+    - Graphs
+    - Histograms
+- Modify Graphs page
+    -Add Turbine Graphs
 - Histograms page
-    - Switchable histograms, multiple time selections
+    - Add temperature and rotor speed
 - Version checker
     - Checksums so that only changed files are downloaded
     - Optional auto-updater
