@@ -600,6 +600,7 @@ function remote.clickedButton(event, button, x, y, arg4, arg5)
                         table.insert(positionTable, '----- Turbine -----')
                         table.insert(positionTable, 'turbineToggle')
                         table.insert(positionTable, 'inductorToggle')
+                        table.insert(positionTable, 'turbineEfficiencyToggle')
                         table.insert(positionTable, 'turbineSpeedToggle')
                         table.insert(positionTable, 'turbineSpeedTarget')
                         table.insert(positionTable, '      buttons      ')
@@ -648,7 +649,7 @@ function remote.clickedButton(event, button, x, y, arg4, arg5)
                             remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = positionTable[((y-2)+math.floor((gui.settings['scrollAbleLines']*gui.settings['mouseWheel'])))-1], ['data'] = 1, ['direction'] = 'up'}))})
                         end
                         -- gui.log(textutils.serialize({['type'] = positionTable[((y-2)+math.floor((gui.settings['scrollAbleLines']*gui.settings['mouseWheel'])))-1], ['data'] = 1, ['direction'] = 'up'}))
-                    elseif gui.checkIfTableContains({'turbineToggle', 'inductorToggle', 'turbineSpeedToggle', 'powerToggle', 'reactorToggle', 'controlRodsToggle', 'tempToggle', 'vaporToggle', 'powerToggle'}, positionTable[(y-2)+math.floor((gui.settings['scrollAbleLines']*gui.settings['mouseWheel']))]) then
+                    elseif gui.checkIfTableContains({'turbineToggle', 'inductorToggle', 'turbineEfficiencyToggle', 'turbineSpeedToggle', 'powerToggle', 'reactorToggle', 'controlRodsToggle', 'tempToggle', 'vaporToggle', 'powerToggle'}, positionTable[(y-2)+math.floor((gui.settings['scrollAbleLines']*gui.settings['mouseWheel']))]) then
                         if x>=1+gui.width*gui.widthFactor and x<=1+gui.width*gui.widthFactor+5 then
                             remote.modem.transmit(21, 0, {['origin'] = remote.getComputerInfo(), ['target'] = remote.keys['target'], ['packet'] = crypt.xorEncryptDecrypt(remote.keys['shared'], textutils.serialize({['type'] = 'command', ['data'] = positionTable[(y-2)+math.floor((gui.settings['scrollAbleLines']*gui.settings['mouseWheel']))]}))})
                             -- gui.log(textutils.serialize({['type'] = 'command', ['data'] = positionTable[(y-2)+math.floor((gui.settings['scrollAbleLines']*gui.settings['mouseWheel']))]}))

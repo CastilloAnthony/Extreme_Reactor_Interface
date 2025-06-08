@@ -12,16 +12,17 @@ A user interface program for the Minecraft mod ComputerCraft used to interface t
     -Increment/decrement control rods
     -Toggle/increment/decrement automations
     -Remove client authorizations
-- Updater script
-    - run "er_interface/updater" to update the program
-- Monitor support
-- Support for power production or vapor production configurations
+- Singular (large) Monitor support
+- Support for power production or vapor production configurations of reactors
 - Multiple dynamically selected information pages
+- Histograms with varying settings
 - Password protection and cryptography
 - Remote access to the server via pocket computers or satellite computers
 - Support for multiple remote clients concurrently (suggested limit: TBD)
 - Client management page where you can remove clients and force them to re-establish a connection
     - Clients must manually remove "er_interface/keys/server.key" in order to be eligible for re-authorization
+- Updater script
+    - run "er_interface/updater" to update the program
 
 ## Installation
 To install onto a ComputerCraft device type this into the console: 
@@ -44,6 +45,8 @@ For first time users, you will have to wait a couple of minutes while cryptograp
     - Reactor Coolant Stats
     - Graphs
     - Histograms
+- Add additional information to pages using the snapshot history information.
+    - Energy per second, etc.
 - Modify Graphs page
     -Add Turbine Graphs
 - Histograms page

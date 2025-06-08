@@ -1436,6 +1436,7 @@ function gui.pageAutomations() -- Automations
         table.insert(content, '----- Turbine -----')
         table.insert(content, 'turbineToggle')
         table.insert(content, 'inductorToggle')
+        table.insert(content, 'turbineEfficiencyToggle')
         table.insert(content, 'turbineSpeedToggle')
         table.insert(content, 'turbineSpeedTarget')
         table.insert(content, '      buttons      ')
@@ -1444,6 +1445,7 @@ function gui.pageAutomations() -- Automations
         table.insert(content, '      buttons      ')
         table.insert(content, 'powerMin')
         table.insert(content, '      buttons      ')
+        table.insert(contentColors, colors.yellow)
         table.insert(contentColors, colors.yellow)
         table.insert(contentColors, colors.yellow)
         table.insert(contentColors, colors.yellow)
@@ -1789,6 +1791,7 @@ function gui.translateString(string)
     if gui.checkIfTableContains({
         'turbineToggle', 
         'inductorToggle', 
+        'turbineEfficiencyToggle',
         'turbineSpeedToggle', 
         'powerToggle', 
         'reactorToggle', 
@@ -1802,15 +1805,17 @@ function gui.translateString(string)
         'vaporMin',
     }, string) then
         if string == 'turbineToggle' then
-            return 'Turbine Status'
+            return 'Status'
         elseif string == 'inductorToggle' then
             return 'Inductor'
+        elseif string == 'turbineEfficiencyToggle' then
+            return 'Efficiency'
         elseif string == 'turbineSpeedToggle' then
-            return 'Turbine Speed'
+            return 'Speed'
         elseif string == 'powerToggle' then
             return 'Power'
         elseif string == 'reactorToggle' then
-            return 'Reactor Status'
+            return 'Status'
         elseif string == 'tempToggle' then
             return 'Temperature'
         elseif string == 'controlRodsToggle' then
@@ -1895,7 +1900,7 @@ function gui.draw_title_content(content, contentColors)
                     gui.monitor.setBackgroundColor(colors.black)
                     gui.monitor.write(' ')
                 end
-            elseif gui.checkIfTableContains({'turbineToggle', 'inductorToggle', 'turbineSpeedToggle', 'powerToggle', 'reactorToggle', 'tempToggle', 'controlRodsToggle', 'vaporToggle',}, content[i]) then -- content[i] == 'turbineToggle' or content[i] == 'inductorToggle' or content[i] == 'powerToggle' or content[i] == 'reactorToggle' or content[i] == 'vaporToggle' or content[i] == 'tempToggle' or content[i] == 'controlRodsToggle' or content[i] == 'turbineSpeedToggle' then
+            elseif gui.checkIfTableContains({'turbineToggle', 'inductorToggle',  'turbineEfficiencyToggle', 'turbineSpeedToggle', 'powerToggle', 'reactorToggle', 'tempToggle', 'controlRodsToggle', 'vaporToggle'}, content[i]) then -- content[i] == 'turbineToggle' or content[i] == 'inductorToggle' or content[i] == 'powerToggle' or content[i] == 'reactorToggle' or content[i] == 'vaporToggle' or content[i] == 'tempToggle' or content[i] == 'controlRodsToggle' or content[i] == 'turbineSpeedToggle' then
                 gui.monitor.setBackgroundColor(colors.black)
                 gui.monitor.setCursorPos(3,3+i)
                 gui.monitor.setTextColor(contentColors[i])
@@ -2021,7 +2026,7 @@ function gui.draw_title_content(content, contentColors)
                     gui.monitor.setBackgroundColor(colors.black)
                     gui.monitor.write(' ')
                 end
-            elseif gui.checkIfTableContains({'turbineToggle', 'inductorToggle', 'turbineSpeedToggle', 'powerToggle', 'reactorToggle', 'tempToggle', 'controlRodsToggle', 'vaporToggle',}, content[math.floor(i+(#content-(gui.height-5))*gui.settings['mouseWheel'])]) then
+            elseif gui.checkIfTableContains({'turbineToggle', 'inductorToggle', 'turbineEfficiencyToggle', 'turbineSpeedToggle', 'powerToggle', 'reactorToggle', 'tempToggle', 'controlRodsToggle', 'vaporToggle',}, content[math.floor(i+(#content-(gui.height-5))*gui.settings['mouseWheel'])]) then
             -- elseif content[math.floor(i+(#content-(gui.height-5))*gui.settings['mouseWheel'])] == 'Power' or content[math.floor(i+(#content-(gui.height-5))*gui.settings['mouseWheel'])] == 'Vapor' then
                 gui.monitor.setBackgroundColor(colors.black)
                 gui.monitor.setCursorPos(3,3+i)

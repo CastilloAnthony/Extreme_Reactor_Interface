@@ -24,7 +24,7 @@ interface.automations = {
     ['vaporToggle'] = true,
     ['tempToggle'] = true,
     ['controlRodsToggle'] = true,
-    ['turbineSpeedToggle'] = true,
+    ['turbineSpeedToggle'] = false,
     ['turbineEfficiencyToggle'] = true,
     ['powerMin'] = 10,
     ['powerMax'] = 90,
@@ -610,6 +610,7 @@ function interface.checkMessages(event, side, channel, replyChannel, message, di
                                 if gui.checkIfTableContains({
                                     'turbineToggle', 
                                     'inductorToggle', 
+                                    'turbineEfficiencyToggle',
                                     'turbineSpeedToggle',
                                     'powerToggle', 
                                     'reactorToggle',
@@ -618,8 +619,18 @@ function interface.checkMessages(event, side, channel, replyChannel, message, di
                                     'vaporToggle',
                                 }, decryptedMsg['data']) then
                                     if gui.snapshot['automations'][decryptedMsg['data']] then
+                                        if decryptedMsg['data'] == 'turbineEfficiencyToggle' then
+                                            interface.automations['turbineSpeedToggle'] = true
+                                        elseif decryptedMsg['data'] == 'turbineSpeedToggle' then
+                                            interface.automations['turbineEfficiencyToggle'] = true
+                                        end
                                         interface.automations[decryptedMsg['data']] = false
                                     else
+                                        if decryptedMsg['data'] == 'turbineEfficiencyToggle' then
+                                            interface.automations['turbineSpeedToggle'] = false
+                                        elseif decryptedMsg['data'] == 'turbineSpeedToggle' then
+                                            interface.automations['turbineEfficiencyToggle'] = false
+                                        end
                                         interface.automations[decryptedMsg['data']] = true
                                     end
                                     interface.writeAutomations()
@@ -929,6 +940,7 @@ function interface.clickedButton(event, button, x, y, arg4, arg5)
                         table.insert(positionTable, '----- Turbine -----')
                         table.insert(positionTable, 'turbineToggle')
                         table.insert(positionTable, 'inductorToggle')
+                        table.insert(positionTable, 'turbineEfficiencyToggle')
                         table.insert(positionTable, 'turbineSpeedToggle')
                         table.insert(positionTable, 'turbineSpeedTarget')
                         table.insert(positionTable, '      buttons      ')
@@ -984,12 +996,22 @@ function interface.clickedButton(event, button, x, y, arg4, arg5)
                             end
                         end
                         interface.writeAutomations()
-                    elseif gui.checkIfTableContains({'turbineToggle', 'inductorToggle', 'turbineSpeedToggle', 'powerToggle', 'reactorToggle', 'controlRodsToggle', 'tempToggle', 'vaporToggle', 'powerToggle'}, positionTable[(y-2)+math.floor((gui.settings['scrollAbleLines']*gui.settings['mouseWheel']))]) then
+                    elseif gui.checkIfTableContains({'turbineToggle', 'inductorToggle', 'turbineEfficiencyToggle', 'turbineSpeedToggle', 'powerToggle', 'reactorToggle', 'controlRodsToggle', 'tempToggle', 'vaporToggle', 'powerToggle'}, positionTable[(y-2)+math.floor((gui.settings['scrollAbleLines']*gui.settings['mouseWheel']))]) then
                         if x>=1+gui.width*gui.widthFactor and x<=1+gui.width*gui.widthFactor+5 then
                             if interface.automations[positionTable[(y-2)+math.floor((gui.settings['scrollAbleLines']*gui.settings['mouseWheel']))]] then
                                 interface.automations[positionTable[(y-2)+math.floor((gui.settings['scrollAbleLines']*gui.settings['mouseWheel']))]] = false
+                                if positionTable[(y-2)+math.floor((gui.settings['scrollAbleLines']*gui.settings['mouseWheel']))] == 'turbineEfficiencyToggle' then
+                                    interface.automations['turbineSpeedToggle'] = true
+                                elseif positionTable[(y-2)+math.floor((gui.settings['scrollAbleLines']*gui.settings['mouseWheel']))] == 'turbineSpeedToggle' then
+                                    interface.automations['turbineEfficiencyToggle'] = true
+                                end
                             else
                                 interface.automations[positionTable[(y-2)+math.floor((gui.settings['scrollAbleLines']*gui.settings['mouseWheel']))]] = true
+                                if positionTable[(y-2)+math.floor((gui.settings['scrollAbleLines']*gui.settings['mouseWheel']))] == 'turbineEfficiencyToggle' then
+                                    interface.automations['turbineSpeedToggle'] = false
+                                elseif positionTable[(y-2)+math.floor((gui.settings['scrollAbleLines']*gui.settings['mouseWheel']))] == 'turbineSpeedToggle' then
+                                    interface.automations['turbineEfficiencyToggle'] = false
+                                end
                             end
                             interface.writeAutomations()
                         end
@@ -1082,7 +1104,7 @@ function interface.writeAutomations()
             ['vaporToggle'] = true,
             ['tempToggle'] = true,
             ['controlRodsToggle'] = true,
-            ['turbineSpeedToggle'] = true,
+            ['turbineSpeedToggle'] = false,
             ['turbineEfficiencyToggle'] = true,
             ['powerMin'] = 10,
             ['powerMax'] = 90,
@@ -1207,6 +1229,7 @@ function interface.manageAutomations() -- Run in Parallel
                 else
                     if gui.snapshot['turbine']['rotorInfo']['rotorSpeed'] < interface.automations['turbineSpeedTarget']-interface.automations['turbineSpeedTarget']*0.1 then
                         interface.turbine.setActive(true)
+                        interface.turbine.setFluidFlowRateMax(math.floor(gui.snapshot['turbine']['rotorInfo']['bladeQuantity']*25))
                     end
                 end
             end
@@ -1214,10 +1237,12 @@ function interface.manageAutomations() -- Run in Parallel
                 if interface.snapshot['turbine']['inductorStatus'] then
                     if (gui.snapshot['turbine']['energyInfo']['stored']/gui.snapshot['turbine']['energyInfo']['capacity'])*100 >= interface.automations['powerMax'] then
                         interface.turbine.setInductorEngaged(false)
+                        interface.turbine.setFluidFlowRateMax(0)
                     end
                 else
                     if (gui.snapshot['turbine']['energyInfo']['stored']/gui.snapshot['turbine']['energyInfo']['capacity'])*100 <= interface.automations['powerMin'] then
                         interface.turbine.setInductorEngaged(true)
+                        interface.turbine.setFluidFlowRateMax(math.floor(gui.snapshot['turbine']['rotorInfo']['bladeQuantity']*25))
                     end
                 end
             end
@@ -1228,11 +1253,9 @@ function interface.manageAutomations() -- Run in Parallel
                     elseif gui.snapshot['turbine']['rotorInfo']['rotorSpeed'] > interface.automations['turbineSpeedTarget']+5 then
                         interface.turbine.setFluidFlowRateMax(gui.snapshot['turbine']['fluidInfo']['flowRate']-1-math.floor((gui.snapshot['turbine']['rotorInfo']['rotorSpeed']-interface.automations['turbineSpeedTarget'])/100))
                     end
-                else
+                elseif interface.automations['turbineEfficiencyToggle'] then
                     if gui.snapshot['turbine']['rotorInfo']['bladeEfficiency'] < 100 then
-                        interface.turbine.setFluidFlowRateMax(gui.snapshot['turbine']['fluidInfo']['flowRate']-math.floor(1*(100/gui.snapshot['turbine']['rotorInfo']['bladeEfficiency'])))
-                    else
-                        interface.turbine.setFluidFlowRateMax(gui.snapshot['turbine']['fluidInfo']['flowRate']+math.floor(1*(100/gui.snapshot['turbine']['rotorInfo']['bladeEfficiency'])))
+                        interface.turbine.setFluidFlowRateMax(math.floor(gui.snapshot['turbine']['rotorInfo']['bladeQuantity']*25))
                     end
                 end
                 interface.automations['lastTimeTurbineSpeed'] = os.epoch('local')
