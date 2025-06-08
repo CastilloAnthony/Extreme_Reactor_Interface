@@ -23,6 +23,7 @@ A user interface program for the Minecraft mod ComputerCraft used to interface t
     - Clients must manually remove "er_interface/keys/server.key" in order to be eligible for re-authorization
 - Updater script
     - run "er_interface/updater" to update the program
+    - Note that this will reset all settings back to their default values for compatibility reasons
 
 ## Installation
 To install onto a ComputerCraft device type this into the console: 
@@ -34,6 +35,9 @@ To install onto a ComputerCraft device type this into the console:
 For first time users, you will have to wait a couple of minutes while cryptography parameters are generated.
 
 ### Todo
+- Homepage
+    - Describes certain aspects of the connected reactor/turbine
+    - Their variant, statuses
 - Add non-default help text to all pages
     - Turbine Summary
     - Reactor Summary
