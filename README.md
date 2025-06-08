@@ -35,9 +35,6 @@ To install onto a ComputerCraft device type this into the console:
 For first time users, you will have to wait a couple of minutes while cryptography parameters are generated.
 
 ### Todo
-- Homepage
-    - Describes certain aspects of the connected reactor/turbine
-    - Their variant, statuses
 - Add non-default help text to all pages
     - Turbine Summary
     - Reactor Summary
@@ -49,6 +46,10 @@ For first time users, you will have to wait a couple of minutes while cryptograp
     - Reactor Coolant Stats
     - Graphs
     - Histograms
+- Modifiy mouse wheel to increment line by line
+- Homepage
+    - Describes certain aspects of the connected reactor/turbine
+    - Their variant, statuses
 - Add additional information to pages using the snapshot history information.
     - Energy per second, etc.
 - Modify Graphs page
