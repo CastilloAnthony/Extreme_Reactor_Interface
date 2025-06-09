@@ -1,20 +1,21 @@
 local fileDir = '/er_interface/'
-local webLinkPrefix = 'https://raw.githubusercontent.com/CastilloAnthony/Extreme_Reactor_Interface/refs/heads/main/er_interface/'
+local webLinkPrefix = 'https://raw.githubusercontent.com/CastilloAnthony/Extreme_Reactor_Interface/refs/heads/main/'
 local files = {
   {['fileName'] = 'updater', ['webLink'] = 'er_interface/updater'},
-  {['fileName'] = 'README.md', ['webLink'] = 'er_interface/README.md'},
+  -- {['fileName'] = 'README.md', ['webLink'] = 'er_interface/README.md'},
   {['fileName'] = 'er_interface.lua', ['webLink'] = 'er_interface/er_interface.lua'},
   {['fileName'] = 'cryptography.lua', ['webLink'] = 'er_interface/cryptography.lua'},
   {['fileName'] = 'gui.lua', ['webLink'] = 'er_interface/gui.lua'},
 
   -- Help Documents
-  {['fileName'] = 'docs/help/default.txt', ['webLink'] = 'docs/help/default.txt'},
-  {['fileName'] = 'docs/help/Automations.txt', ['webLink'] = 'Automations.txt'},
-  {['fileName'] = 'docs/help/Connection Info.txt', ['webLink'] = 'docs/help/Connection%20Info.txt'},
-  {['fileName'] = 'docs/help/Rod Statistics Info.txt', ['webLink'] = 'Rod%20Statistics%20Info.txt'},
-  {['fileName'] = 'docs/help/Histograms.txt', ['webLink'] = 'docs/help/Histograms.txt'},
-  {['fileName'] = 'docs/help/Manage Clients.txt', ['webLink'] = 'docs/help/Manage%20Clients.txt'},
+  {['fileName'] = 'docs/help/default.txt', ['webLink'] = 'er_interface/docs/help/default.txt'},
+  {['fileName'] = 'docs/help/Automations.txt', ['webLink'] = 'er_interface/docs/help/Automations.txt'},
+  {['fileName'] = 'docs/help/Connection Info.txt', ['webLink'] = 'er_interface/docs/help/Connection%20Info.txt'},
+  {['fileName'] = 'docs/help/Rod Statistics Info.txt', ['webLink'] = 'er_interface/docs/help/Rod%20Statistics%20Info.txt'},
+  {['fileName'] = 'docs/help/Histograms.txt', ['webLink'] = 'er_interface/docs/help/Histograms.txt'},
+  {['fileName'] = 'docs/help/Manage Clients.txt', ['webLink'] = 'er_interface/docs/help/Manage%20Clients.txt'},
 }
+shell.run('wget '..webLinkPrefix..'README.md '..fileDir..'README.md')
 for k, v in pairs(files) do
   if fs.exists(fileDir..v['fileName']) then
     shell.run('rm '..fileDir..v['fileName'])
