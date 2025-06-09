@@ -331,12 +331,12 @@ function interface.generateSnapshots() -- Run in parallel
         if interface.reactor ~= false then
             interface.snapshot['reactor'] = interface.reactorSnapshot()
         else
-            interface.snapshot['reactor']['status'] = nil
+            interface.snapshot['reactor'] = {['status'] = nil,}
         end
         if interface.turbine ~= false then
             interface.snapshot['turbine'] = interface.turbineSnapshot()
         else
-            interface.snapshot['turbine']['status'] = nil
+            interface.snapshot['turbine'] = {['status'] = nil,}
         end
         gui.updateSnapshot(interface.snapshot)
         os.sleep(interface.fps)
