@@ -99,8 +99,14 @@ function gui.writeSettings(settings)
             ['scrollAbleLines'] = 0,
             ['maxHistogramMinutes'] = 5,
             ['histogramMinutes'] = 1,
-            ['histogramTarget'] = 'turbinePower'
         }
+        if gui.snapshot['turbine']['status'] ~= nil then
+            gui.settings['histogramTarget'] = 'turbinePower'
+        elseif gui.snapshot['reactor']['status'] ~= nil then
+            gui.settings['histogramTarget'] = 'reactorPower'
+        else
+            gui.settings['histogramTarget'] = nil
+        end
     end
     local file = fs.open('./er_interface/settings.cfg', 'w')
     file.write(textutils.serialize(gui.settings))
