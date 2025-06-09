@@ -45,7 +45,6 @@ For first time users, you will have to wait a couple of minutes while cryptograp
     - Reactor Vapor Stats
     - Reactor Coolant Stats
     - Graphs
-    - Histograms
 - Modifiy mouse wheel to increment line by line
 - Homepage
     - Describes certain aspects of the connected reactor/turbine
