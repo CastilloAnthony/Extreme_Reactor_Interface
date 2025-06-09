@@ -33,7 +33,7 @@ else
     if fs.exists(fileDir..v['fileName']) then
       shell.run('rm '..fileDir..v['fileName'])
     end
-    shell.run('wget 'webLinkPrefix..v['webLink']..' '..fileDir..v['fileName'])
+    shell.run('wget '..webLinkPrefix..v['webLink']..' '..fileDir..v['fileName'])
   end
 
   if fs.exists(fileDir..'interface.lua') then

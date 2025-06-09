@@ -20,7 +20,7 @@ for k, v in pairs(files) do
   if fs.exists(fileDir..v['fileName']) then
     shell.run('rm '..fileDir..v['fileName'])
   end
-  shell.run('wget 'webLinkPrefix..v['webLink']..' '..fileDir..v['fileName'])
+  shell.run('wget '..webLinkPrefix..v['webLink']..' '..fileDir..v['fileName'])
 end
 
 term.write('Is this device a')
