@@ -452,7 +452,7 @@ end
 
 function gui.help_page()
     gui.readSettings()
-    local folderDir = './er_interface/docs/help/'
+    local folderDir = './er_interface/docs/'
     gui.helpWindow.setVisible(false)
     -- if gui.helpWindow == false then
     --     local width, height = gui.monitor.getSize()
@@ -473,15 +473,18 @@ function gui.help_page()
     gui.helpWindow.setCursorPos(gui.settings['helpWindowWidth'], 1)
     gui.helpWindow.setBackgroundColor(colors.red)
     gui.helpWindow.write('X')
-    local helpText = ''
-    if not fs.exists(folderDir..gui.help_filenames(gui.getPageTitle(gui.settings['currentPage']))..'.txt') then
-        local file = fs.open(folderDir..'default.txt', 'r')
-        helpText = ccStrings.wrap(file.readAll(), gui.settings['helpWindowWidth'])
+    local jsonTable = {}
+    -- if not fs.exists(folderDir..gui.getPageTitle(gui.settings['currentPage'])..'.txt') then
+    if fs.exists(folderDir..'help.json') then
+        local file = fs.open(folderDir..'help.json', 'r')
+        jsonTable = textutils.unserializeJSON(file.readAll())
         file.close()
+    end
+    local helpText = {}
+    if jsonTable[gui.getPageTitle(gui.settings['currentPage'])] ~= nil then
+        helpText = ccStrings.wrap(jsonTable[gui.getPageTitle(gui.settings['currentPage'])], gui.settings['helpWindowWidth'])
     else
-        local file = fs.open(folderDir..gui.help_filenames(gui.getPageTitle(gui.settings['currentPage']))..'.txt', 'r')
-        helpText = ccStrings.wrap(file.readAll(), gui.settings['helpWindowWidth'])
-        file.close()
+        helpText = ccStrings.wrap(jsonTable['default'], gui.settings['helpWindowWidth']) 
     end
     -- gui.log(textutils.serialize(helpText))
     gui.helpWindow.setBackgroundColor(colors.blue)
