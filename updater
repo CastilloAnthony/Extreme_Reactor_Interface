@@ -61,20 +61,20 @@ else
     term.write('server? (y/n) ')
     userInput = read()
     if userInput == 'y' then
-      shell.run('wget '..webLinkPrefix..'interface.lua '..fileDir..'interface.lua')
+      shell.run('wget '..webLinkPrefix..'er_interface/interface.lua '..fileDir..'interface.lua')
       if fs.exists(fileDir..'docs/help/Manage Clients.txt') then
         shell.run('rm '..fileDir..'docs/help/Manage Clients.txt')
       end
-      shell.run('wget '..webLinkPrefix..'docs/help/Manage%20Clients.txt '..fileDir..'docs/help/Manage Clients.txt')
+      shell.run('wget '..webLinkPrefix..'er_interface/docs/help/Manage%20Clients.txt '..fileDir..'docs/help/Manage Clients.txt')
       if fs.exists(fileDir..'settings_automations.cfg') then
         shell.run('rm '..fileDir..'settings_automations.cfg')
       end
     else
-      shell.run('wget '..webLinkPrefix..'remote.lua '..fileDir..'remote.lua')
+      shell.run('wget '..webLinkPrefix..'er_interface/remote.lua '..fileDir..'remote.lua')
       if fs.exists(fileDir..'docs/help/Connection Info.txt') then
         shell.run('rm '..fileDir..'docs/help/Connection Info.txt')
       end
-      shell.run('wget '..webLinkPrefix..'docs/help/Connection%20Info.txt '..fileDir..'docs/help/Connection Info.txt')
+      shell.run('wget '..webLinkPrefix..'er_interface/docs/help/Connection%20Info.txt '..fileDir..'docs/help/Connection Info.txt')
     end
   end
   if fs.exists(fileDir..'settings.cfg') then

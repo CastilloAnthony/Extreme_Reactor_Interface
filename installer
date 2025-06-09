@@ -30,11 +30,11 @@ term.setCursorPos(1,y)
 term.write('server? (y/n) ')
 userInput = read()
 if userInput == 'y' then
-  shell.run('wget '..webLinkPrefix..'interface.lua '..fileDir..'interface.lua')
-  shell.run('wget '..webLinkPrefix..'docs/help/Manage%20Clients.txt '..fileDir..'docs/help/Manage Clients.txt')
+  shell.run('wget '..webLinkPrefix..'er_interface/interface.lua '..fileDir..'interface.lua')
+  shell.run('wget '..webLinkPrefix..'er_interface/docs/help/Manage%20Clients.txt '..fileDir..'docs/help/Manage Clients.txt')
 else
-  shell.run('wget '..webLinkPrefix..'remote.lua '..fileDir..'remote.lua')
-  shell.run('wget '..webLinkPrefix..'docs/help/Connection%20Info.txt '..fileDir..'docs/help/Connection Info.txt')
+  shell.run('wget '..webLinkPrefix..'er_interface/remote.lua '..fileDir..'remote.lua')
+  shell.run('wget '..webLinkPrefix..'er_interface/docs/help/Connection%20Info.txt '..fileDir..'docs/help/Connection Info.txt')
 end
 shell.run('wget '..webLinkPrefix..'startup /startup')
 if fs.exists('/installer') then
