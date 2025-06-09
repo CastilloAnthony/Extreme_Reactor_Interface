@@ -8,7 +8,7 @@ file.close()
 local file = fs.open(fileDir..'tempUpdater', 'r')
 webUpdater = file.readAll()
 file.close()
-if localUpdater == webUpdater then
+if localUpdater ~= webUpdater then
   shell.run('rm '..fileDir..'updater')
   shell.run('mv '..fileDir..'tempUpdater '..fileDir..'updater')
   shell.run(fileDir..'updater')
@@ -59,6 +59,7 @@ else
       end
     else
       shell.run('wget '..webLinkPrefix..'er_interface/remote.lua '..fileDir..'remote.lua')
+    end
   end
   if fs.exists(fileDir..'settings.cfg') then
     shell.run('rm '..fileDir..'settings.cfg')
