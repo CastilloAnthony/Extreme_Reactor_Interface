@@ -499,7 +499,9 @@ function remote.clickedButton(event, button, x, y, arg4, arg5)
                 if y == 4 then
                     if x == 2 then
                         if gui.snapshot['turbine']['status'] ~= nil and gui.snapshot['reactor']['status'] ~= nil then
-                            if gui.settings['histogramTarget'] == 'turbinePower' then
+                            if gui.settings['histogramTarget'] == nil then
+                                gui.settings['histogramTarget'] = 'turbinePower'
+                            elseif gui.settings['histogramTarget'] == 'turbinePower' then
                                 gui.settings['histogramTarget'] = 'reactorCoolant'
                             elseif gui.settings['histogramTarget'] == 'turbineVapor' then
                                 gui.settings['histogramTarget'] = 'turbinePower'
@@ -513,7 +515,9 @@ function remote.clickedButton(event, button, x, y, arg4, arg5)
                                 gui.settings['histogramTarget'] = 'reactorVapor'
                             end
                         elseif gui.settings['turbine']['status'] ~= nil then
-                            if gui.settings['histogramTarget'] == 'turbinePower' then
+                            if gui.settings['histogramTarget'] == nil then
+                                gui.settings['histogramTarget'] = 'turbinePower'
+                            elseif gui.settings['histogramTarget'] == 'turbinePower' then
                                 gui.settings['histogramTarget'] = 'turbineCoolant'
                             elseif gui.settings['histogramTarget'] == 'turbineVapor' then
                                 gui.settings['histogramTarget'] = 'turbinePower'
@@ -522,13 +526,17 @@ function remote.clickedButton(event, button, x, y, arg4, arg5)
                             end
                         elseif gui.snapshot['reactor']['status'] ~= nil then
                             if not gui.snapshot['reactor']['activelyCooled'] then
-                                if gui.settings['histogramTarget'] == 'reactorFuel' then
+                                if gui.settings['histogramTarget'] == nil then
+                                    gui.settings['histogramTarget'] = 'reactorFuel'
+                                elseif gui.settings['histogramTarget'] == 'reactorFuel' then
                                     gui.settings['histogramTarget'] = 'reactorPower'
                                 elseif gui.settings['histogramTarget'] == 'reactorPower' then
                                     gui.settings['histogramTarget'] = 'reactorFuel'
                                 end
                             else
-                                if gui.settings['histogramTarget'] == 'reactorFuel' then
+                                if gui.settings['histogramTarget'] == nil then
+                                    gui.settings['histogramTarget'] = 'reactorFuel'
+                                elseif gui.settings['histogramTarget'] == 'reactorFuel' then
                                     gui.settings['histogramTarget'] = 'reactorCoolant'
                                 elseif gui.settings['histogramTarget'] == 'reactorVapor' then
                                     gui.settings['histogramTarget'] = 'reactorFuel'
@@ -539,7 +547,9 @@ function remote.clickedButton(event, button, x, y, arg4, arg5)
                         end
                     elseif x == gui.width-1 then
                         if gui.snapshot['turbine']['status'] ~= nil and gui.snapshot['reactor']['status'] ~= nil then
-                            if gui.settings['histogramTarget'] == 'turbinePower' then
+                             if gui.settings['histogramTarget'] == nil then
+                                gui.settings['histogramTarget'] = 'turbinePower'
+                            elseif gui.settings['histogramTarget'] == 'turbinePower' then
                                 gui.settings['histogramTarget'] = 'turbineVapor'
                             elseif gui.settings['histogramTarget'] == 'turbineVapor' then
                                 gui.settings['histogramTarget'] = 'turbineCoolant'
@@ -553,7 +563,9 @@ function remote.clickedButton(event, button, x, y, arg4, arg5)
                                 gui.settings['histogramTarget'] = 'turbinePower'
                             end
                         elseif gui.snapshot['turbine']['status'] ~= nil then
-                            if gui.settings['histogramTarget'] == 'turbinePower' then
+                            if gui.settings['histogramTarget'] == nil then
+                                gui.settings['histogramTarget'] = 'turbinePower'    
+                            elseif gui.settings['histogramTarget'] == 'turbinePower' then
                                 gui.settings['histogramTarget'] = 'turbineVapor'
                             elseif gui.settings['histogramTarget'] == 'turbineVapor' then
                                 gui.settings['histogramTarget'] = 'turbineCoolant'
@@ -562,13 +574,17 @@ function remote.clickedButton(event, button, x, y, arg4, arg5)
                             end
                         elseif gui.snapshot['reactor']['status'] ~= nil then
                             if not gui.snapshot['reactor']['activelyCooled'] then
-                                if gui.settings['histogramTarget'] == 'reactorFuel' then
+                                if gui.settings['histogramTarget'] == nil then
+                                    gui.settings['histogramTarget'] = 'reactorFuel'
+                                elseif gui.settings['histogramTarget'] == 'reactorFuel' then
                                     gui.settings['histogramTarget'] = 'reactorPower'
                                 elseif gui.settings['histogramTarget'] == 'reactorPower' then
                                     gui.settings['histogramTarget'] = 'reactorFuel'
                                 end
                             else
-                                if gui.settings['histogramTarget'] == 'reactorFuel' then
+                                if gui.settings['histogramTarget'] == nil then
+                                    gui.settings['histogramTarget'] = 'reactorFuel'
+                                elseif gui.settings['histogramTarget'] == 'reactorFuel' then
                                     gui.settings['histogramTarget'] = 'reactorVapor'
                                 elseif gui.settings['histogramTarget'] == 'reactorVapor' then
                                     gui.settings['histogramTarget'] = 'reactorCoolant'
