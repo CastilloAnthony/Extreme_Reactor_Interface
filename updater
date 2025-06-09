@@ -1,48 +1,107 @@
-shell.run('rm ./er_interface/docs/help/default.txt')
-shell.run('wget https://raw.githubusercontent.com/CastilloAnthony/Extreme_Reactor_Interface/refs/heads/main/docs/help/default.txt ./er_interface/docs/help/default.txt')
-shell.run('rm ./er_interface/docs/help/Automations.txt')
-shell.run('wget https://raw.githubusercontent.com/CastilloAnthony/Extreme_Reactor_Interface/refs/heads/main/docs/help/Automations.txt ./er_interface/docs/help/Automations.txt')
-shell.run('rm ./er_interface/docs/help/Rod Statistics Info.txt')
-shell.run('wget https://raw.githubusercontent.com/CastilloAnthony/Extreme_Reactor_Interface/refs/heads/main/docs/help/Rod%20Statistics%20Info.txt ./er_interface/docs/help/Rod Statistics Info.txt')
-
-shell.run('rm ./er_interface/README.md')
-shell.run('wget https://raw.githubusercontent.com/CastilloAnthony/Extreme_Reactor_Interface/refs/heads/main/README.md ./er_interface/README.md')
-shell.run('rm ./er_interface/gui.lua')
-shell.run('wget https://raw.githubusercontent.com/CastilloAnthony/Extreme_Reactor_Interface/refs/heads/main/gui.lua ./er_interface/gui.lua')
-shell.run('rm ./er_interface/er_interface.lua')
-shell.run('wget https://raw.githubusercontent.com/CastilloAnthony/Extreme_Reactor_Interface/refs/heads/main/er_interface.lua ./er_interface/er_interface.lua')
-shell.run('rm ./er_interface/cryptography.lua')
-shell.run('wget https://raw.githubusercontent.com/CastilloAnthony/Extreme_Reactor_Interface/refs/heads/main/cryptography.lua ./er_interface/cryptography.lua')
-shell.run('rm ./er_interface/updater')
-shell.run('wget https://raw.githubusercontent.com/CastilloAnthony/Extreme_Reactor_Interface/refs/heads/main/updater ./er_interface/updater')
-
-if fs.exists('./er_interface/interface.lua') then
-  shell.run('rm ./er_interface/interface.lua')
-  shell.run('wget https://raw.githubusercontent.com/CastilloAnthony/Extreme_Reactor_Interface/refs/heads/main/interface.lua ./er_interface/interface.lua')
-elseif fs.exists('./er_interface/remote.lua') then
-  shell.run('rm ./er_interface/remote.lua')
-  shell.run('wget https://raw.githubusercontent.com/CastilloAnthony/Extreme_Reactor_Interface/refs/heads/main/remote.lua ./er_interface/remote.lua')
+local fileDir = '/er_interface/'
+local webLinkPrefix = 'https://raw.githubusercontent.com/CastilloAnthony/Extreme_Reactor_Interface/refs/heads/main/er_interface/'
+local localUpdater, webUpdater = nil, nil
+shell.run('wget '..webLinkPrefix..'updater '..fileDir..'tempUpdater')
+local file = fs.open(fileDir..'updater', 'r')
+localUpdater = file.readAll()
+file.close()
+local file = fs.open(fileDir..'tempUpdater', 'r')
+webUpdater = file.readAll()
+file.close()
+if localUpdater == webUpdater then
+  shell.run('rm '..fileDir..'updater')
+  shell.run('mv '..fileDir..'tempUpdater '..fileDir..'updater')
+  shell.run(fileDir..'updater')
 else
-  term.write('Is this device a')
-  term.scroll(1)
-  _, y = term.getSize()
-  term.setCursorPos(1,y)
-  term.write('server? (y/n) ')
-  userInput = read()
-  if userInput == 'n' then
-    shell.run('rm ./er_interface/remote.lua')
-    shell.run('wget https://raw.githubusercontent.com/CastilloAnthony/Extreme_Reactor_Interface/refs/heads/main/remote.lua ./er_interface/remote.lua')
-    shell.run('rm ./er_interface/docs/help/Connection Info.txt')
-    shell.run('wget https://raw.githubusercontent.com/CastilloAnthony/Extreme_Reactor_Interface/refs/heads/main/docs/help/Connection%20Info.txt ./er_interface/docs/help/Connection Info.txt')
-  else
-    shell.run('rm ./er_interface/interface.lua')
-    shell.run('wget https://raw.githubusercontent.com/CastilloAnthony/Extreme_Reactor_Interface/refs/heads/main/interface.lua ./er_interface/interface.lua')
-    shell.run('rm ./er_interface/docs/help/Manage Clients.txt')
-    shell.run('wget https://raw.githubusercontent.com/CastilloAnthony/Extreme_Reactor_Interface/refs/heads/main/docs/help/Manage%20Clients.txt ./er_interface/docs/help/Manage Clients.txt')
-    shell.run('rm ./er_interface/settings_automations.cfg')
+  local files = {
+    -- {['fileName'] = 'updater', ['webLink'] = 'er_interface/updater'},
+    {['fileName'] = 'README.md', ['webLink'] = 'er_interface/README.md'},
+    {['fileName'] = 'er_interface.lua', ['webLink'] = 'er_interface/er_interface.lua'},
+    {['fileName'] = 'cryptography.lua', ['webLink'] = 'er_interface/cryptography.lua'},
+    {['fileName'] = 'gui.lua', ['webLink'] = 'er_interface/gui.lua'},
+
+    -- Help Documents
+    {['fileName'] = 'docs/help/default.txt', ['webLink'] = 'docs/help/default.txt'},
+    {['fileName'] = 'docs/help/Automations.txt', ['webLink'] = 'Automations.txt'},
+    {['fileName'] = 'docs/help/Connection Info.txt', ['webLink'] = 'docs/help/Connection%20Info.txt'},
+    {['fileName'] = 'docs/help/Rod Statistics Info.txt', ['webLink'] = 'Rod%20Statistics%20Info.txt'},
+    {['fileName'] = 'docs/help/Histograms.txt', ['webLink'] = 'docs/help/Histograms.txt'},
+    {['fileName'] = 'docs/help/Manage Clients.txt', ['webLink'] = 'docs/help/Manage%20Clients.txt'},
+  }
+  for k, v in pairs(files) do
+    if fs.exists(fileDir..v['fileName']) then
+      shell.run('rm '..fileDir..v['fileName'])
+    end
+    shell.run('wget '..fileDir..v['fileName'])
   end
+
+  if fs.exists(fileDir..'interface.lua') then
+    shell.run('rm '..fileDir..'interface.lua')
+    shell.run('wget '..webLinkPrefix..'interface.lua '..fileDir..'interface.lua')
+    if fs.exists(fileDir..'docs/help/Manage Clients.txt') then
+      shell.run('rm '..fileDir..'docs/help/Manage Clients.txt')
+    end
+    shell.run('wget '..webLinkPrefix..'docs/help/Manage%20Clients.txt '..fileDir..'docs/help/Manage Clients.txt')
+    if fs.exists(fileDir..'settings_automations.cfg') then
+      shell.run('rm '..fileDir..'settings_automations.cfg')
+    end
+  elseif fs.exists(fileDir..'remote.lua') then
+    shell.run('rm '..fileDir..'remote.lua')
+    shell.run('wget '..webLinkPrefix..'remote.lua '..fileDir..'remote.lua')
+    if fs.exists(fileDir..'docs/help/Connection Info.txt') then
+      shell.run('rm '..fileDir..'docs/help/Connection Info.txt')
+    end
+    shell.run('wget '..webLinkPrefix..'docs/help/Connection%20Info.txt '..fileDir..'docs/help/Connection Info.txt')
+  else
+    term.write('Is this device a')
+    term.scroll(1)
+    _, y = term.getSize()
+    term.setCursorPos(1,y)
+    term.write('server? (y/n) ')
+    userInput = read()
+    if userInput == 'y' then
+      shell.run('wget '..webLinkPrefix..'interface.lua '..fileDir..'interface.lua')
+      if fs.exists(fileDir..'docs/help/Manage Clients.txt') then
+        shell.run('rm '..fileDir..'docs/help/Manage Clients.txt')
+      end
+      shell.run('wget '..webLinkPrefix..'docs/help/Manage%20Clients.txt '..fileDir..'docs/help/Manage Clients.txt')
+      if fs.exists(fileDir..'settings_automations.cfg') then
+        shell.run('rm '..fileDir..'settings_automations.cfg')
+      end
+    else
+      shell.run('wget '..webLinkPrefix..'remote.lua '..fileDir..'remote.lua')
+      if fs.exists(fileDir..'docs/help/Connection Info.txt') then
+        shell.run('rm '..fileDir..'docs/help/Connection Info.txt')
+      end
+      shell.run('wget '..webLinkPrefix..'docs/help/Connection%20Info.txt '..fileDir..'docs/help/Connection Info.txt')
+    end
+  end
+  if fs.exists(fileDir..'settings.cfg') then
+    shell.run('rm '..fileDir..'settings.cfg')
+  end
+  if fs.exists('/startup') then
+    shell.run('rm /startup')
+  end
+  shell.run('wget '..webLinkPrefix..'startup /startup')
+  shell.run('reboot')
 end
-shell.run('rm ./er_interface/settings.cfg')
-shell.run('rm /startup')
-shell.run('wget https://raw.githubusercontent.com/CastilloAnthony/Extreme_Reactor_Interface/refs/heads/main/startup /startup')
-shell.run('reboot')
+
+
+
+-- shell.run('rm ./er_interface/updater')
+-- shell.run('wget https://raw.githubusercontent.com/CastilloAnthony/Extreme_Reactor_Interface/refs/heads/main/updater ./er_interface/updater')
+-- shell.run('rm ./er_interface/docs/help/default.txt')
+-- shell.run('wget https://raw.githubusercontent.com/CastilloAnthony/Extreme_Reactor_Interface/refs/heads/main/docs/help/default.txt ./er_interface/docs/help/default.txt')
+-- shell.run('rm ./er_interface/docs/help/Automations.txt')
+-- shell.run('wget https://raw.githubusercontent.com/CastilloAnthony/Extreme_Reactor_Interface/refs/heads/main/docs/help/Automations.txt ./er_interface/docs/help/Automations.txt')
+-- shell.run('rm ./er_interface/docs/help/Rod Statistics Info.txt')
+-- shell.run('wget https://raw.githubusercontent.com/CastilloAnthony/Extreme_Reactor_Interface/refs/heads/main/docs/help/Rod%20Statistics%20Info.txt ./er_interface/docs/help/Rod Statistics Info.txt')
+
+-- shell.run('rm ./er_interface/README.md')
+-- shell.run('wget https://raw.githubusercontent.com/CastilloAnthony/Extreme_Reactor_Interface/refs/heads/main/README.md ./er_interface/README.md')
+-- shell.run('rm ./er_interface/gui.lua')
+-- shell.run('wget https://raw.githubusercontent.com/CastilloAnthony/Extreme_Reactor_Interface/refs/heads/main/gui.lua ./er_interface/gui.lua')
+-- shell.run('rm ./er_interface/er_interface.lua')
+-- shell.run('wget https://raw.githubusercontent.com/CastilloAnthony/Extreme_Reactor_Interface/refs/heads/main/er_interface.lua ./er_interface/er_interface.lua')
+-- shell.run('rm ./er_interface/cryptography.lua')
+-- shell.run('wget https://raw.githubusercontent.com/CastilloAnthony/Extreme_Reactor_Interface/refs/heads/main/cryptography.lua ./er_interface/cryptography.lua')
