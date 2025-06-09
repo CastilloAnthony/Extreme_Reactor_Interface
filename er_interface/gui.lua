@@ -435,6 +435,21 @@ function gui.formatNum(number)
     return string.format("%.1f%s", scaled, suffix)
 end --end formatNum
 
+function gui.help_filenames(pageTitle)
+    if gui.checkIfTableContains({
+        'Automations',
+        'Histograms'
+    }, pageTitle) then
+        return pageTitle
+    elseif pageTitle == 'Connection Info' then
+        return 'connectionInfo'
+    elseif pageTitle == 'Manage Clients' then
+        return 'manageClients'
+    elseif pageTitle == 'Rod Statistics Info' then
+        return 'rodStatisticsInfo'
+    end
+end
+
 function gui.help_page()
     gui.readSettings()
     local folderDir = './er_interface/docs/help/'
@@ -459,12 +474,12 @@ function gui.help_page()
     gui.helpWindow.setBackgroundColor(colors.red)
     gui.helpWindow.write('X')
     local helpText = ''
-    if not fs.exists(folderDir..gui.getPageTitle(gui.settings['currentPage'])..'.txt') then
+    if not fs.exists(folderDir..gui.help_filenames(gui.getPageTitle(gui.settings['currentPage']))..'.txt') then
         local file = fs.open(folderDir..'default.txt', 'r')
         helpText = ccStrings.wrap(file.readAll(), gui.settings['helpWindowWidth'])
         file.close()
     else
-        local file = fs.open(folderDir..gui.getPageTitle(gui.settings['currentPage'])..'.txt', 'r')
+        local file = fs.open(folderDir..gui.help_filenames(gui.getPageTitle(gui.settings['currentPage']))..'.txt', 'r')
         helpText = ccStrings.wrap(file.readAll(), gui.settings['helpWindowWidth'])
         file.close()
     end
