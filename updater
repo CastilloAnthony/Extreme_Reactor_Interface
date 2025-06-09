@@ -13,6 +13,7 @@ if localUpdater ~= webUpdater then
   shell.run('mv '..fileDir..'tempUpdater '..fileDir..'updater')
   shell.run(fileDir..'updater')
 else
+  shell.run('rm '..fileDir..'tempUpdater')
   local files = {
     -- {['fileName'] = 'updater', ['webLink'] = 'er_interface/updater'},
     -- {['fileName'] = 'README.md', ['webLink'] = 'er_interface/README.md'},
