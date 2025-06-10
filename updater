@@ -40,13 +40,13 @@ else
 
   if fs.exists(fileDir..'interface.lua') then
     shell.run('rm '..fileDir..'interface.lua')
-    shell.run('wget '..webLinkPrefix..'interface.lua '..fileDir..'interface.lua')
+    shell.run('wget '..webLinkPrefix..'er_interface/interface.lua '..fileDir..'interface.lua')
     if fs.exists(fileDir..'settings_automations.cfg') then
       shell.run('rm '..fileDir..'settings_automations.cfg')
     end
   elseif fs.exists(fileDir..'remote.lua') then
     shell.run('rm '..fileDir..'remote.lua')
-    shell.run('wget '..webLinkPrefix..'remote.lua '..fileDir..'remote.lua')
+    shell.run('wget '..webLinkPrefix..'er_interface/remote.lua '..fileDir..'remote.lua')
   else
     term.write('Is this device a')
     term.scroll(1)

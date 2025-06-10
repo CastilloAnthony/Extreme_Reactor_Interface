@@ -1,0 +1,1 @@
+This page displays a list of all clients that have logged into this server. The colors of the rows shows, at a glance, how old a connection is. Clicking on a row will remove the client from the list of authorized clients; this will force the client to have to reauthorize.

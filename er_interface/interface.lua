@@ -812,7 +812,7 @@ function interface.clickedButton(event, button, x, y, arg4, arg5)
                             elseif gui.settings['histogramTarget'] == 'reactorCoolant' then
                                 gui.settings['histogramTarget'] = 'reactorVapor'
                             end
-                        elseif gui.settings['turbine']['status'] ~= nil then
+                        elseif gui.snapshot['turbine']['status'] ~= nil then
                             if gui.settings['histogramTarget'] == nil then
                                 gui.settings['histogramTarget'] = 'turbinePower'
                             elseif gui.settings['histogramTarget'] == 'turbinePower' then

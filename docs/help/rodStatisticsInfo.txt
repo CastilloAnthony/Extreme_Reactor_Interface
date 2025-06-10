@@ -1,0 +1,1 @@
+This page shows a list of all control rods found inside of the connected reactor and allows for manual control over the insertion level of the rods. If the insertion rods are automatically controlled then actions taken here will be overwritten by the automations.

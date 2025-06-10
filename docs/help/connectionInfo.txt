@@ -1,0 +1,1 @@
+This page shows various connection info including this client's name, the server the client is connected to, the latency since the last message from the server, and lastly the timestamp of the most recent snapshot.
